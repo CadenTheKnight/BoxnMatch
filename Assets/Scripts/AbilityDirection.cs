@@ -1,3 +1,5 @@
+using UnityEngine;
+
 public enum AbilityDirection 
 { 
     NORTH = 0,
@@ -19,5 +21,21 @@ public static class DirectionExtensions
         tmpDir %= directionCount;
 
         dir = (AbilityDirection)tmpDir;
+    }
+
+    public static Vector3 GetUnitDirection(this AbilityDirection dir)
+    {
+        switch (dir)
+        {
+            case AbilityDirection.NORTH:
+                return Vector3.up;
+            case AbilityDirection.EAST:
+                return Vector3.right;
+            case AbilityDirection.SOUTH:
+                return Vector3.down;
+            case AbilityDirection.WEST:
+                return Vector3.left;
+        }
+        return Vector3.zero;
     }
 }
