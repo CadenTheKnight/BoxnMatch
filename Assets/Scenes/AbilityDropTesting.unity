@@ -122,6 +122,11 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!212 &1323389717 stripped
+SpriteRenderer:
+  m_CorrespondingSourceObject: {fileID: 804244773507417496, guid: d1d2bc52a55e26a47820c7dfb4f984bd, type: 3}
+  m_PrefabInstance: {fileID: 3163411155548179629}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1675675057
 GameObject:
   m_ObjectHideFlags: 0
@@ -232,7 +237,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3668713479875662316, guid: d1d2bc52a55e26a47820c7dfb4f984bd, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 3.99
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 3668713479875662316, guid: d1d2bc52a55e26a47820c7dfb4f984bd, type: 3}
       propertyPath: m_LocalPosition.z
@@ -267,16 +272,52 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8418875923574218313, guid: d1d2bc52a55e26a47820c7dfb4f984bd, type: 3}
+      propertyPath: r
+      value: 
+      objectReference: {fileID: 1323389717}
+    - target: {fileID: 8418875923574218313, guid: d1d2bc52a55e26a47820c7dfb4f984bd, type: 3}
+      propertyPath: fallSpeed
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8418875923574218313, guid: d1d2bc52a55e26a47820c7dfb4f984bd, type: 3}
+      propertyPath: frequency
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8418875923574218313, guid: d1d2bc52a55e26a47820c7dfb4f984bd, type: 3}
       propertyPath: speedMult
       value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 8418875923574218313, guid: d1d2bc52a55e26a47820c7dfb4f984bd, type: 3}
+      propertyPath: endPoint.x
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 8418875923574218313, guid: d1d2bc52a55e26a47820c7dfb4f984bd, type: 3}
+      propertyPath: endPoint.y
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 8418875923574218313, guid: d1d2bc52a55e26a47820c7dfb4f984bd, type: 3}
       propertyPath: swingDepth
-      value: 0.09
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 8418875923574218313, guid: d1d2bc52a55e26a47820c7dfb4f984bd, type: 3}
       propertyPath: swingSpeed
       value: 0.01
+      objectReference: {fileID: 0}
+    - target: {fileID: 8418875923574218313, guid: d1d2bc52a55e26a47820c7dfb4f984bd, type: 3}
+      propertyPath: swingWidth
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 8418875923574218313, guid: d1d2bc52a55e26a47820c7dfb4f984bd, type: 3}
+      propertyPath: startPoint.x
+      value: -3
+      objectReference: {fileID: 0}
+    - target: {fileID: 8418875923574218313, guid: d1d2bc52a55e26a47820c7dfb4f984bd, type: 3}
+      propertyPath: startPoint.y
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 8418875923574218313, guid: d1d2bc52a55e26a47820c7dfb4f984bd, type: 3}
+      propertyPath: movementSpeed
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 8418875923574218313, guid: d1d2bc52a55e26a47820c7dfb4f984bd, type: 3}
       propertyPath: swingDistance
@@ -284,7 +325,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8418875923574218313, guid: d1d2bc52a55e26a47820c7dfb4f984bd, type: 3}
       propertyPath: gravityChangeScale
-      value: 200
+      value: 1000
       objectReference: {fileID: 0}
     - target: {fileID: 8418875923574218313, guid: d1d2bc52a55e26a47820c7dfb4f984bd, type: 3}
       propertyPath: verticalSwingDepth
@@ -312,7 +353,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8617310081318301107, guid: d1d2bc52a55e26a47820c7dfb4f984bd, type: 3}
       propertyPath: m_GravityScale
-      value: 0.01
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
