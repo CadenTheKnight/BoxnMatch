@@ -1,47 +1,43 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class AbilityOrbHandler : MonoBehaviour
-{   
-    public Rigidbody2D rb;
-    public SpriteRenderer sr;
-    public int swingDistance = 1;
-    public double swingSpeed = 0.01;
-    public double gravityChangeScale = 100;
-    private bool directionFlag = true;
-    private int frame = 0;
-    // Start is called before the first frame update
-    void Start()
+{
+    public float swingWidth = 1f;       // Width of the swing
+    public float swingDepth = 0.1f;     // Depth of the swing
+    public float movementSpeed = 1f;    // Speed of movement
+    public float fallSpeed = 0.01f;     // How fast the object falls off the screen
+
+    private float time;
+    private bool immediate = true;
+
+    public SpriteRenderer r;
+
+    private void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
-        sr = GetComponent<SpriteRenderer>();
+        r = GetComponent<SpriteRenderer>();
+        time = Time.time;
     }
 
-    // Update is called once per frame
     void Update()
-    {   
-        frame++;
-        // Initialize movement variable
-        Vector3 movement = new Vector3(0,0,0);
+    {
+        // Calculate delta time for smooth consistent movement
+        time += Time.deltaTime * movementSpeed;
 
-        // Switching direction of swing when the swingDistance is reached
-        if(transform.position[0] >= swingDistance) directionFlag = false;
-        else if(transform.position[0] <= -swingDistance) directionFlag = true;
+        // Convert time to x values in range of swing width (-swingWidth to swingWidth)
+        float x = Mathf.PingPong(time, swingWidth*2) - swingWidth;
 
-        // Adds the X movement in swinging back and forth in swing distance
-        if(directionFlag == true) movement[0] += (float)swingSpeed;
-        else movement[0] -= (float)swingSpeed;
+        // Back and forth swing along wide quadratic arc
+        Vector3 currentPosition = new Vector3(x,Mathf.Pow(x,2)/swingWidth * swingDepth,0);
 
-        // Adds Y movement to the swing to mimic feather fall
-        rb.gravityScale = Mathf.Abs(rb.velocity[0]/(float)gravityChangeScale);
+        // Make the orb slowly fall off screen
+        currentPosition.y -= fallSpeed * time;
 
-        // Delete when off screen
-        if(!sr.isVisible && rb.velocity[0] != 0){
-            Destroy(gameObject);
-            Debug.Log("destroy" + gameObject);
-        } 
-        // Update position based on movement
-        rb.velocity += new Vector2(movement[0],movement[1]);
+        // Delete when off screen (immediate variable is to prevent immediate destroy call upon creation)
+        if (!r.isVisible && !immediate) Destroy(gameObject);
+        else immediate = false;
+
+        // Update object position
+        transform.position = currentPosition;
     }
 }
