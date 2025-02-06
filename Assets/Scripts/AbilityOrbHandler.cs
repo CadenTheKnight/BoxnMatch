@@ -8,6 +8,8 @@ public class AbilityOrbHandler : MonoBehaviour
     [SerializeField] float movementSpeed = 1f;    // Speed of movement
     [SerializeField] float fallSpeed = 0.01f;     // How fast the object falls off the screen
 
+    public GameObject type;
+
     private Vector3 startPos;
     private float time;
     private bool immediate = true;
