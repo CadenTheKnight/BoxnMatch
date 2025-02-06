@@ -6,12 +6,13 @@ using UnityEngine;
 public class FireballAbility : AbilityBinding
 {
 
-    public float speed = 1f;
-    public float positionOffset;
+    [SerializeField] float positionOffset;
+    //[SerializeField] int maxShots = 1;
 
     public GameObject Fireball;
     
     private GameObject activeFireball;
+    //private int currentShots = 0;
 
 
     public override void Fire(AbilityDirection dir, PlayerRotator pr)
@@ -19,8 +20,11 @@ public class FireballAbility : AbilityBinding
         // Spawns fireball in the direction used
         Vector3 spawnPos = pr.transform.position;
         spawnPos += dir.GetUnitDirection() * positionOffset;
-        GameObject activeFireball = Instantiate(Fireball);
+        activeFireball = Instantiate(Fireball, spawnPos, transform.rotation);
         activeFireball.GetComponent<Fireball>().dir = dir;
+
+        //currentShots++;
+        //if (currentShots >= maxShots) Destroy(this); // remove script after max shots used
     }
 
 }
