@@ -3,11 +3,14 @@ using UnityEngine.UIElements;
 
 public class AbilityOrbHandler : MonoBehaviour
 {
-    public float swingWidth = 1f;       // Width of the swing
-    public float swingDepth = 0.1f;     // Depth of the swing
-    public float movementSpeed = 1f;    // Speed of movement
-    public float fallSpeed = 0.01f;     // How fast the object falls off the screen
+    [SerializeField] float swingWidth = 1f;       // Width of the swing
+    [SerializeField] float swingDepth = 0.1f;     // Depth of the swing
+    [SerializeField] float movementSpeed = 1f;    // Speed of movement
+    [SerializeField] float fallSpeed = 0.01f;     // How fast the object falls off the screen
 
+    public GameObject type;
+
+    private Vector3 startPos;
     private float time;
     private bool immediate = true;
 
@@ -16,7 +19,8 @@ public class AbilityOrbHandler : MonoBehaviour
     private void Start()
     {
         r = GetComponent<SpriteRenderer>();
-        time = Time.time;
+        time = 0;
+        startPos = transform.position;
     }
 
     void Update()
@@ -38,6 +42,6 @@ public class AbilityOrbHandler : MonoBehaviour
         else immediate = false;
 
         // Update object position
-        transform.position = currentPosition;
+        transform.position = currentPosition + startPos;
     }
 }

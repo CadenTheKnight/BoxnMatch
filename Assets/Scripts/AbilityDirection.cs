@@ -38,4 +38,20 @@ public static class DirectionExtensions
         }
         return Vector3.zero;
     }
+
+    public static float GetRotationZ(this AbilityDirection dir)
+    {
+        switch (dir)
+        {
+            case AbilityDirection.NORTH:
+                return 0;
+            case AbilityDirection.EAST:
+                return 270;
+            case AbilityDirection.SOUTH:
+                return 180;
+            case AbilityDirection.WEST:
+                return 90;
+        }
+        return 0;
+    }
 }
