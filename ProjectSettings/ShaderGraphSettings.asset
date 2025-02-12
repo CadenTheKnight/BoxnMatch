@@ -1,16 +1,17 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &11400000
+--- !u!114 &1
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 53
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3ad70174b079c2f4ebc7931d3dd1af6f, type: 3}
-  m_Name: DefaultPrefabObjects
+  m_Script: {fileID: 11500000, guid: de02f9e1d18f588468e474319d09a723, type: 3}
+  m_Name: 
   m_EditorClassIdentifier: 
-  _prefabs:
-  - {fileID: 6256175177285193912, guid: 3b97bb70d28e3874d8b317113af1aedf, type: 3}
+  shaderVariantLimit: 2048
+  customInterpolatorErrorThreshold: 32
+  customInterpolatorWarningThreshold: 16
