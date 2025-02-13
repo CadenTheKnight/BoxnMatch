@@ -1,8 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class DamageableObject : MonoBehaviour
 {
@@ -11,17 +13,19 @@ public class DamageableObject : MonoBehaviour
 
     private float currentDamage = 0f;
     private Rigidbody2D rb;
+    private TMP_Text damageText;
 
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        damageText = GetComponentInChildren<TMP_Text>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        damageText.text = currentDamage + "%";
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -52,7 +56,6 @@ public class DamageableObject : MonoBehaviour
             currentDamage += damage;
             Vector2 collisionDirection = transform.position - collision.transform.position;
             handleKnockback(knockback, collisionDirection);
-
         }
     }
 
