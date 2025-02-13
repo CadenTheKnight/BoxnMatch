@@ -10,7 +10,7 @@ public class Fireball : MonoBehaviour
 
     private bool immediate = true;
 
-    public SpriteRenderer r;
+    private SpriteRenderer r;
 
     public void Start()
     {
