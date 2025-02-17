@@ -2,9 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
+using UnityEngine.InputSystem;
 
 public class PlayerRotator : MonoBehaviour
 {
+    [Header("References")]
+    [SerializeField] private PlayerInputManager input;
+
+    [Header("Timing")]
     //serializing makes it editable in inspector but not public to other classes
     [SerializeField] private float rotationTime;
 
@@ -18,39 +23,67 @@ public class PlayerRotator : MonoBehaviour
         currDirection = AbilityDirection.NORTH;
     }
 
-    //tmp input-gathering. to be replaced later on
-    private void Update()
+    private void OnEnable()
     {
-        //rotate CW
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            Rotate(1);
-        }
-        //rotate CCW
-        if (Input.GetKeyDown(KeyCode.Q))
-        {
-            Rotate(-1);
-        }
-
-        //ability inputs. once again, temporary.
-        //will do this the good way later with unity's New input system
-        if (Input.GetKeyDown(KeyCode.UpArrow))
-        {
-            UseAbility(AbilityDirection.NORTH);
-        }
-        if (Input.GetKeyDown(KeyCode.RightArrow))
-        {
-            UseAbility(AbilityDirection.EAST);
-        }
-        if (Input.GetKeyDown(KeyCode.DownArrow))
-        {
-            UseAbility(AbilityDirection.SOUTH);
-        }
-        if (Input.GetKeyDown(KeyCode.LeftArrow))
-        {
-            UseAbility(AbilityDirection.WEST);
-        }
+        EnableInputs();
     }
+
+    private void OnDisable()
+    {
+        DisableInputs();
+    }
+
+    //input methods
+    public void UseAbility_N(InputAction.CallbackContext val)
+    {
+        if(val.performed)
+            UseAbility(AbilityDirection.NORTH);
+    }
+    public void UseAbility_E(InputAction.CallbackContext val)
+    {
+        if (val.performed) UseAbility(AbilityDirection.EAST);
+    }
+    public void UseAbility_S(InputAction.CallbackContext val)
+    {
+        if (val.performed) UseAbility(AbilityDirection.SOUTH);
+    }
+    public void UseAbility_W(InputAction.CallbackContext val)
+    {
+        if (val.performed) UseAbility(AbilityDirection.WEST);
+    }
+
+    public void RotateCW(InputAction.CallbackContext val)
+    {
+        if (val.performed) Rotate(1);
+    }
+
+    public void RotateCCW(InputAction.CallbackContext val)
+    {
+        if (val.performed) Rotate(-1);
+    }
+
+    private void EnableInputs()
+    {
+        input.abilityNorthInput += UseAbility_N;
+        input.abilityEastInput += UseAbility_E;
+        input.abilitySouthInput += UseAbility_S;
+        input.abilityWestInput += UseAbility_W;
+
+        input.rotateCWInput += RotateCW;
+        input.rotateCounterCWInput += RotateCCW;
+    }
+
+    private void DisableInputs()
+    {
+        input.abilityNorthInput -= UseAbility_N;
+        input.abilityEastInput -= UseAbility_E;
+        input.abilitySouthInput -= UseAbility_S;
+        input.abilityWestInput -= UseAbility_W;
+
+        input.rotateCWInput -= RotateCW;
+        input.rotateCounterCWInput -= RotateCCW;
+    }
+    //actually useful methods
 
     private void UseAbility(AbilityDirection ab)
     {
