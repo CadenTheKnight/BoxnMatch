@@ -11,20 +11,21 @@ namespace Assets.Scripts.Game.Data
 
         public string PlayerId => playerId;
         public string PlayerName => playerName;
+
         public bool IsReady
         {
             get => isReady;
             set => isReady = value;
         }
 
-        public void Initialize(string playerId, string playerName)
+        public LobbyPlayerData(string playerId, string playerName, bool isReady)
         {
             this.playerId = playerId;
             this.playerName = playerName;
-            isReady = false;
+            this.isReady = isReady;
         }
 
-        public void Initialize(Dictionary<string, PlayerDataObject> playerData)
+        public LobbyPlayerData(Dictionary<string, PlayerDataObject> playerData)
         {
             UpdateState(playerData);
         }
@@ -48,11 +49,11 @@ namespace Assets.Scripts.Game.Data
         public Dictionary<string, string> Serialize()
         {
             return new Dictionary<string, string>()
-        {
-            { "playerId", playerId },
-            { "playerName", playerName },
-            { "isReady", isReady.ToString() }
-        };
+            {
+                { "playerId", playerId },
+                { "playerName", playerName },
+                { "isReady", isReady.ToString() }
+            };
         }
     }
 }

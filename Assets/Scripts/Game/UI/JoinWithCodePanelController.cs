@@ -47,7 +47,7 @@ namespace Assets.Scripts.Game.UI
             }
 
             loading.StartLoading(submitLobbyCodeButton, loadingBar);
-            var result = await GameLobbyManager.Instance.JoinLobby(lobbyCodeInput.text);
+            var result = await GameLobbyManager.Instance.JoinLobbyByCode(lobbyCodeInput.text);
             loading.StopLoading(submitLobbyCodeButton, loadingBar);
 
             if (result.Success)

@@ -15,7 +15,7 @@ namespace Assets.Scripts.Game
         private readonly List<LobbyPlayerData> lobbyPlayerData = new();
         private LobbyPlayerData localLobbyPlayerData;
         private LobbyData lobbyData;
-        public bool IsHost => localLobbyPlayerData.PlayerId == LobbyManager.Instance.GetHostId();
+        public bool IsHost => localLobbyPlayerData.PlayerId != null && localLobbyPlayerData.PlayerId == LobbyManager.Instance.GetHostId();
 
         private void OnEnable()
         {
@@ -50,6 +50,12 @@ namespace Assets.Scripts.Game
         public List<LobbyPlayerData> GetLobbyPlayers()
         {
             return lobbyPlayerData;
+        }
+
+
+        public async Task<List<Lobby>> GetActiveLobbies()
+        {
+            return await LobbyManager.Instance.GetActiveLobbies();
         }
 
         public async Task<OperationResult> SetPlayerReady()
@@ -96,20 +102,25 @@ namespace Assets.Scripts.Game
 
         public async Task<OperationResult> CreateLobby(string lobbyName)
         {
-            localLobbyPlayerData = new LobbyPlayerData();
-            localLobbyPlayerData.Initialize(AuthenticationService.Instance.PlayerId, PlayerPrefs.GetString("username"));
+            localLobbyPlayerData = new LobbyPlayerData(AuthenticationService.Instance.PlayerId, PlayerPrefs.GetString("username"), false);
             lobbyData = new LobbyData();
             lobbyData.Initialize(mapIndex: 0);
 
             return await LobbyManager.Instance.CreateLobby(lobbyName: lobbyName, maxPlayers: 4, isPrivate: true, data: localLobbyPlayerData.Serialize(), lobbyData.Serialize());
         }
 
-        public async Task<OperationResult> JoinLobby(string code)
+        public async Task<OperationResult> JoinLobbyByCode(string code)
         {
-            localLobbyPlayerData = new LobbyPlayerData();
-            localLobbyPlayerData.Initialize(AuthenticationService.Instance.PlayerId, playerName: PlayerPrefs.GetString("username"));
+            localLobbyPlayerData = new LobbyPlayerData(AuthenticationService.Instance.PlayerId, PlayerPrefs.GetString("username"), false);
 
-            return await LobbyManager.Instance.JoinLobby(code, localLobbyPlayerData.Serialize());
+            return await LobbyManager.Instance.JoinLobbyByCode(code, localLobbyPlayerData.Serialize());
+        }
+
+        public async Task<OperationResult> JoinLobbyById(string lobbyId)
+        {
+            localLobbyPlayerData = new LobbyPlayerData(AuthenticationService.Instance.PlayerId, PlayerPrefs.GetString("username"), false);
+
+            return await LobbyManager.Instance.JoinLobbyById(lobbyId, localLobbyPlayerData.Serialize());
         }
 
         public async Task<OperationResult> LeaveLobby(string playerId)
@@ -124,8 +135,7 @@ namespace Assets.Scripts.Game
 
             foreach (Dictionary<string, PlayerDataObject> data in playerData)
             {
-                LobbyPlayerData lobbyPlayerData = new();
-                lobbyPlayerData.Initialize(data);
+                LobbyPlayerData lobbyPlayerData = new(data);
 
                 if (lobbyPlayerData.PlayerId == AuthenticationService.Instance.PlayerId)
                 {

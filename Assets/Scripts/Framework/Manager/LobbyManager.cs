@@ -26,6 +26,11 @@ namespace Assets.Scripts.Framework.Manager
             return lobby?.LobbyCode;
         }
 
+        public string GetLobbyId()
+        {
+            return lobby?.Id;
+        }
+
         public string GetHostId()
         {
             return lobby?.HostId;
@@ -41,6 +46,40 @@ namespace Assets.Scripts.Framework.Manager
             }
 
             return data;
+        }
+
+        public async Task<List<Lobby>> GetActiveLobbies()
+        {
+            try
+            {
+                QueryLobbiesOptions options = new()
+                {
+                    Count = 25,
+
+                    // options.Filters = new List<QueryFilter>()
+                    // {
+                    //     new(
+                    //         field: QueryFilter.FieldOptions.AvailableSlots,
+                    //         op: QueryFilter.OpOptions.GT,
+                    //         value: "0")
+                    // };
+
+                    Order = new List<QueryOrder>()
+                    {
+                        new(
+                            asc: false,
+                            field: QueryOrder.FieldOptions.Created)
+                    }
+                };
+
+                var result = await LobbyService.Instance.QueryLobbiesAsync(options);
+                return result.Results;
+            }
+            catch (LobbyServiceException e)
+            {
+                Debug.Log(e);
+                return null;
+            }
         }
 
         private IEnumerator HeartbeatLobbyCoroutine(string lobbyId, float waitTimeSeconds)
@@ -120,7 +159,7 @@ namespace Assets.Scripts.Framework.Manager
             return new OperationResult(true);
         }
 
-        public async Task<OperationResult> JoinLobby(string code, Dictionary<string, string> playerData)
+        public async Task<OperationResult> JoinLobbyByCode(string code, Dictionary<string, string> playerData)
         {
             JoinLobbyByCodeOptions options = new();
             Player player = new(AuthenticationService.Instance.PlayerId, connectionInfo: null, SerializePlayerData(playerData));
@@ -142,7 +181,34 @@ namespace Assets.Scripts.Framework.Manager
             }
             _refreshLobbyCoroutine = StartCoroutine(RefreshLobbyCoroutine(lobby.Id, 1f));
 
-            Debug.Log($"Lobby joined with lobby ID: {lobby.Id}");
+            Debug.Log($"Lobby joined by code: {code} with lobby ID: {lobby.Id}");
+            LobbyEvents.InvokePlayerJoined(AuthenticationService.Instance.PlayerId);
+            return new OperationResult(true);
+        }
+
+        public async Task<OperationResult> JoinLobbyById(string lobbyId, Dictionary<string, string> playerData)
+        {
+            JoinLobbyByIdOptions options = new();
+            Player player = new(AuthenticationService.Instance.PlayerId, connectionInfo: null, SerializePlayerData(playerData));
+            options.Player = player;
+
+            try
+            {
+                lobby = await LobbyService.Instance.JoinLobbyByIdAsync(lobbyId, options);
+            }
+            catch (LobbyServiceException e)
+            {
+                Debug.Log(e);
+                return new OperationResult(false, e.ErrorCode, e.Message);
+            }
+
+            if (_refreshLobbyCoroutine != null)
+            {
+                StopCoroutine(_refreshLobbyCoroutine);
+            }
+            _refreshLobbyCoroutine = StartCoroutine(RefreshLobbyCoroutine(lobby.Id, 1f));
+
+            Debug.Log($"Lobby joined by ID {lobbyId} with lobby ID: {lobby.Id}");
             LobbyEvents.InvokePlayerJoined(AuthenticationService.Instance.PlayerId);
             return new OperationResult(true);
         }

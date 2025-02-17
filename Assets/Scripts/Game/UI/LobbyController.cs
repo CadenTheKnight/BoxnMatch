@@ -7,13 +7,13 @@ using Assets.Scripts.Game.Events;
 using UnityEngine.SceneManagement;
 using Unity.Services.Authentication;
 
-
 namespace Assets.Scripts.Game.UI
 {
     public class LobbyPanelController : MonoBehaviour
     {
         [SerializeField] private TextMeshProUGUI lobbyNameText;
         [SerializeField] private TextMeshProUGUI lobbyCodeText;
+        [SerializeField] private Button lobbyCodeButton;
         [SerializeField] private Button lobbySettingsButton;
         // [SerializeField] private Image mapImage;
         // [SerializeField] private TextMeshProUGUI mapNameText;
@@ -31,17 +31,13 @@ namespace Assets.Scripts.Game.UI
             readyButton.onClick.AddListener(OnReadyClicked);
             unreadyButton.onClick.AddListener(OnUnreadyClicked);
             leaveLobbyButton.onClick.AddListener(OnLeaveClicked);
-
-            if (GameLobbyManager.Instance.IsHost)
-            {
-
-                lobbySettingsButton.onClick.AddListener(OnLobbySettingsClicked);
-                startButton.onClick.AddListener(OnStartClicked);
-                LobbyEvents.OnLobbyReady += OnLobbyReady;
-                LobbyEvents.OnLobbyNotReady += OnLobbyNotReady;
-            }
+            lobbyCodeButton.onClick.AddListener(OnLobbyCodeClicked);
 
             LobbyEvents.OnLobbyUpdated += OnLobbyUpdated;
+            LobbyEvents.OnLobbyReady += OnLobbyReady;
+            LobbyEvents.OnLobbyNotReady += OnLobbyNotReady;
+
+            AddHostListeners();
         }
 
         private void OnDisable()
@@ -49,16 +45,13 @@ namespace Assets.Scripts.Game.UI
             readyButton.onClick.RemoveListener(OnReadyClicked);
             unreadyButton.onClick.RemoveListener(OnUnreadyClicked);
             leaveLobbyButton.onClick.RemoveListener(OnLeaveClicked);
-
-            if (GameLobbyManager.Instance.IsHost)
-            {
-                lobbySettingsButton.onClick.RemoveListener(OnLobbySettingsClicked);
-                startButton.onClick.RemoveListener(OnStartClicked);
-                LobbyEvents.OnLobbyReady -= OnLobbyReady;
-                LobbyEvents.OnLobbyNotReady -= OnLobbyNotReady;
-            }
+            lobbyCodeButton.onClick.RemoveListener(OnLobbyCodeClicked);
 
             LobbyEvents.OnLobbyUpdated -= OnLobbyUpdated;
+            LobbyEvents.OnLobbyReady -= OnLobbyReady;
+            LobbyEvents.OnLobbyNotReady -= OnLobbyNotReady;
+
+            RemoveHostListeners();
         }
 
         void Start()
@@ -68,7 +61,8 @@ namespace Assets.Scripts.Game.UI
             lobbyNameText.text = GameLobbyManager.Instance.GetLobbyName();
             lobbyCodeText.text = $"Code: {GameLobbyManager.Instance.GetLobbyCode()}";
 
-            lobbySettingsButton.interactable = GameLobbyManager.Instance.IsHost;
+            UpdateHostUI();
+
             startButton.interactable = false;
         }
 
@@ -157,7 +151,42 @@ namespace Assets.Scripts.Game.UI
 
         private void OnLobbyUpdated()
         {
+            lobbyNameText.text = GameLobbyManager.Instance.GetLobbyName();
+            lobbyCodeText.text = $"Code: {GameLobbyManager.Instance.GetLobbyCode()}";
 
+            UpdateHostUI();
+        }
+
+        private void OnLobbyCodeClicked()
+        {
+            GUIUtility.systemCopyBuffer = GameLobbyManager.Instance.GetLobbyCode();
+            Debug.Log("Lobby code copied to clipboard: " + GameLobbyManager.Instance.GetLobbyCode());
+        }
+
+        private void UpdateHostUI()
+        {
+            if (GameLobbyManager.Instance.IsHost)
+            {
+                AddHostListeners();
+                lobbySettingsButton.interactable = true;
+            }
+            else
+            {
+                RemoveHostListeners();
+                lobbySettingsButton.interactable = false;
+            }
+        }
+
+        private void AddHostListeners()
+        {
+            lobbySettingsButton.onClick.AddListener(OnLobbySettingsClicked);
+            startButton.onClick.AddListener(OnStartClicked);
+        }
+
+        private void RemoveHostListeners()
+        {
+            lobbySettingsButton.onClick.RemoveListener(OnLobbySettingsClicked);
+            startButton.onClick.RemoveListener(OnStartClicked);
         }
 
         // private void UpdateMapImage()
