@@ -308,6 +308,10 @@ PrefabInstance:
       propertyPath: input
       value: 
       objectReference: {fileID: 597189091}
+    - target: {fileID: 9048436537862168442, guid: c131ecc111bf41244a486c9ed7ceb958, type: 3}
+      propertyPath: rotationTime
+      value: 0.25
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
