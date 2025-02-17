@@ -3,40 +3,69 @@ using Unity.Services.Core;
 using UnityEngine.SceneManagement;
 using Unity.Services.Authentication;
 
+
 namespace Assets.Scripts.Game
 {
     public class Init : MonoBehaviour
     {
-        async void Start()
+        [SerializeField] private LoadingBarAnimator loadingBar;
+        [SerializeField] private ErrorPopup errorPopup;
+
+        private async void Start()
         {
-            await UnityServices.InitializeAsync();
-
-            if (UnityServices.State == ServicesInitializationState.Initialized)
+            loadingBar.StartLoading();
+            try
             {
-                Debug.Log("Unity Services Initialized");
-
-                await AuthenticationService.Instance.SignInAnonymouslyAsync(); // temporary until steam integration
-                if (AuthenticationService.Instance.IsSignedIn)
+                await UnityServices.InitializeAsync();
+                if (UnityServices.State == ServicesInitializationState.Initialized)
                 {
-                    Debug.Log("Signed in as " + AuthenticationService.Instance.PlayerId);
+                    Debug.Log("Unity Services Initialized");
 
-                    string username = PlayerPrefs.GetString(key: "username");
-                    if (string.IsNullOrEmpty(username))
+                    await AuthenticationService.Instance.SignInAnonymouslyAsync(); // temporary until steam integration
+                    if (AuthenticationService.Instance.IsSignedIn)
                     {
-                        username = "Player" + Random.Range(1000, 9999);
-                        PlayerPrefs.SetString(key: "username", username);
-                    }
+                        string username = PlayerPrefs.GetString(key: "username");
+                        if (string.IsNullOrEmpty(username))
+                        {
+                            username = "Player" + Random.Range(1000, 9999);
+                            PlayerPrefs.SetString(key: "username", username);
+                        }
 
-                    SceneManager.LoadSceneAsync("MainMenu");
+                        Debug.Log($"Signed in as {username} with playerId: {AuthenticationService.Instance.PlayerId}");
+                        loadingBar.StopLoading();
+                        SceneManager.LoadScene("MainMenu");
+                    }
+                    else
+                    {
+                        Debug.LogError("Failed to sign in");
+                        loadingBar.StopLoading();
+                        errorPopup.ShowError(10002, "Sign-in Error: Failed to sign in.");
+                    }
                 }
                 else
                 {
-                    Debug.Log("Failed to sign in");
+                    Debug.LogError("Unity Services Failed to Initialize");
+                    loadingBar.StopLoading();
+                    errorPopup.ShowError(20008, "Unity Error: Unity Services Failed to Initialize.");
                 }
             }
-            else
+            catch (AuthenticationException authEx)
             {
-                Debug.Log("Unity Services Failed to Initialize");
+                Debug.LogError($"Authentication Error: {authEx.ErrorCode} - {authEx.Message}");
+                loadingBar.StopLoading();
+                errorPopup.ShowError(authEx.ErrorCode, $"Authentication Error: {authEx.ErrorCode} - {authEx.Message}");
+            }
+            catch (RequestFailedException reqEx)
+            {
+                Debug.LogError($"Request Failed: {reqEx.ErrorCode} - {reqEx.Message}");
+                loadingBar.StopLoading();
+                errorPopup.ShowError(reqEx.ErrorCode, $"Request Failed: {reqEx.ErrorCode} - {reqEx.Message}");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Unexpected Error: {ex.Message}");
+                loadingBar.StopLoading();
+                errorPopup.ShowError(500, $"Unexpected Error: {ex.Message}");
             }
         }
     }

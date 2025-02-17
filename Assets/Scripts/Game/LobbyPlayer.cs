@@ -19,12 +19,21 @@ namespace Assets.Scripts.Game
 
             if (this.data.IsReady)
             {
-                if (readyIndicatorImage != null)
-                {
-                    readyIndicatorImage.color = Color.green;
-                }
+                readyIndicatorImage.color = new Color(46f / 255f, 213f / 255f, 115f / 255f);
+            }
+            else
+            {
+                readyIndicatorImage.color = new Color(255f / 255f, 71f / 255f, 87f / 255f);
             }
             gameObject.SetActive(true);
+        }
+
+        public void ClearData()
+        {
+            data = null;
+            playerNameText.text = string.Empty;
+            readyIndicatorImage.color = new Color(255f / 255f, 71f / 255f, 87f / 255f);
+            gameObject.SetActive(false);
         }
     }
 }

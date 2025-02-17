@@ -3,10 +3,9 @@ using Assets.Scripts.Game.Data;
 using System.Collections.Generic;
 using Assets.Scripts.Game.Events;
 
-
 namespace Assets.Scripts.Game
 {
-    public class LobbySpawner : MonoBehaviour
+    public class LobbyPlayerSpawner : MonoBehaviour
     {
         [SerializeField] private List<LobbyPlayer> lobbyPlayers;
 
@@ -23,6 +22,11 @@ namespace Assets.Scripts.Game
         private void OnLobbyUpdated()
         {
             List<LobbyPlayerData> lobbyPlayersData = GameLobbyManager.Instance.GetLobbyPlayers();
+
+            foreach (var lobbyPlayer in lobbyPlayers)
+            {
+                lobbyPlayer.ClearData();
+            }
 
             for (int i = 0; i < lobbyPlayersData.Count; i++)
             {

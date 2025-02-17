@@ -2,11 +2,11 @@ using UnityEngine;
 using System.Threading.Tasks;
 using Assets.Scripts.Game.Data;
 using System.Collections.Generic;
-using Assets.Scripts.Framework.Core;
 using Unity.Services.Authentication;
 using Unity.Services.Lobbies.Models;
+using Assets.Scripts.Framework.Core;
 using Assets.Scripts.Framework.Events;
-
+using Assets.Scripts.Framework.Manager;
 
 namespace Assets.Scripts.Game
 {
@@ -15,17 +15,26 @@ namespace Assets.Scripts.Game
         private readonly List<LobbyPlayerData> lobbyPlayerData = new();
         private LobbyPlayerData localLobbyPlayerData;
         private LobbyData lobbyData;
-
         public bool IsHost => localLobbyPlayerData.PlayerId == LobbyManager.Instance.GetHostId();
 
         private void OnEnable()
         {
             LobbyEvents.OnLobbyUpdated += OnLobbyUpdated;
+            LobbyEvents.OnLobbyUpdated += OnLobbyUpdated;
+            // LobbyEvents.OnPlayerJoined += OnPlayerJoined;
+            // LobbyEvents.OnPlayerLeft += OnPlayerLeft;
         }
 
         private void OnDisable()
         {
             LobbyEvents.OnLobbyUpdated -= OnLobbyUpdated;
+            // LobbyEvents.OnPlayerJoined -= OnPlayerJoined;
+            // LobbyEvents.OnPlayerLeft -= OnPlayerLeft;
+        }
+
+        public string GetLobbyName()
+        {
+            return LobbyManager.Instance.GetLobbyName();
         }
 
         public string GetLobbyCode()
@@ -33,29 +42,79 @@ namespace Assets.Scripts.Game
             return LobbyManager.Instance.GetLobbyCode();
         }
 
-        public async Task<bool> CreateLobby()
+        public int GetMapIndex()
+        {
+            return lobbyData?.MapIndex ?? 0;
+        }
+
+        public List<LobbyPlayerData> GetLobbyPlayers()
+        {
+            return lobbyPlayerData;
+        }
+
+        public async Task<OperationResult> SetPlayerReady()
+        {
+            localLobbyPlayerData.IsReady = true;
+            var result = await LobbyManager.Instance.UpdatePlayerData(localLobbyPlayerData.PlayerId, localLobbyPlayerData.Serialize());
+
+            if (result.Success)
+            {
+                Debug.Log($"Player: {localLobbyPlayerData.PlayerId} is ready");
+                Events.LobbyEvents.InvokePlayerReady(localLobbyPlayerData.PlayerId);
+                return new OperationResult(true);
+            }
+            else
+            {
+                Debug.LogError($"Failed to set player ready: {result.ErrorCode} - {result.ErrorMessage}");
+                return new OperationResult(false, result.ErrorCode, result.ErrorMessage);
+            }
+        }
+
+        public async Task<OperationResult> SetPlayerUnready()
+        {
+            localLobbyPlayerData.IsReady = false;
+            var result = await LobbyManager.Instance.UpdatePlayerData(localLobbyPlayerData.PlayerId, localLobbyPlayerData.Serialize());
+
+            if (result.Success)
+            {
+                Debug.Log($"Player: {localLobbyPlayerData.PlayerId} is not ready");
+                Events.LobbyEvents.InvokePlayerNotReady(localLobbyPlayerData.PlayerId);
+                return new OperationResult(true);
+            }
+            else
+            {
+                Debug.LogError($"Failed to set player unready: {result.ErrorCode} - {result.ErrorMessage}");
+                return new OperationResult(false, result.ErrorCode, result.ErrorMessage);
+            }
+        }
+
+        public async Task<OperationResult> SetSelectedMap(int currentMapIndex)
+        {
+            lobbyData.MapIndex = currentMapIndex;
+            return await LobbyManager.Instance.UpdateLobbyData(lobbyData.Serialize());
+        }
+
+        public async Task<OperationResult> CreateLobby(string lobbyName)
         {
             localLobbyPlayerData = new LobbyPlayerData();
-            string playerName = PlayerPrefs.GetString("username");
-            if (IsHost)
-            {
-                playerName += " (Host)";
-            }
-            localLobbyPlayerData.Initialize(AuthenticationService.Instance.PlayerId, playerName);
+            localLobbyPlayerData.Initialize(AuthenticationService.Instance.PlayerId, PlayerPrefs.GetString("username"));
             lobbyData = new LobbyData();
             lobbyData.Initialize(mapIndex: 0);
 
-            bool succeeded = await LobbyManager.Instance.CreateLobby(maxPlayers: 4, isPrivate: true, data: localLobbyPlayerData.Serialize(), lobbyData.Serialize());
-            return succeeded;
+            return await LobbyManager.Instance.CreateLobby(lobbyName: lobbyName, maxPlayers: 4, isPrivate: true, data: localLobbyPlayerData.Serialize(), lobbyData.Serialize());
         }
 
-        public async Task<bool> JoinLobby(string code)
+        public async Task<OperationResult> JoinLobby(string code)
         {
             localLobbyPlayerData = new LobbyPlayerData();
             localLobbyPlayerData.Initialize(AuthenticationService.Instance.PlayerId, playerName: PlayerPrefs.GetString("username"));
 
-            bool succeeded = await LobbyManager.Instance.JoinLobby(code, localLobbyPlayerData.Serialize());
-            return succeeded;
+            return await LobbyManager.Instance.JoinLobby(code, localLobbyPlayerData.Serialize());
+        }
+
+        public async Task<OperationResult> LeaveLobby(string playerId)
+        {
+            return await LobbyManager.Instance.LeaveLobby(playerId);
         }
 
         private void OnLobbyUpdated(Lobby lobby)
@@ -79,30 +138,40 @@ namespace Assets.Scripts.Game
             lobbyData = new LobbyData();
             lobbyData.Initialize(lobby.Data);
 
-            Events.LobbyEvents.OnLobbyUpdated?.Invoke();
+            UpdateNumberOfPlayersReady();
+
+            Events.LobbyEvents.InvokeLobbyUpdated();
         }
 
-        public List<LobbyPlayerData> GetLobbyPlayers()
+        private void UpdateNumberOfPlayersReady()
         {
-            return lobbyPlayerData;
+            int numberOfPlayersReady = 0;
+            foreach (var player in lobbyPlayerData)
+            {
+                if (player.IsReady)
+                {
+                    numberOfPlayersReady++;
+                }
+            }
+
+            if (numberOfPlayersReady == lobbyPlayerData.Count && numberOfPlayersReady > 0)
+            {
+                Events.LobbyEvents.InvokeLobbyReady();
+            }
+            else
+            {
+                Events.LobbyEvents.InvokeLobbyNotReady();
+            }
         }
 
-        public async Task<bool> SetPlayerReady()
-        {
-            localLobbyPlayerData.IsReady = true;
-            bool succeeded = await LobbyManager.Instance.UpdatePlayerData(localLobbyPlayerData.PlayerId, localLobbyPlayerData.Serialize());
-            return succeeded;
-        }
+        // private void OnPlayerJoined(string playerId)
+        // {
+        //     // notify of join in lobby chat
+        // }
 
-        public int GetMapIndex()
-        {
-            return lobbyData.MapIndex;
-        }
-
-        public async Task<bool> SetSelectedMap(int currentMapIndex)
-        {
-            lobbyData.MapIndex = currentMapIndex;
-            return await LobbyManager.Instance.UpdateLobbyData(lobbyData.Serialize());
-        }
+        // private void OnPlayerLeft(string playerId)
+        // {
+        //     // notify of leave in lobby chat
+        // }
     }
 }
