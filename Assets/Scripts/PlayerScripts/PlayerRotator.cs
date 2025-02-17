@@ -2,55 +2,45 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
+using UnityEngine.InputSystem;
 
 public class PlayerRotator : MonoBehaviour
 {
+    [Header("References")]
+    [SerializeField] private PlayerInputManager input;
+
+    [Header("Settings")]
     //serializing makes it editable in inspector but not public to other classes
     [SerializeField] private float rotationTime;
+    [SerializeField] private bool overrideBufferedInputs;
 
     [Header("Sockets")]
     [SerializeField] private AbilitySocket[] sockets;
 
     private AbilityDirection currDirection;
+    private bool currentlyRotating;
+
+    //-1 means CCW input queued
+    //0 means nothing queued
+    //1 means CW input queued
+    private int rotateInputBuffer;
 
     private void Start()
     {
         currDirection = AbilityDirection.NORTH;
     }
 
-    //tmp input-gathering. to be replaced later on
-    private void Update()
+    private void OnEnable()
     {
-        //rotate CW
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            Rotate(1);
-        }
-        //rotate CCW
-        if (Input.GetKeyDown(KeyCode.Q))
-        {
-            Rotate(-1);
-        }
-
-        //ability inputs. once again, temporary.
-        //will do this the good way later with unity's New input system
-        if (Input.GetKeyDown(KeyCode.UpArrow))
-        {
-            UseAbility(AbilityDirection.NORTH);
-        }
-        if (Input.GetKeyDown(KeyCode.RightArrow))
-        {
-            UseAbility(AbilityDirection.EAST);
-        }
-        if (Input.GetKeyDown(KeyCode.DownArrow))
-        {
-            UseAbility(AbilityDirection.SOUTH);
-        }
-        if (Input.GetKeyDown(KeyCode.LeftArrow))
-        {
-            UseAbility(AbilityDirection.WEST);
-        }
+        EnableInputs();
     }
+
+    private void OnDisable()
+    {
+        DisableInputs();
+    }
+
+    //actually useful methods
 
     private void UseAbility(AbilityDirection ab)
     {
@@ -73,19 +63,102 @@ public class PlayerRotator : MonoBehaviour
 
     private void Rotate(int quarterCirclesCW)
     {
+        //buffer input
+        if (currentlyRotating)
+        {
+            //if already 1 input buffered, just ignore based on setting (?)
+            if(rotateInputBuffer != 0 && !overrideBufferedInputs)
+            {
+                return;
+            }
+
+            //set input queue flag
+            rotateInputBuffer = quarterCirclesCW;
+
+            //kick out. aka essentially a big if-else
+            return;
+        }
+
         //tween rotation
         float rotation = -90f * quarterCirclesCW;
-        transform.DORotate(new Vector3(0f, 0f, rotation), 
-            rotationTime, RotateMode.WorldAxisAdd).SetEase(Ease.OutCubic);
+
+        //perform the actual rotation, set its tween, and add a delegate to handle end of rotation stuff
+        transform.DORotate(new Vector3(0f, 0f, rotation),
+            rotationTime, RotateMode.WorldAxisAdd).SetEase(Ease.OutCubic).onComplete += FinishRotation;
+
+        //set flag
+        currentlyRotating = true;
 
         //update direction
         currDirection.Rotate(quarterCirclesCW);
 
         //update sockets
-        foreach(AbilitySocket socket in sockets)
+        foreach (AbilitySocket socket in sockets)
         {
             socket.UpdateRotation(quarterCirclesCW);
         }
+    }
+
+    private void FinishRotation()
+    {
+        currentlyRotating = false;
+        if(rotateInputBuffer != 0)
+        {
+            int tmp = rotateInputBuffer;
+            rotateInputBuffer = 0;
+            Rotate(tmp);
+        }
+    }
+
+    //input methods
+    public void UseAbility_N(InputAction.CallbackContext val)
+    {
+        if(val.performed)
+            UseAbility(AbilityDirection.NORTH);
+    }
+    public void UseAbility_E(InputAction.CallbackContext val)
+    {
+        if (val.performed) UseAbility(AbilityDirection.EAST);
+    }
+    public void UseAbility_S(InputAction.CallbackContext val)
+    {
+        if (val.performed) UseAbility(AbilityDirection.SOUTH);
+    }
+    public void UseAbility_W(InputAction.CallbackContext val)
+    {
+        if (val.performed) UseAbility(AbilityDirection.WEST);
+    }
+
+    public void RotateCW(InputAction.CallbackContext val)
+    {
+        if (val.performed) Rotate(1);
+    }
+
+    public void RotateCCW(InputAction.CallbackContext val)
+    {
+        if (val.performed) Rotate(-1);
+    }
+
+    private void EnableInputs()
+    {
+        input.abilityNorthInput += UseAbility_N;
+        input.abilityEastInput += UseAbility_E;
+        input.abilitySouthInput += UseAbility_S;
+        input.abilityWestInput += UseAbility_W;
+
+        input.rotateCWInput += RotateCW;
+        input.rotateCounterCWInput += RotateCCW;
+    }
+
+    private void DisableInputs()
+    {
+        input.abilityNorthInput -= UseAbility_N;
+        input.abilityEastInput -= UseAbility_E;
+        input.abilitySouthInput -= UseAbility_S;
+        input.abilityWestInput -= UseAbility_W;
+
+        input.rotateCWInput -= RotateCW;
+        input.rotateCounterCWInput -= RotateCCW;
     }
 
 }
