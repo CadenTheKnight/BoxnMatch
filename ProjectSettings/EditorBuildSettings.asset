@@ -6,21 +6,12 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/MainMenu.unity
-    guid: 45a6bf5756fdcc14fb97a872b7d3f3c5
+    path: Assets/Scenes/Menus/Init.unity
+    guid: 2a0c04b529d0ee140a8401c242a66aac
   - enabled: 1
-    path: Assets/Scenes/LobbyList.unity
-    guid: 3a786006c30a1284494b7691dbd46e96
+    path: Assets/Scenes/Menus/MainMenu.unity
+    guid: 17942558d8df280418b35879c0393bef
   - enabled: 1
-    path: Assets/Scenes/Lobby.unity
-    guid: 7ed7db32f50df9640b831a352af10a9b
-  - enabled: 0
-    path: Assets/Scenes/Game.unity
-    guid: 8f9712817f590834dbc373213ba5eda4
-  - enabled: 0
-    path: Assets/Scenes/SampleScene.unity
-    guid: 2cda990e2423bbf4892e6590ba056729
-  - enabled: 0
-    path: Assets/Mirror/Examples/Room/Scenes/MirrorRoomGame.unity
-    guid: 48478f4d522f96945b8396f376299d3a
+    path: Assets/Scenes/Menus/Lobby.unity
+    guid: 3025e540ec8145241bb4780887d03108
   m_configObjects: {}
