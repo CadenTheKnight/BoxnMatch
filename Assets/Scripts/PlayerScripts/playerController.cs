@@ -12,7 +12,7 @@ public class playerController : MonoBehaviour
     //NEW
     [SerializeField] private float JUMP_FORCE = 5f;
     public Transform groundCheck;
-    public float groundCheckRadius = 0.1f;
+    public Vector2 groundCheckSize = new Vector2(0.5f, 0.1f);
     public LayerMask groundLayer;
     public int jumpCount = 0;
     public int maxJumps = 2;
@@ -40,7 +40,7 @@ public class playerController : MonoBehaviour
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
         Vector3 dir = new Vector3(horizontal, 0, 0);
-        bool isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
+        isGrounded = Physics2D.OverlapBox(groundCheck.position, groundCheckSize, 0f, groundLayer);
         
         rb.velocity = new Vector2((dir * currentSpeed).x, rb.velocity.y);
 
