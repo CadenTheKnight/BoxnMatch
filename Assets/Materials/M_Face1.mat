@@ -37,7 +37,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _Box:
-        m_Texture: {fileID: 2800000, guid: b69d54b1f0b9d5143bd0b6fe7a66b84a, type: 3}
+        m_Texture: {fileID: 2800000, guid: a30c097401c157b408cedea9a29aec13, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Eyebrows:
@@ -66,7 +66,8 @@ Material:
     - _BUILTIN_QueueOffset: 0
     - _DistortionAmt: 0
     m_Colors:
-    - _BoxColor: {r: 0, g: 0.9094186, b: 1, a: 1}
+    - _BoxColor: {r: 0.21068235, g: 0.13730863, b: 0.3584906, a: 1}
+    - _BoxLineColor: {r: 0.390566, g: 1, b: 0.62414366, a: 1}
     - _EyebrowsColor: {r: 1, g: 1, b: 1, a: 1}
     - _EyesColor: {r: 0, g: 0.049598202, b: 1, a: 1}
     - _FaceOffset: {r: 0.5, g: 0.5, b: 0, a: 0}
