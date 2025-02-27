@@ -2,33 +2,50 @@ using UnityEngine;
 
 namespace Assets.Scripts.Framework.Core
 {
-    public class Singleton<T> : MonoBehaviour where T : Component
+    /// <summary>
+    /// Base class for all singleton classes.
+    /// </summary>
+    public abstract class Singleton<T> : MonoBehaviour where T : MonoBehaviour
     {
         private static T _instance;
 
+        /// <summary>
+        /// The singleton instance of this class.
+        /// </summary>
         public static T Instance
         {
             get
             {
                 if (_instance == null)
                 {
-                    T[] objects = FindObjectsOfType<T>();
-                    if (objects.Length > 0)
+                    _instance = FindObjectOfType<T>();
+
+                    if (_instance == null)
                     {
-                        T instance = objects[0];
-                        _instance = instance;
-                    }
-                    else
-                    {
-                        GameObject go = new()
-                        {
-                            name = typeof(T).Name
-                        };
-                        _instance = go.AddComponent<T>();
-                        DontDestroyOnLoad(go);
+                        GameObject obj = new();
+                        _instance = obj.AddComponent<T>();
+                        obj.name = typeof(T).Name;
+                        DontDestroyOnLoad(obj);
                     }
                 }
                 return _instance;
+            }
+        }
+
+        /// <summary>
+        /// Ensures that only one instance of this singleton exists.
+        /// </summary>
+        protected virtual void Awake()
+        {
+            if (_instance == null)
+            {
+                _instance = this as T;
+                DontDestroyOnLoad(gameObject);
+            }
+            else if (_instance != this)
+            {
+                Debug.LogWarning($"[Singleton] Duplicate {typeof(T)} instance destroyed");
+                Destroy(gameObject);
             }
         }
     }
