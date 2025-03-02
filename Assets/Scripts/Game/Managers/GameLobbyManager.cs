@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using System.Linq;
+using Unity.Services.Lobbies;
 using System.Threading.Tasks;
 using Assets.Scripts.Game.Data;
 using Assets.Scripts.Game.Events;
@@ -10,181 +11,219 @@ using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Core;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Framework.Utilities;
+using Assets.Scripts.Framework.Extensions;
 using FrameworkEvents = Assets.Scripts.Framework.Events;
+
 
 namespace Assets.Scripts.Game.Managers
 {
     /// <summary>
-    /// Handles high-level lobby operations.
+    /// Handles high-level lobby operations and game-specific lobby functionality.
+    /// Acts as a bridge between the framework's LobbyManager and the game's specific needs.
     /// </summary>
     public class GameLobbyManager : Singleton<GameLobbyManager>
     {
-        //         private LobbyData lobbyData;
-        //         private readonly List<string> lobbyPlayerIds = new();
+        private readonly List<string> lobbyPlayerIds = new();
+        private LobbyData lobbyData;
 
-        //         public bool IsHost => LobbyManager.Instance != null && LobbyManager.Instance.IsLobbyHost;
-        //         public string LobbyName => LobbyManager.Instance != null ? LobbyManager.Instance.LobbyName : null;
-        //         public string LobbyCode => LobbyManager.Instance != null ? LobbyManager.Instance.LobbyCode : null;
-        //         public int MaxPlayers => PlayerDataManager.PlayerConstants.MAX_PLAYERS;
-        //         public int CurrentPlayerCount => lobbyPlayerIds?.Count ?? 0;
-        //         public LobbyData CurrentLobbyData => lobbyData;
-        //         public IReadOnlyList<LobbyPlayerData> Players
-        //         {
-        //             get
-        //             {
-        //                 List<LobbyPlayerData> players = new();
-        //                 foreach (var playerId in lobbyPlayerIds)
-        //                 {
-        //                     var player = PlayerDataManager.Instance.GetPlayerData(playerId);
-        //                     if (player != null)
-        //                         players.Add(player);
-        //                 }
-        //                 return players;
-        //             }
-        //         }
-        //         public LobbyPlayerData LocalPlayer => PlayerDataManager.Instance.GetLocalPlayerData();
+        #region Public Properties
 
-        //         #region Unity Lifecycle
+        public bool IsHost => LobbyManager.Instance != null && LobbyManager.Instance.IsLobbyHost;
+        public string LobbyName => LobbyManager.Instance != null ? LobbyManager.Instance.LobbyName : string.Empty;
+        public string LobbyCode => LobbyManager.Instance != null ? LobbyManager.Instance.LobbyCode : string.Empty;
+        public bool IsInLobby => LobbyManager.Instance != null && LobbyManager.Instance.IsInLobby;
+        public int MaxPlayers => PlayerDataManager.PlayerConstants.MAX_PLAYERS;
+        public int CurrentPlayerCount => lobbyPlayerIds?.Count ?? 0;
+        public LobbyData CurrentLobbyData => lobbyData;
 
-        //         /// <summary>
-        //         /// Subscribes to framework events when enabled.
-        //         /// </summary>
-        //         private void OnEnable()
-        //         {
-        //             FrameworkEvents.LobbyEvents.OnLobbyCreated += OnLobbyCreated;
-        //             FrameworkEvents.LobbyEvents.OnLobbyJoined += OnLobbyJoined;
-        //             FrameworkEvents.LobbyEvents.OnLobbyUpdated += OnLobbyUpdated;
-        //             FrameworkEvents.LobbyEvents.OnLobbyLeft += OnLobbyLeft;
-        //             FrameworkEvents.LobbyEvents.OnPlayerJoined += OnPlayerJoined;
-        //             FrameworkEvents.LobbyEvents.OnPlayerLeft += OnPlayerLeft;
-        //             FrameworkEvents.LobbyEvents.OnPlayerKicked += OnPlayerKicked;
-        //             FrameworkEvents.LobbyEvents.OnPlayerDataChanged += OnPlayerDataChanged;
-        //             FrameworkEvents.LobbyEvents.OnLobbyDataChanged += OnLobbyDataChanged;
-        //         }
+        public IReadOnlyList<LobbyPlayerData> Players
+        {
+            get
+            {
+                List<LobbyPlayerData> players = new();
+                foreach (var playerId in lobbyPlayerIds)
+                {
+                    var player = PlayerDataManager.Instance.GetPlayerData(playerId);
+                    if (player != null)
+                        players.Add(player);
+                }
+                return players;
+            }
+        }
 
-        //         /// <summary>
-        //         /// Unsubscribes from framework events when disabled.
-        //         /// </summary>
-        //         private void OnDisable()
-        //         {
-        //             FrameworkEvents.LobbyEvents.OnLobbyCreated -= OnLobbyCreated;
-        //             FrameworkEvents.LobbyEvents.OnLobbyJoined -= OnLobbyJoined;
-        //             FrameworkEvents.LobbyEvents.OnLobbyUpdated -= OnLobbyUpdated;
-        //             FrameworkEvents.LobbyEvents.OnLobbyLeft -= OnLobbyLeft;
-        //             FrameworkEvents.LobbyEvents.OnPlayerJoined -= OnPlayerJoined;
-        //             FrameworkEvents.LobbyEvents.OnPlayerLeft -= OnPlayerLeft;
-        //             FrameworkEvents.LobbyEvents.OnPlayerKicked -= OnPlayerKicked;
-        //             FrameworkEvents.LobbyEvents.OnPlayerDataChanged -= OnPlayerDataChanged;
-        //             FrameworkEvents.LobbyEvents.OnLobbyDataChanged -= OnLobbyDataChanged;
-        //         }
+        public LobbyPlayerData LocalPlayer => PlayerDataManager.Instance.GetLocalPlayerData();
 
-        //         #endregion
+        #endregion
 
-        //         #region Event Handlers
+        #region Unity Lifecycle
 
-        //         private void OnLobbyCreated(Lobby lobby)
-        //         {
-        //             RefreshLobbyData(lobby);
-        //         }
+        protected override void Awake()
+        {
+            base.Awake();
+            RegisterEvents();
+        }
 
-        //         private void OnLobbyJoined(Lobby lobby)
-        //         {
-        //             RefreshLobbyData(lobby);
-        //         }
+        private void OnDestroy()
+        {
+            UnregisterEvents();
+        }
 
-        //         private void OnLobbyLeft(Lobby lobby)
-        //         {
-        //             ClearLobbyData();
-        //         }
+        private void RegisterEvents()
+        {
+            FrameworkEvents.LobbyEvents.OnLobbyCreated += OnLobbyCreated;
+            FrameworkEvents.LobbyEvents.OnLobbyJoined += OnLobbyJoined;
+            FrameworkEvents.LobbyEvents.OnLobbyUpdated += OnLobbyUpdated;
+            FrameworkEvents.LobbyEvents.OnLobbyLeft += OnLobbyLeft;
+            FrameworkEvents.LobbyEvents.OnPlayerJoined += OnPlayerJoined;
+            FrameworkEvents.LobbyEvents.OnPlayerLeft += OnPlayerLeft;
+            FrameworkEvents.LobbyEvents.OnPlayerKicked += OnPlayerKicked;
+            FrameworkEvents.LobbyEvents.OnPlayerDataChanged += OnPlayerDataChanged;
+            FrameworkEvents.LobbyEvents.OnLobbyDataChanged += OnLobbyDataChanged;
+        }
 
-        //         private void OnLobbyUpdated(Lobby lobby)
-        //         {
-        //             RefreshLobbyData(lobby);
-        //         }
+        private void UnregisterEvents()
+        {
+            FrameworkEvents.LobbyEvents.OnLobbyCreated -= OnLobbyCreated;
+            FrameworkEvents.LobbyEvents.OnLobbyJoined -= OnLobbyJoined;
+            FrameworkEvents.LobbyEvents.OnLobbyUpdated -= OnLobbyUpdated;
+            FrameworkEvents.LobbyEvents.OnLobbyLeft -= OnLobbyLeft;
+            FrameworkEvents.LobbyEvents.OnPlayerJoined -= OnPlayerJoined;
+            FrameworkEvents.LobbyEvents.OnPlayerLeft -= OnPlayerLeft;
+            FrameworkEvents.LobbyEvents.OnPlayerKicked -= OnPlayerKicked;
+            FrameworkEvents.LobbyEvents.OnPlayerDataChanged -= OnPlayerDataChanged;
+            FrameworkEvents.LobbyEvents.OnLobbyDataChanged -= OnLobbyDataChanged;
+        }
 
-        //         private void OnPlayerJoined(string lobbyId, Player player)
-        //         {
-        //             PlayerDataManager.Instance.UpdateCache(player.Id, player.Data);
-        //             lobbyPlayerIds.Add(player.Id);
+        #endregion
 
-        //             Debug.Log($"Player {PlayerDataManager.Instance.GetPlayerData(player.Id)?.PlayerName} joined the lobby");
-        //         }
+        #region Event Handlers
 
-        //         private void OnPlayerLeft(string playerId)
-        //         {
-        //             var player = PlayerDataManager.Instance.GetPlayerData(playerId);
-        //             if (player != null)
-        //             {
-        //                 lobbyPlayerIds.Remove(playerId);
-        //                 Debug.Log($"Player {player.PlayerName} left the lobby");
-        //             }
+        private void OnLobbyCreated(Lobby lobby)
+        {
+            RefreshLobbyData(lobby);
+        }
 
-        //             CheckReadyStatus();
-        //         }
+        private void OnLobbyJoined(Lobby lobby)
+        {
+            RefreshLobbyData(lobby);
+        }
 
-        //         private void OnPlayerKicked(string playerId)
-        //         {
-        //             if (playerId == AuthenticationService.Instance.PlayerId)
-        //             {
-        //                 ClearLobbyData();
-        //                 Debug.Log("You were kicked from the lobby");
-        //             }
-        //             else
-        //             {
-        //                 OnPlayerLeft(playerId);
-        //                 Debug.Log($"Player {playerId} was kicked from the lobby");
-        //             }
-        //         }
+        private void OnLobbyLeft()
+        {
+            ClearLobbyData();
+        }
 
-        //         private void OnPlayerDataChanged(string playerId, Dictionary<string, PlayerDataObject> data)
-        //         {
-        //             var previousPlayerData = PlayerDataManager.Instance.GetPlayerData(playerId);
-        //             if (previousPlayerData == null)
-        //             {
-        //                 Debug.LogWarning($"Received data for unknown player: {playerId}");
-        //                 return;
-        //             }
+        private void OnLobbyUpdated(Lobby lobby)
+        {
+            RefreshLobbyData(lobby);
+        }
 
-        //             var previousCharacter = previousPlayerData.CharacterId;
-        //             var previousColor = previousPlayerData.ColorId;
-        //             var previousReady = previousPlayerData.IsReady;
-        //             var previousTeam = previousPlayerData.TeamId;
+        private void OnPlayerJoined(string lobbyId, Player player)
+        {
+            if (!lobbyPlayerIds.Contains(player.Id))
+            {
+                lobbyPlayerIds.Add(player.Id);
+                Debug.Log($"Player {player.GetPlayerName()} joined the lobby");
+            }
+        }
 
-        //             PlayerDataManager.Instance.UpdateCache(playerId, data);
-        //             var newPlayerData = PlayerDataManager.Instance.GetPlayerData(playerId);
+        private void OnPlayerLeft(string playerId)
+        {
+            var player = PlayerDataManager.Instance.GetPlayerData(playerId);
+            if (player != null)
+            {
+                lobbyPlayerIds.Remove(playerId);
+                Debug.Log($"Player {player.PlayerName} left the lobby");
+            }
 
-        //             if (newPlayerData.CharacterId != previousCharacter)
-        //                 LobbyEvents.InvokeCharacterSelected(playerId, newPlayerData.CharacterId);
+            CheckReadyStatus();
+        }
 
-        //             if (newPlayerData.ColorId != previousColor)
-        //                 LobbyEvents.InvokePlayerColorSelected(playerId, newPlayerData.ColorId);
+        private void OnPlayerKicked(string playerId)
+        {
+            if (playerId == AuthenticationService.Instance.PlayerId)
+            {
+                ClearLobbyData();
+                Debug.Log("You were kicked from the lobby");
+            }
+            else
+            {
+                OnPlayerLeft(playerId);
+                Debug.Log($"Player {playerId} was kicked from the lobby");
+            }
+        }
 
-        //             if (newPlayerData.IsReady != previousReady)
-        //             {
-        //                 LobbyEvents.InvokePlayerReadyChanged(playerId, newPlayerData.IsReady);
-        //                 CheckReadyStatus();
-        //             }
+        private void OnPlayerDataChanged(string playerId, Dictionary<string, PlayerDataObject> data)
+        {
+            var previousPlayerData = PlayerDataManager.Instance.GetPlayerData(playerId);
+            if (previousPlayerData == null)
+            {
+                Debug.LogWarning($"Received data for unknown player: {playerId}");
+                return;
+            }
 
-        //             if (newPlayerData.TeamId != previousTeam)
-        //                 LobbyEvents.InvokeTeamSelected(playerId, newPlayerData.TeamId);
-        //         }
+            var previousCharacter = previousPlayerData.CharacterId;
+            var previousColor = previousPlayerData.ColorId;
+            var previousReady = previousPlayerData.IsReady;
+            var previousTeam = previousPlayerData.TeamId;
 
-        //         private void OnLobbyDataChanged(Lobby lobby, Dictionary<string, DataObject> data)
-        //         {
-        //             var previousMapIndex = lobbyData?.MapIndex ?? 0;
+            var newPlayerData = PlayerDataManager.Instance.GetPlayerData(playerId);
 
-        //             lobbyData = new LobbyData();
-        //             lobbyData.Initialize(data);
+            if (newPlayerData.CharacterId != previousCharacter)
+                LobbyEvents.InvokeCharacterSelected(playerId, newPlayerData.CharacterId);
 
-        //             if (lobbyData.MapIndex != previousMapIndex)
-        //                 LobbyEvents.InvokeArenaSelected(lobbyData.MapIndex.ToString());
+            if (newPlayerData.ColorId != previousColor)
+                LobbyEvents.InvokePlayerColorSelected(playerId, newPlayerData.ColorId);
 
-        //             LobbyEvents.InvokeMatchSettingsUpdated(lobbyData.Serialize());
-        //         }
+            if (newPlayerData.IsReady != previousReady)
+            {
+                LobbyEvents.InvokePlayerReadyChanged(playerId, newPlayerData.IsReady);
+                CheckReadyStatus();
+            }
 
-        //         #endregion
+            if (newPlayerData.TeamId != previousTeam)
+                LobbyEvents.InvokeTeamSelected(playerId, newPlayerData.TeamId);
+        }
 
-        //         #region Event Handlers
+        private void OnLobbyDataChanged(Lobby lobby, Dictionary<string, DataObject> data)
+        {
+            var previousMapIndex = lobbyData?.MapIndex ?? 0;
+
+            lobbyData = new LobbyData();
+            lobbyData.Initialize(data);
+
+            if (lobbyData.MapIndex != previousMapIndex)
+                LobbyEvents.InvokeArenaSelected(lobbyData.MapIndex.ToString());
+
+            LobbyEvents.InvokeMatchSettingsUpdated(lobbyData.Serialize());
+        }
+
+        #endregion
+
+        #region Lobby Creation and Management
+
+        /// <summary>
+        /// Creates a Player object with the current player's name and other properties.
+        /// </summary>
+        /// <returns>The Player object for lobby operations.</returns>
+        public Player GetPlayer(bool isReady = false, int teamId = 0)
+        {
+            string characterId = PlayerDataManager.PlayerConstants.DEFAULT_CHARACTER_ID;
+            string colorId = PlayerDataManager.PlayerConstants.DEFAULT_COLOR_ID;
+            string playerName = PlayerPrefs.GetString("PlayerName", "Player");
+
+            return new Player
+            {
+                Data = new Dictionary<string, PlayerDataObject>
+                {
+                    { "PlayerName", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, playerName) },
+                    { "IsReady", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, isReady.ToString().ToLower())},
+                    { "TeamId", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, teamId.ToString())},
+                    { "CharacterId", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, characterId)},
+                    { "ColorId", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, colorId)}
+                }
+            };
+        }
 
         /// <summary>
         /// Creates a new lobby with the given parameters.
@@ -192,9 +231,23 @@ namespace Assets.Scripts.Game.Managers
         /// <param name="lobbyName">The name of the lobby.</param>
         /// <param name="maxPlayers">The maximum number of players allowed in the lobby.</param>
         /// <returns>Operation result indicating success or failure</returns>
-        public async Task<OperationResult> CreateLobby(string lobbyName, int maxPlayers = 4) // hard-coded maxPlayers
+        public async Task<OperationResult> CreateLobby(string lobbyName, int maxPlayers = 4)
         {
-            return await LobbyManager.Instance.CreateLobby(lobbyName, maxPlayers);
+            CreateLobbyOptions createLobbyOptions = new()
+            {
+                IsPrivate = false,
+                Player = GetPlayer(),
+                Data = new Dictionary<string, DataObject>
+                {
+                    { "GameMode", new DataObject(DataObject.VisibilityOptions.Public, "Standard") },
+                    { "Map", new DataObject(DataObject.VisibilityOptions.Public, "Default")},
+                    { "RoundCount", new DataObject(DataObject.VisibilityOptions.Public, "3")},
+                    { "MatchTimeMinutes", new DataObject(DataObject.VisibilityOptions.Public, "5")},
+                    { "MapIndex", new DataObject(DataObject.VisibilityOptions.Public, "0")}
+                }
+            };
+
+            return await LobbyManager.Instance.CreateLobby(lobbyName, maxPlayers, createLobbyOptions);
         }
 
         /// <summary>
@@ -204,7 +257,9 @@ namespace Assets.Scripts.Game.Managers
         /// <returns>Operation result indicating success or failure.</returns>
         public async Task<OperationResult> JoinLobbyByCode(string lobbyCode)
         {
-            return await LobbyManager.Instance.JoinLobbyByCode(lobbyCode);
+            JoinLobbyByCodeOptions joinLobbyByCodeOptions = new() { Player = GetPlayer() };
+
+            return await LobbyManager.Instance.JoinLobbyByCode(lobbyCode, joinLobbyByCodeOptions);
         }
 
         /// <summary>
@@ -214,7 +269,9 @@ namespace Assets.Scripts.Game.Managers
         /// <returns>Operation result indicating success or failure.</returns>
         public async Task<OperationResult> JoinLobbyById(string lobbyId)
         {
-            return await LobbyManager.Instance.JoinLobbyById(lobbyId);
+            JoinLobbyByIdOptions joinLobbyByIdOptions = new() { Player = GetPlayer() };
+
+            return await LobbyManager.Instance.JoinLobbyById(lobbyId, joinLobbyByIdOptions);
         }
 
         /// <summary>
@@ -223,251 +280,286 @@ namespace Assets.Scripts.Game.Managers
         /// <returns>Operation result indicating success or failure</returns>
         public async Task<OperationResult> LeaveLobby()
         {
+            if (!LobbyManager.Instance.IsInLobby)
+                return OperationResult.FailureResult("NotInLobby", "Not in a lobby.");
+
             return await LobbyManager.Instance.LeaveLobby();
         }
 
-        //         /// <summary>
-        //         /// Kicks a player from the lobby (host only)
-        //         /// </summary>
-        //         /// <param name="playerId">The ID of the player to kick</param>
-        //         /// <returns>Operation result indicating success or failure</returns>
-        //         public async Task<OperationResult> KickPlayer(string playerId)
-        //         {
-        //             if (!IsHost)
-        //                 return OperationResult.FailureResult("NotHost", "Only the host can kick players.");
+        /// <summary>
+        /// Kicks a player from the lobby (host only)
+        /// </summary>
+        /// <param name="playerId">The ID of the player to kick</param>
+        /// <returns>Operation result indicating success or failure</returns>
+        public async Task<OperationResult> KickPlayer(string playerId)
+        {
+            if (!LobbyManager.Instance.IsLobbyHost)
+                return OperationResult.FailureResult("NotHost", "Only the host can kick players.");
 
-        //             return await LobbyManager.Instance.KickPlayer(playerId);
-        //         }
+            return await LobbyManager.Instance.KickPlayer(playerId);
+        }
 
         /// <summary>
         /// Refreshes the list of active lobbies.
         /// </summary>
-        /// <returns>List of active lobbies.</returns>
+        /// <returns>Operation result indicating success or failure.</returns>
         public async Task<OperationResult> RefreshLobbyList()
         {
             return await LobbyManager.Instance.GetLobbies();
         }
 
-        //         #endregion
+        #endregion
 
-        //         #region Public Methods - Player Actions
+        #region Player Actions
 
-        //         /// <summary>
-        //         /// Sets the local player's ready status
-        //         /// </summary>
-        //         /// <param name="isReady">Whether the player is ready</param>
-        //         /// <returns>Operation result indicating success or failure</returns>
-        //         public async Task<OperationResult> SetPlayerReady(bool isReady)
-        //         {
-        //             if (!IsInLobby)
-        //                 return OperationResult.FailureResult("NotInLobby", "Not in a lobby.");
+        /// <summary>
+        /// Sets the local player's ready status
+        /// </summary>
+        /// <param name="isReady">Whether the player is ready</param>
+        /// <returns>Operation result indicating success or failure</returns>
+        public Task<OperationResult> SetPlayerReady(bool isReady)
+        {
+            if (!IsInLobby)
+                return Task.FromResult(OperationResult.FailureResult("NotInLobby", "Not in a lobby."));
 
-        //             return await PlayerDataManager.Instance.SetPlayerReady(
-        //                 AuthenticationService.Instance.PlayerId,
-        //                 isReady
-        //             );
-        //         }
+            return PlayerDataManager.Instance.SetLocalPlayerReady(isReady);
+        }
 
-        //         /// <summary>
-        //         /// Sets the local player's character selection
-        //         /// </summary>
-        //         /// <param name="characterId">The ID of the selected character</param>
-        //         /// <returns>Operation result indicating success or failure</returns>
-        //         public async Task<OperationResult> SelectCharacter(string characterId)
-        //         {
-        //             if (!IsInLobby)
-        //                 return OperationResult.FailureResult("NotInLobby", "Not in a lobby.");
+        /// <summary>
+        /// Sets the local player's character selection
+        /// </summary>
+        /// <param name="characterId">The ID of the selected character</param>
+        /// <returns>Operation result indicating success or failure</returns>
+        public Task<OperationResult> SelectCharacter(string characterId)
+        {
+            if (!IsInLobby)
+                return Task.FromResult(OperationResult.FailureResult("NotInLobby", "Not in a lobby."));
 
-        //             return await PlayerDataManager.Instance.SelectCharacter(
-        //                 AuthenticationService.Instance.PlayerId,
-        //                 characterId
-        //             );
-        //         }
+            string localPlayerId = AuthenticationService.Instance.PlayerId;
+            return PlayerDataManager.Instance.SelectCharacter(localPlayerId, characterId);
+        }
 
-        //         /// <summary>
-        //         /// Sets the local player's team selection
-        //         /// </summary>
-        //         /// <param name="teamId">The ID of the selected team (0 or 1)</param>
-        //         /// <returns>Operation result indicating success or failure</returns>
-        //         public async Task<OperationResult> SelectTeam(int teamId)
-        //         {
-        //             if (!IsInLobby)
-        //                 return OperationResult.FailureResult("NotInLobby", "Not in a lobby.");
+        /// <summary>
+        /// Sets the local player's color selection
+        /// </summary>
+        /// <param name="colorId">The ID of the selected color</param>
+        /// <returns>Operation result indicating success or failure</returns>
+        public Task<OperationResult> SelectColor(string colorId)
+        {
+            if (!IsInLobby)
+                return Task.FromResult(OperationResult.FailureResult("NotInLobby", "Not in a lobby."));
 
-        //             return await LobbyTeamManager.Instance.JoinTeam(teamId);
-        //         }
+            string localPlayerId = AuthenticationService.Instance.PlayerId;
+            return PlayerDataManager.Instance.SelectColor(localPlayerId, colorId);
+        }
 
-        //         /// <summary>
-        //         /// Sends a chat message in the lobby
-        //         /// </summary>
-        //         /// <param name="message">The message to send</param>
-        //         /// <returns>Operation result indicating success or failure</returns>
-        //         public async Task<OperationResult> SendChatMessage(string message)
-        //         {
-        //             if (!IsInLobby)
-        //                 return OperationResult.FailureResult("NotInLobby", "Not in a lobby.");
+        /// <summary>
+        /// Sets the local player's team selection
+        /// </summary>
+        /// <param name="teamId">The ID of the selected team (0 or 1)</param>
+        /// <returns>Operation result indicating success or failure</returns>
+        public Task<OperationResult> SelectTeam(int teamId)
+        {
+            if (!IsInLobby)
+                return Task.FromResult(OperationResult.FailureResult("NotInLobby", "Not in a lobby."));
 
-        //             return await LobbyChatManager.Instance.SendPlayerMessage(
-        //                 localLobbyPlayerData.PlayerId,
-        //                 localLobbyPlayerData.PlayerName,
-        //                 message
-        //             );
-        //         }
+            string localPlayerId = AuthenticationService.Instance.PlayerId;
+            return PlayerDataManager.Instance.SelectTeam(localPlayerId, teamId);
+        }
 
-        //         #endregion
+        /// <summary>
+        /// Toggles the local player's team
+        /// </summary>
+        /// <returns>Operation result indicating success or failure</returns>
+        public Task<OperationResult> ToggleTeam()
+        {
+            if (!IsInLobby)
+                return Task.FromResult(OperationResult.FailureResult("NotInLobby", "Not in a lobby."));
 
-        //         #region Public Methods - Lobby Features
+            return PlayerDataManager.Instance.ToggleLocalPlayerTeam();
+        }
 
-        //         /// <summary>
-        //         /// Automatically balances teams by moving players to ensure teams have equal numbers
-        //         /// </summary>
-        //         /// <returns>Operation result indicating success or failure</returns>
-        //         public async Task<OperationResult> BalanceTeams()
-        //         {
-        //             if (!IsInLobby)
-        //                 return OperationResult.FailureResult("NotInLobby", "Not in a lobby.");
+        /// <summary>
+        /// Balance teams by moving players (host only)
+        /// </summary>
+        /// <returns>Operation result indicating success or failure</returns>
+        public Task<OperationResult> BalanceTeams()
+        {
+            if (!IsInLobby)
+                return Task.FromResult(OperationResult.FailureResult("NotInLobby", "Not in a lobby."));
 
-        //             if (!IsHost)
-        //                 return OperationResult.FailureResult("NotHost", "Only the host can balance teams.");
+            if (!IsHost)
+                return Task.FromResult(OperationResult.FailureResult("NotHost", "Only the host can balance teams."));
 
-        //             return await LobbyTeamManager.Instance.BalanceTeams();
-        //         }
+            return PlayerDataManager.Instance.BalanceTeams();
+        }
 
-        //         /// <summary>
-        //         /// Reports match results in the lobby chat
-        //         /// </summary>
-        //         /// <param name="winningTeam">The team that won (0 or 1)</param>
-        //         /// <param name="teamAScore">Score for Team A</param>
-        //         /// <param name="teamBScore">Score for Team B</param>
-        //         /// <returns>Operation result indicating success or failure</returns>
-        //         public OperationResult ReportMatchResults(int winningTeam, int teamAScore, int teamBScore)
-        //         {
-        //             if (!IsInLobby)
-        //                 return OperationResult.FailureResult("NotInLobby", "Not in a lobby.");
+        #endregion
 
-        //             return LobbyChatManager.Instance.AnnounceMatchResults(winningTeam, teamAScore, teamBScore);
-        //         }
+        #region Lobby Data Updates
 
+        /// <summary>
+        /// Updates the lobby's game mode (host only)
+        /// </summary>
+        /// <param name="gameMode">The new game mode</param>
+        /// <returns>Operation result indicating success or failure</returns>
+        public async Task<OperationResult> UpdateGameMode(string gameMode)
+        {
+            if (!IsInLobby)
+                return OperationResult.FailureResult("NotInLobby", "Not currently in a lobby.");
 
-        //         #endregion
+            if (!IsHost)
+                return OperationResult.FailureResult("NotHost", "Only the host can change the game mode.");
 
-        //         #region Public Methods - Lobby Settings (Host Only)
+            try
+            {
+                await Lobbies.Instance.UpdateLobbyAsync(LobbyManager.Instance.LobbyId, new UpdateLobbyOptions
+                {
+                    Data = new Dictionary<string, DataObject>
+                    {
+                        { "GameMode", new DataObject(DataObject.VisibilityOptions.Public, gameMode) }
+                    }
+                });
 
-        //         /// <summary>
-        //         /// Updates the selected map/arena (host only)
-        //         /// </summary>
-        //         /// <param name="mapIndex">The index of the selected map</param>
-        //         /// <returns>Operation result indicating success or failure</returns>
-        //         public async Task<OperationResult> SelectMap(int mapIndex)
-        //         {
-        //             if (!IsHost)
-        //                 return OperationResult.FailureResult("NotHost", "Only the host can change the map.");
+                // LobbyEvents.InvokeGameModeChanged(gameMode);
+                return OperationResult.SuccessResult("GameModeUpdated", $"Game mode updated to {gameMode}");
+            }
+            catch (LobbyServiceException e)
+            {
+                Debug.LogError($"Failed to update lobby game mode: {e.Message}");
+                return OperationResult.FailureResult(e.ErrorCode.ToString(), e.Message);
+            }
+        }
 
-        //             lobbyData.MapIndex = mapIndex;
-        //             return await LobbyManager.Instance.UpdateLobbyData(lobbyData.Serialize());
-        //         }
+        /// <summary>
+        /// Updates the player's name in the lobby and saves to PlayerPrefs
+        /// </summary>
+        /// <param name="newPlayerName">The new player name</param>
+        /// <returns>Operation result indicating success or failure</returns>
+        public async Task<OperationResult> UpdatePlayerName(string newPlayerName)
+        {
+            if (!IsInLobby)
+                return OperationResult.FailureResult("NotInLobby", "Not currently in a lobby.");
 
-        //         /// <summary>
-        //         /// Updates the round count setting (host only)
-        //         /// </summary>
-        //         /// <param name="roundCount">The number of rounds per game</param>
-        //         /// <returns>Operation result indicating success or failure</returns>
-        //         public async Task<OperationResult> SetRoundCount(int roundCount)
-        //         {
-        //             if (!IsHost)
-        //                 return OperationResult.FailureResult("NotHost", "Only the host can change match settings.");
+            if (string.IsNullOrWhiteSpace(newPlayerName))
+                return OperationResult.FailureResult("InvalidName", "Player name cannot be empty.");
 
-        //             lobbyData.RoundCount = Mathf.Clamp(roundCount, 1, 99);
-        //             return await LobbyManager.Instance.UpdateLobbyData(lobbyData.Serialize());
-        //         }
+            try
+            {
+                await Lobbies.Instance.UpdatePlayerAsync(
+                    LobbyManager.Instance.LobbyId,
+                    AuthenticationService.Instance.PlayerId,
+                    new UpdatePlayerOptions
+                    {
+                        Data = new Dictionary<string, PlayerDataObject>
+                        {
+                            { "PlayerName", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, newPlayerName) }
+                        }
+                    });
 
-        //         /// <summary>
-        //         /// Updates the match time setting (host only)
-        //         /// </summary>
-        //         /// <param name="minutes">The match time in minutes</param>
-        //         /// <returns>Operation result indicating success or failure</returns>
-        //         public async Task<OperationResult> SetMatchTime(int minutes)
-        //         {
-        //             if (!IsHost)
-        //                 return OperationResult.FailureResult("NotHost", "Only the host can change match settings.");
+                PlayerPrefs.SetString("PlayerName", newPlayerName);
+                PlayerPrefs.Save();
 
-        //             lobbyData.MatchTimeMinutes = Mathf.Clamp(minutes, 1, 60);
-        //             return await LobbyManager.Instance.UpdateLobbyData(lobbyData.Serialize());
-        //         }
+                // LobbyEvents.InvokePlayerNameUpdated(AuthenticationService.Instance.PlayerId, newPlayerName);
+                return OperationResult.SuccessResult("PlayerNameUpdated", $"Player name updated to {newPlayerName}");
+            }
+            catch (LobbyServiceException e)
+            {
+                Debug.LogError($"Failed to update player name: {e.Message}");
+                return OperationResult.FailureResult(e.ErrorCode.ToString(), e.Message);
+            }
+        }
 
-        //         /// <summary>
-        //         /// Starts the match when all players are ready (host only)
-        //         /// </summary>
-        //         /// <returns>Operation result indicating success or failure</returns>
-        //         public async Task<OperationResult> StartMatch()
-        //         {
-        //             if (!IsHost)
-        //                 return OperationResult.FailureResult("NotHost", "Only the host can start the match.");
+        /// <summary>
+        /// Updates the selected map/arena (host only)
+        /// </summary>
+        /// <param name="mapIndex">The index of the selected map</param>
+        /// <returns>Operation result indicating success or failure</returns>
+        public async Task<OperationResult> SelectMap(int mapIndex)
+        {
+            if (!IsInLobby)
+                return OperationResult.FailureResult("NotInLobby", "Not in a lobby.");
 
-        //             if (Players.Any(p => !p.IsReady))
-        //                 return OperationResult.FailureResult("NotAllReady", "Not all players are ready.");
+            if (!IsHost)
+                return OperationResult.FailureResult("NotHost", "Only the host can change the map.");
 
-        //             LobbyEvents.InvokeMatchStarting(5);
-        //             await Task.Delay(5000);
-        //             LobbyEvents.InvokeMatchStarted();
+            try
+            {
+                await Lobbies.Instance.UpdateLobbyAsync(
+                    LobbyManager.Instance.LobbyId,
+                    new UpdateLobbyOptions
+                    {
+                        Data = new Dictionary<string, DataObject>
+                        {
+                            { "MapIndex", new DataObject(DataObject.VisibilityOptions.Public, mapIndex.ToString()) }
+                        }
+                    });
 
-        //             return OperationResult.SuccessResult("MatchStarted", "Match started successfully.");
-        //         }
+                LobbyEvents.InvokeArenaSelected(mapIndex.ToString());
+                return OperationResult.SuccessResult("MapUpdated", $"Map updated to index {mapIndex}");
+            }
+            catch (LobbyServiceException e)
+            {
+                Debug.LogError($"Failed to update map index: {e.Message}");
+                return OperationResult.FailureResult(e.ErrorCode.ToString(), e.Message);
+            }
+        }
 
-        //         #endregion
+        #endregion
 
-        //         #region Helper Methods
+        #region Helper Methods
 
-        //         /// <summary>
-        //         /// Refreshes the lobby data from a lobby object
-        //         /// </summary>
-        //         /// <param name="lobby">The lobby object to refresh from</param>
-        //         private void RefreshLobbyData(Lobby lobby)
-        //         {
-        //             if (lobby == null)
-        //             {
-        //                 ClearLobbyData();
-        //                 return;
-        //             }
+        /// <summary>
+        /// Refreshes the lobby data from a lobby object
+        /// </summary>
+        /// <param name="lobby">The lobby object to refresh from</param>
+        private void RefreshLobbyData(Lobby lobby)
+        {
+            if (lobby == null)
+            {
+                ClearLobbyData();
+                return;
+            }
 
-        //             lobbyPlayerIds.Clear();
-        //             foreach (var player in lobby.Players)
-        //             {
-        //                 PlayerDataManager.Instance.UpdateCache(player.Id, player.Data);
-        //                 lobbyPlayerIds.Add(player.Id);
-        //             }
+            lobbyPlayerIds.Clear();
+            foreach (var player in lobby.Players)
+            {
+                PlayerDataManager.Instance.UpdateCache(player);
+                lobbyPlayerIds.Add(player.Id);
+            }
 
-        //             lobbyData = new LobbyData();
-        //             lobbyData.Initialize(lobby.Data);
+            lobbyData = new LobbyData();
+            lobbyData.Initialize(lobby.Data);
 
-        //             CheckReadyStatus();
-        //         }
+            CheckReadyStatus();
+        }
 
-        //         /// <summary>
-        //         /// Clears all lobby data
-        //         /// </summary>
-        //         private void ClearLobbyData()
-        //         {
-        //             lobbyPlayerIds.Clear();
-        //             PlayerDataManager.Instance.ClearCache();
-        //             lobbyData = null;
-        //         }
+        /// <summary>
+        /// Clears all lobby data
+        /// </summary>
+        private void ClearLobbyData()
+        {
+            lobbyPlayerIds.Clear();
+            PlayerDataManager.Instance.ClearCache();
+            lobbyData = null;
+        }
 
-        //         /// <summary>
-        //         /// Checks if all players are ready and fires appropriate events
-        //         /// </summary>
-        //         private void CheckReadyStatus()
-        //         {
-        //             if (lobbyPlayerIds.Count == 0) return;
+        /// <summary>
+        /// Checks if all players are ready and fires appropriate events
+        /// </summary>
+        private void CheckReadyStatus()
+        {
+            if (!IsInLobby || LobbyManager.Instance.Players.Count == 0) return;
 
-        //             bool allPlayersReady = Players.All(p => p.IsReady);
+            // Use the extension method to check ready status
+            bool allPlayersReady = LobbyManager.Instance.Players.All(p => p.IsReady());
 
-        //             if (allPlayersReady)
-        //                 LobbyEvents.InvokeAllPlayersReady();
-        //             else
-        //                 LobbyEvents.InvokeNotAllPlayersReady();
-        //         }
+            if (allPlayersReady)
+                LobbyEvents.InvokeAllPlayersReady();
+            else
+                LobbyEvents.InvokeNotAllPlayersReady();
+        }
 
-        //         #endregion
+        #endregion
     }
 }

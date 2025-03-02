@@ -2,8 +2,13 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+// Find alternative solution for initialization error if this is the only use case
+
 namespace Assets.Scripts.Game.UI.Components
 {
+    /// <summary>
+    /// A panel that shows an error message and allows the user to retry or quit the game.
+    /// </summary>
     public class ErrorPanel : MonoBehaviour
     {
         [SerializeField] private Button quitButton;

@@ -1,7 +1,14 @@
 using UnityEngine;
 
+// Todo
+// 1. Check functionality on different screen sizes
+// 2. ?
+
 namespace Assets.Scripts.Game.UI.Components
 {
+    /// <summary>
+    /// Represents a loading bar that moves from left to right.
+    /// </summary>
     public class LoadingBar : MonoBehaviour
     {
         [SerializeField] private RectTransform movingBar;
@@ -17,6 +24,9 @@ namespace Assets.Scripts.Game.UI.Components
             RecalculatePositions();
         }
 
+        /// <summary>
+        /// Recalculates the speed and position of the moving bar and the position of the background bar.
+        /// </summary>
         private void RecalculatePositions()
         {
             speed = (backgroundBar.rect.width + movingBar.rect.width) / 1f;
@@ -24,18 +34,23 @@ namespace Assets.Scripts.Game.UI.Components
             endPosition = backgroundBar.rect.width + movingBar.rect.width;
         }
 
+        /// <summary>
+        /// Moves the loading bar from left to right when loading.
+        /// </summary>
         private void Update()
         {
             if (!isLoading) return;
 
             float newX = movingBar.anchoredPosition.x + speed * Time.deltaTime;
             if (newX > endPosition)
-            {
                 newX = startPosition;
-            }
+
             movingBar.anchoredPosition = new Vector2(newX, movingBar.anchoredPosition.y);
         }
 
+        /// <summary>
+        /// Starts the loading animation.
+        /// </summary>
         public void StartLoading()
         {
             RecalculatePositions();
@@ -43,6 +58,9 @@ namespace Assets.Scripts.Game.UI.Components
             isLoading = true;
         }
 
+        /// <summary>
+        /// Stops the loading animation.
+        /// </summary>
         public void StopLoading()
         {
             isLoading = false;
@@ -52,9 +70,7 @@ namespace Assets.Scripts.Game.UI.Components
         private void OnRectTransformDimensionsChange()
         {
             if (isActiveAndEnabled)
-            {
                 RecalculatePositions();
-            }
         }
     }
 }

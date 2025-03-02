@@ -1,10 +1,14 @@
 using UnityEngine;
 using UnityEngine.UI;
 using Assets.Scripts.Framework.Events;
+using Assets.Scripts.Game.UI.Controllers.SettingsMenu;
 
-namespace Assets.Scripts.Game.UI.Controllers
+namespace Assets.Scripts.Game.UI.Controllers.MainMenu
 {
-    public class MainPanelController : MonoBehaviour
+    /// <summary>
+    /// Handles the base logic for the main menu.
+    /// </summary>
+    public class MainMenuController : MonoBehaviour
     {
         [SerializeField] private Button quitButton;
         [SerializeField] private Button joinButton;
@@ -12,7 +16,7 @@ namespace Assets.Scripts.Game.UI.Controllers
         [SerializeField] private Button settingsButton;
         [SerializeField] private JoinPanelController joinPanelController;
         [SerializeField] private CreatePanelController createPanelController;
-        [SerializeField] private SettingsPanelController settingsPanelController;
+        [SerializeField] private SettingsMenuController SettingsMenuController;
 
         public void OnEnable()
         {
@@ -46,16 +50,6 @@ namespace Assets.Scripts.Game.UI.Controllers
             joinPanelController.ShowPanel();
         }
 
-        private void OnSettingsClicked()
-        {
-            settingsPanelController.ShowPanel();
-        }
-
-        private void OnQuitClicked()
-        {
-            Application.Quit();
-        }
-
         private void OnLobbyLeft()
         {
             joinPanelController.ShowPanel();
@@ -64,6 +58,16 @@ namespace Assets.Scripts.Game.UI.Controllers
         private void OnLobbyKicked()
         {
             joinPanelController.ShowPanel();
+        }
+
+        private void OnSettingsClicked()
+        {
+            SettingsMenuController.ShowPanel();
+        }
+
+        private void OnQuitClicked()
+        {
+            Application.Quit();
         }
     }
 }

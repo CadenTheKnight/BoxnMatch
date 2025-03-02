@@ -3,19 +3,30 @@ using Unity.Services.Core;
 using System.Threading.Tasks;
 using Assets.Scripts.Framework.Core;
 using Unity.Services.Authentication;
-using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Utilities;
+
+// Todo
+// 1. Steam integration
+// 2. ?
 
 namespace Assets.Scripts.Framework.Managers
 {
     /// <summary>
     /// Manages authentication with Unity Services.
     /// </summary>
-    public class AuthManager : Singleton<AuthManager>
+    public class AuthenticationManager : Singleton<AuthenticationManager>
     {
+        /// <summary>
+        /// Event that is invoked when the player is authenticated.
+        /// </summary>
+        public static event System.Action OnAuthenticated;
+
         /// <summary>
         /// Generates a random player name and saves it to PlayerPrefs.
         /// </summary>
+        /// <remarks>
+        /// This method is temporary until steam integration is added.
+        /// </remarks>
         private void GenerateAndSaveRandomPlayerName()
         {
             if (string.IsNullOrEmpty(PlayerPrefs.GetString("PlayerName")))
@@ -34,26 +45,17 @@ namespace Assets.Scripts.Framework.Managers
         {
             try
             {
-                await Task.Delay(1000); // Simulate loading
-
                 await UnityServices.InitializeAsync();
                 await AuthenticationService.Instance.SignInAnonymouslyAsync();
                 if (string.IsNullOrEmpty(PlayerPrefs.GetString("PlayerName"))) GenerateAndSaveRandomPlayerName();
-                AuthEvents.InvokeAuthenticated();
 
-                return OperationResult.SuccessResult("SignInSuccess", $"Signed in as: {PlayerPrefs.GetString("PlayerName")} | {AuthenticationService.Instance.PlayerId}");
+                OnAuthenticated?.Invoke();
+                return OperationResult.SuccessResult("Authenticated", $"Signed in as: {PlayerPrefs.GetString("PlayerName")}");
             }
-            catch (AuthenticationException authEx)
+            catch (System.Exception authEx)
             {
-                return OperationResult.FailureResult(authEx.ErrorCode.ToString(), authEx.Message);
-            }
-            catch (RequestFailedException reqEx)
-            {
-                return OperationResult.FailureResult(reqEx.ErrorCode.ToString(), reqEx.Message);
-            }
-            catch (System.Exception ex)
-            {
-                return OperationResult.FailureResult("UnexpectedError", ex.Message);
+
+                return OperationResult.FailureResult("AuthenticationError", authEx.Message);
             }
         }
     }

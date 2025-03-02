@@ -1,21 +1,29 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Threading.Tasks;
+using Assets.Scripts.Testing;
 using Assets.Scripts.Game.Managers;
 using System.Text.RegularExpressions;
 using Assets.Scripts.Game.UI.Components;
 using Assets.Scripts.Framework.Utilities;
 
-namespace Assets.Scripts.Game.UI.Controllers
+namespace Assets.Scripts.Game.UI.Controllers.MainMenu
 {
+    /// <summary>
+    /// Handles the logic for the create lobby panel.
+    /// </summary>
     public class CreatePanelController : BasePanel
     {
+        [Header("Components")]
         [SerializeField] private LoadingBar loadingBar;
         [SerializeField] private Button createLobbyButton;
         [SerializeField] private ResultHandler resultHandler;
         [SerializeField] private TMP_InputField lobbyNameInput;
-        private static readonly Regex lobbyNameRegex = new("^[a-zA-Z0-9 ]{1,20}$");
+
+        /// <summary>
+        /// Regex pattern for a valid lobby name. Must be alphanumeric and between 1 and 14 characters.
+        /// </summary>
+        private readonly Regex lobbyNameRegex = new(@"^[a-zA-Z0-9]{1,14}$");
 
         protected override void OnEnable()
         {
@@ -51,11 +59,15 @@ namespace Assets.Scripts.Game.UI.Controllers
             createLobbyButton.interactable = false;
 
             loadingBar.StartLoading();
-            await Task.Delay(1000); // Simulate loading
-            var result = await GameLobbyManager.Instance.CreateLobby(lobbyNameInput.text.Trim());
+            await Tests.TestDelay(1000);
+            OperationResult result = await GameLobbyManager.Instance.CreateLobby(lobbyNameInput.text.Trim());
             loadingBar.StopLoading();
 
-            resultHandler.HandleResult(result);
+            if (result.Success)
+                SceneTransitionManager.Instance.SetPendingNotification(result, NotificationType.Success);
+            else
+                resultHandler.HandleResult(result);
+
             createLobbyButton.interactable = true;
         }
     }

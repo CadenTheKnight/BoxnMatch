@@ -97,6 +97,13 @@ namespace Assets.Scripts.Framework.Events
         public delegate void LobbyListChangedHandler(List<Lobby> lobbies);
         public static event LobbyListChangedHandler OnLobbyListChanged;
 
+        /// <summary>
+        /// Triggered when the host of the lobby migrates to a new player.
+        /// </summary>
+        /// <param name="newHostId">The PlayerId of the new host.</param>
+        public delegate void LobbyHostMigratedHandler(string newHostId);
+        public static event LobbyHostMigratedHandler OnLobbyHostMigrated;
+
         #endregion
 
         #region Invocations
@@ -114,6 +121,7 @@ namespace Assets.Scripts.Framework.Events
         public static void InvokePlayerDataChanged(string playerId, Dictionary<string, PlayerDataObject> changedData) =>
             OnPlayerDataChanged?.Invoke(playerId, changedData);
         public static void InvokeLobbyListChanged(List<Lobby> lobbies) => OnLobbyListChanged?.Invoke(lobbies);
+        public static void InvokeLobbyHostMigrated(string newHostId) => OnLobbyHostMigrated?.Invoke(newHostId);
 
         #endregion
 
@@ -136,6 +144,7 @@ namespace Assets.Scripts.Framework.Events
             OnLobbyDataChanged = null;
             OnPlayerDataChanged = null;
             OnLobbyListChanged = null;
+            OnLobbyHostMigrated = null;
         }
 
         #endregion

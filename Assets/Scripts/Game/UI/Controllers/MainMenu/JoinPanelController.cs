@@ -1,8 +1,8 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Assets.Scripts.Testing;
 using System.Threading.Tasks;
-using Assets.Scripts.Framework;
 using Assets.Scripts.Game.Events;
 using System.Collections.Generic;
 using Assets.Scripts.Game.Managers;
@@ -11,8 +11,16 @@ using Assets.Scripts.Game.UI.Components;
 using Assets.Scripts.Framework.Utilities;
 using Assets.Scripts.Game.UI.Components.ListEntries;
 
-namespace Assets.Scripts.Game.UI.Controllers
+// Todo
+// 1. Fix the issue when the join button remains active after cllicking off (unselecting) a lobby
+// 2. Fix the issue where the lobby list sometimes gets 0 lobbies after refreshing
+// 3. ?
+
+namespace Assets.Scripts.Game.UI.Controllers.MainMenu
 {
+    /// <summary>
+    /// Handles the logic for the join panel.
+    /// </summary>
     public class JoinPanelController : BasePanel
     {
         [SerializeField] private Button joinButton;
@@ -24,6 +32,9 @@ namespace Assets.Scripts.Game.UI.Controllers
         [SerializeField] private LoadingBar refreshLoadingBar;
         [SerializeField] private TMP_InputField lobbyCodeInput;
 
+        /// <summary>
+        /// The currently selected lobby.
+        /// </summary>
         private Lobby selectedLobby;
         private readonly List<LobbyListEntry> lobbyList = new();
 
@@ -64,45 +75,64 @@ namespace Assets.Scripts.Game.UI.Controllers
             UpdateJoinButtonState();
         }
 
+        /// <summary>
+        /// Updates the state of the join button based on the current input/selection.
+        /// </summary>
         private void UpdateJoinButtonState()
         {
             joinButton.interactable = lobbyCodeInput.text.Length == 6 || selectedLobby != null;
         }
 
+        /// <summary>
+        /// Handles the join button click event. First tries to join by code, then by selected lobby.
+        /// </summary>
         private async void OnJoinButtonClicked()
         {
             joinButton.interactable = false;
 
+            joinLoadingBar.StartLoading();
+            await Tests.TestDelay(1000);
             if (!string.IsNullOrEmpty(lobbyCodeInput.text) && lobbyCodeInput.text.Length == 6)
                 await JoinByCode(lobbyCodeInput.text);
             else if (selectedLobby != null)
                 await JoinSelectedLobby();
+            joinLoadingBar.StopLoading();
 
             joinButton.interactable = true;
         }
 
+        /// <summary>
+        /// Joins a lobby by code.
+        /// </summary>
         private async Task JoinByCode(string code)
         {
-            joinLoadingBar.StartLoading();
-            await Task.Delay(1000); // Simulate loading
-            var result = await GameLobbyManager.Instance.JoinLobbyByCode(code);
-            joinLoadingBar.StopLoading();
+            OperationResult result = await GameLobbyManager.Instance.JoinLobbyByCode(code);
 
-            resultHandler.HandleResult(result);
+            if (result.Success)
+                SceneTransitionManager.Instance.SetPendingNotification(result, NotificationType.Success);
+            else
+                resultHandler.HandleResult(result);
         }
 
+        /// <summary>
+        /// Joins the selected (single or double clicked) lobby.
+        /// </summary>
         private async Task JoinSelectedLobby()
         {
             if (selectedLobby == null) return;
 
-            joinLoadingBar.StartLoading();
-            await Task.Delay(1000); // Simulate loading
-            var result = await GameLobbyManager.Instance.JoinLobbyById(selectedLobby.Id);
-            joinLoadingBar.StopLoading();
+            OperationResult result = await GameLobbyManager.Instance.JoinLobbyById(selectedLobby.Id);
 
-            resultHandler.HandleResult(result);
+            if (result.Success)
+                SceneTransitionManager.Instance.SetPendingNotification(result, NotificationType.Success);
+            else
+                resultHandler.HandleResult(result);
         }
 
+        /// <summary>
+        /// Updates the lobby list with the provided lobbies.
+        /// </summary>
+        /// <param name="lobbies">The list of lobbies to display.</param>
         private void UpdateLobbyList(List<Lobby> lobbies)
         {
             selectedLobby = null;
@@ -123,6 +153,9 @@ namespace Assets.Scripts.Game.UI.Controllers
             UpdateJoinButtonState();
         }
 
+        /// <summary>
+        /// Handles the lobby selected (single click) event.
+        /// </summary>
         private void OnLobbySelected(Lobby lobby, LobbyListEntry lobbyListEntry)
         {
             foreach (var item in lobbyList)
@@ -133,6 +166,9 @@ namespace Assets.Scripts.Game.UI.Controllers
             UpdateJoinButtonState();
         }
 
+        /// <summary>
+        /// Handles the lobby double clicked event.
+        /// </summary>
         private async void OnLobbyDoubleClicked(Lobby lobby)
         {
             joinButton.interactable = false;
@@ -148,7 +184,7 @@ namespace Assets.Scripts.Game.UI.Controllers
             refreshButton.interactable = false;
 
             refreshLoadingBar.StartLoading();
-            await Task.Delay(1000); // Simulate loading
+            await Tests.TestDelay(1000);
             var result = await GameLobbyManager.Instance.RefreshLobbyList();
             refreshLoadingBar.StopLoading();
 

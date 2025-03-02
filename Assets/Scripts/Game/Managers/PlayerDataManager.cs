@@ -1,274 +1,449 @@
-// using System;
-// using System.Linq;
-// using UnityEngine;
-// using System.Threading.Tasks;
-// using Assets.Scripts.Game.Data;
-// using System.Collections.Generic;
-// using Unity.Services.Authentication;
-// using Unity.Services.Lobbies.Models;
-// using Assets.Scripts.Framework.Core;
-// using Assets.Scripts.Framework.Managers;
-// using Assets.Scripts.Framework.Utilities;
+using System;
+using System.Linq;
+using UnityEngine;
+using Unity.Services.Lobbies;
+using System.Threading.Tasks;
+using Assets.Scripts.Game.Data;
+using System.Collections.Generic;
+using Unity.Services.Authentication;
+using Unity.Services.Lobbies.Models;
+using Assets.Scripts.Framework.Core;
+using Assets.Scripts.Framework.Events;
+using Assets.Scripts.Framework.Managers;
+using Assets.Scripts.Framework.Utilities;
 
+namespace Assets.Scripts.Game.Managers
+{
+    /// <summary>
+    /// Manages player data including creation, updates, caching,
+    /// and player selections such as characters, colors, and teams.
+    /// </summary>
+    public class PlayerDataManager : Singleton<PlayerDataManager>
+    {
+        #region Constants
 
-// namespace Assets.Scripts.Game.Managers
-// {
-//     /// <summary>
-//     /// Manages player data for the Box'n Match game, including creation, updates, caching,
-//     /// and player selections such as characters, colors, and teams.
-//     /// </summary>
-//     public class PlayerDataManager : Singleton<PlayerDataManager>
-//     {
-//         #region Constants
+        /// <summary>
+        /// Constants related to team identification.
+        /// </summary>
+        public static class TeamIds
+        {
+            public const int TEAM_A = 0;
+            public const int TEAM_B = 1;
+            public const string TEAM_A_NAME = "Team Red";
+            public const string TEAM_B_NAME = "Team Blue";
+        }
 
-//         /// <summary>
-//         /// Constants related to team identification
-//         /// </summary>
-//         public static class TeamIds
-//         {
-//             public const int TEAM_A = 0;
-//             public const int TEAM_B = 1;
-//             public const string TEAM_A_NAME = "Team Red";
-//             public const string TEAM_B_NAME = "Team Blue";
-//         }
+        /// <summary>
+        /// Constants related to player configuration and limits.
+        /// </summary>
+        public static class PlayerConstants
+        {
+            public const int MAX_PLAYERS = 4;
+            public const int MIN_PLAYERS_TO_START = 2;
+            public const string DEFAULT_CHARACTER_ID = "character_1";
+            public const string DEFAULT_COLOR_ID = "color_1";
+            public const int DEFAULT_TEAM_ID = TeamIds.TEAM_A;
+            public const bool DEFAULT_READY_STATUS = false;
+            public const string DEFAULT_PLAYER_NAME = "Player";
+        }
 
-//         /// <summary>
-//         /// Constants related to player configuration and limits
-//         /// </summary>
-//         public static class PlayerConstants
-//         {
-//             public const int MAX_PLAYERS = 4;
-//             public const int MIN_PLAYERS_TO_START = 2;
-//             public const string DEFAULT_CHARACTER_ID = "character_1";
-//             public const string DEFAULT_COLOR_ID = "color_1";
-//             public const int DEFAULT_TEAM_ID = TeamIds.TEAM_A;
-//             public const bool DEFAULT_READY_STATUS = false;
-//             public const string DEFAULT_PLAYER_NAME = "Player";
-//         }
+        private const string KEY_PLAYER_NAME = "PlayerName";
+        private const string KEY_CHARACTER_ID = "CharacterId";
+        private const string KEY_COLOR_ID = "ColorId";
+        private const string KEY_TEAM_ID = "TeamId";
+        private const string KEY_IS_READY = "IsReady";
+        private const string KEY_IS_HOST = "IsHost";
 
-//         #endregion
+        #endregion
 
-//         private readonly Dictionary<string, LobbyPlayerData> playerDataCache = new();
+        private readonly Dictionary<string, LobbyPlayerData> playerDataCache = new();
 
-//         #region Public Methods - Player Data Management
+        #region Lifecycle Methods
 
-//         /// <summary>
-//         /// Creates initial player data for a new player
-//         /// </summary>
-//         /// <param name="isHost">Whether the player is the host</param>
-//         /// <returns>Player data object with default values</returns>
-//         public LobbyPlayerData CreateInitialPlayerData(bool isHost = false)
-//         {
-//             string playerId = AuthenticationService.Instance.PlayerId;
-//             string playerName = PlayerPrefs.GetString("username", PlayerConstants.DEFAULT_PLAYER_NAME);
+        protected override void Awake()
+        {
+            base.Awake();
+            RegisterEvents();
+        }
 
-//             var playerData = new LobbyPlayerData(
-//                 playerId,
-//                 playerName,
-//                 isHost
-//             );
+        private void OnDestroy()
+        {
+            UnregisterEvents();
+        }
 
-//             // Add to cache
-//             if (playerDataCache.ContainsKey(playerId))
-//                 playerDataCache[playerId] = playerData;
-//             else
-//                 playerDataCache.Add(playerId, playerData);
+        private void RegisterEvents()
+        {
+            LobbyEvents.OnLobbyUpdated += HandleLobbyUpdated;
+            LobbyEvents.OnLobbyJoined += HandleLobbyJoined;
+            LobbyEvents.OnLobbyLeft += HandleLobbyLeft;
+            LobbyEvents.OnLobbyCreated += HandleLobbyCreated;
+        }
 
-//             return playerData;
-//         }
+        private void UnregisterEvents()
+        {
+            LobbyEvents.OnLobbyUpdated -= HandleLobbyUpdated;
+            LobbyEvents.OnLobbyJoined -= HandleLobbyJoined;
+            LobbyEvents.OnLobbyLeft -= HandleLobbyLeft;
+            LobbyEvents.OnLobbyCreated -= HandleLobbyCreated;
+        }
 
-//         /// <summary>
-//         /// Updates the player data cache with data from a player object
-//         /// </summary>
-//         /// <param name="playerId">The ID of the player</param>
-//         /// <param name="data">The player data dictionary</param>
-//         public void UpdateCache(string playerId, Dictionary<string, PlayerDataObject> data)
-//         {
-//             var playerData = new LobbyPlayerData(playerId, data);
+        #endregion
 
-//             if (playerDataCache.ContainsKey(playerId))
-//                 playerDataCache[playerId] = playerData;
-//             else
-//                 playerDataCache.Add(playerId, playerData);
-//         }
+        #region Event Handlers
 
-//         /// <summary>
-//         /// Gets player data from cache by player ID
-//         /// </summary>
-//         /// <param name="playerId">The ID of the player to retrieve</param>
-//         /// <returns>The player data, or null if not found</returns>
-//         public LobbyPlayerData GetPlayerData(string playerId)
-//         {
-//             if (playerDataCache.TryGetValue(playerId, out var playerData))
-//                 return playerData;
+        private void HandleLobbyCreated(Lobby lobby)
+        {
+            SynchronizeWithLobby(lobby);
+        }
 
-//             return null;
-//         }
+        private void HandleLobbyJoined(Lobby lobby)
+        {
+            SynchronizeWithLobby(lobby);
+        }
 
-//         /// <summary>
-//         /// Gets the local player's data
-//         /// </summary>
-//         /// <returns>The local player's data, or null if not found</returns>
-//         public LobbyPlayerData GetLocalPlayerData()
-//         {
-//             return GetPlayerData(AuthenticationService.Instance.PlayerId);
-//         }
+        private void HandleLobbyUpdated(Lobby lobby)
+        {
+            SynchronizeWithLobby(lobby);
+        }
 
-//         /// <summary>
-//         /// Gets the team name based on team ID
-//         /// </summary>
-//         /// <param name="teamId">The team ID (0 or 1)</param>
-//         /// <returns>The team name</returns>
-//         public string GetTeamName(int teamId)
-//         {
-//             return teamId == TeamIds.TEAM_A ? TeamIds.TEAM_A_NAME : TeamIds.TEAM_B_NAME;
-//         }
+        private void HandleLobbyLeft()
+        {
+            ClearCache();
+        }
 
-//         /// <summary>
-//         /// Clears all cached player data
-//         /// </summary>
-//         public void ClearCache()
-//         {
-//             playerDataCache.Clear();
-//         }
+        /// <summary>
+        /// Synchronizes the player data cache with the lobby player list.
+        /// </summary>
+        /// <param name="lobby">The lobby to synchronize with.</param>
+        private void SynchronizeWithLobby(Lobby lobby)
+        {
+            if (lobby == null) return;
 
-//         #endregion
+            var existingPlayerIds = new HashSet<string>(playerDataCache.Keys);
 
-//         #region Public Methods - Player Actions
+            foreach (var player in lobby.Players)
+            {
+                UpdateCache(player);
+                existingPlayerIds.Remove(player.Id);
+            }
 
-//         /// <summary>
-//         /// Updates player data on the server
-//         /// </summary>
-//         /// <param name="playerId">The ID of the player to update</param>
-//         /// <param name="data">Dictionary of player data values</param>
-//         /// <returns>Operation result indicating success or failure</returns>
-//         public async Task<OperationResult> UpdatePlayerData(string playerId, Dictionary<string, string> data)
-//         {
-//             if (string.IsNullOrEmpty(playerId))
-//                 return OperationResult.FailureResult("InvalidPlayerId", "Player ID cannot be empty.");
+            foreach (var removedPlayerId in existingPlayerIds)
+                playerDataCache.Remove(removedPlayerId);
+        }
 
-//             if (!GameLobbyManager.Instance.IsInLobby)
-//                 return OperationResult.FailureResult("NotInLobby", "Not in a lobby.");
+        #endregion
 
-//             return await LobbyManager.Instance.UpdatePlayerData(playerId, data);
-//         }
+        #region Public Methods - Player Data Management
 
-//         /// <summary>
-//         /// Updates a player's ready status
-//         /// </summary>
-//         /// <param name="playerId">The ID of the player</param>
-//         /// <param name="isReady">Whether the player is ready</param>
-//         /// <returns>Operation result indicating success or failure</returns>
-//         public async Task<OperationResult> SetPlayerReady(string playerId, bool isReady)
-//         {
-//             if (!playerDataCache.TryGetValue(playerId, out var playerData))
-//                 return OperationResult.FailureResult("PlayerNotFound", "Player data not found.");
+        /// <summary>
+        /// Updates the player data cache with data from a player object.
+        /// </summary>
+        /// <param name="player">The Unity Player object.</param>
+        public void UpdateCache(Player player)
+        {
+            if (player == null) return;
 
-//             playerData.IsReady = isReady;
+            var playerData = ConvertToLobbyPlayerData(player);
 
-//             var result = await UpdatePlayerData(playerId, playerData.Serialize());
-//             return result;
-//         }
+            if (playerDataCache.ContainsKey(player.Id))
+                playerDataCache[player.Id] = playerData;
+            else
+                playerDataCache.Add(player.Id, playerData);
+        }
 
-//         /// <summary>
-//         /// Updates a player's character selection
-//         /// </summary>
-//         /// <param name="playerId">The ID of the player</param>
-//         /// <param name="characterId">The ID of the selected character</param>
-//         /// <returns>Operation result indicating success or failure</returns>
-//         public async Task<OperationResult> SelectCharacter(string playerId, string characterId)
-//         {
-//             if (!playerDataCache.TryGetValue(playerId, out var playerData))
-//                 return OperationResult.FailureResult("PlayerNotFound", "Player data not found.");
+        /// <summary>
+        /// Gets player data from cache by player ID.
+        /// </summary>
+        /// <param name="playerId">The ID of the player to retrieve.</param>
+        /// <returns>The player data, or null if not found.</returns>
+        public LobbyPlayerData GetPlayerData(string playerId)
+        {
+            return playerDataCache.TryGetValue(playerId, out var playerData) ? playerData : null;
+        }
 
-//             playerData.CharacterId = characterId;
+        /// <summary>
+        /// Gets the local player data.
+        /// </summary>
+        /// <returns>The local player's data, or null if not found.</returns>
+        public LobbyPlayerData GetLocalPlayerData()
+        {
+            string playerId = AuthenticationService.Instance?.PlayerId;
+            return !string.IsNullOrEmpty(playerId) ? GetPlayerData(playerId) : null;
+        }
 
-//             var result = await UpdatePlayerData(playerId, playerData.Serialize());
-//             return result;
-//         }
+        /// <summary>
+        /// Gets the team name based on team ID.
+        /// </summary>
+        /// <param name="teamId">The team ID (0 or 1).</param>
+        /// <returns>The team name.</returns>
+        public string GetTeamName(int teamId)
+        {
+            return teamId == TeamIds.TEAM_A ? TeamIds.TEAM_A_NAME : TeamIds.TEAM_B_NAME;
+        }
 
-//         /// <summary>
-//         /// Updates a player's color selection
-//         /// </summary>
-//         /// <param name="playerId">The ID of the player</param>
-//         /// <param name="colorId">The ID of the selected color</param>
-//         /// <returns>Operation result indicating success or failure</returns>
-//         public async Task<OperationResult> SelectColor(string playerId, string colorId)
-//         {
-//             if (!playerDataCache.TryGetValue(playerId, out var playerData))
-//                 return OperationResult.FailureResult("PlayerNotFound", "Player data not found.");
+        /// <summary>
+        /// Clears all cached player data.
+        /// </summary>
+        public void ClearCache()
+        {
+            playerDataCache.Clear();
+        }
 
-//             playerData.ColorId = colorId;
+        /// <summary>
+        /// Gets all players in a specific team.
+        /// </summary>
+        /// <param name="teamId">The team ID.</param>
+        /// <returns>List of players in the team.</returns>
+        public List<LobbyPlayerData> GetPlayersInTeam(int teamId)
+        {
+            return playerDataCache.Values.Where(p => p.TeamId == teamId).ToList();
+        }
 
-//             var result = await UpdatePlayerData(playerId, playerData.Serialize());
-//             return result;
-//         }
+        /// <summary>
+        /// Gets count of players in each team.
+        /// </summary>
+        /// <returns>Tuple with counts (TeamA, TeamB).</returns>
+        public (int teamACount, int teamBCount) GetTeamCounts()
+        {
+            int teamA = 0;
+            int teamB = 0;
 
-//         /// <summary>
-//         /// Updates a player's team selection
-//         /// </summary>
-//         /// <param name="playerId">The ID of the player</param>
-//         /// <param name="teamId">The ID of the selected team (0 or 1)</param>
-//         /// <returns>Operation result indicating success or failure</returns>
-//         public async Task<OperationResult> SelectTeam(string playerId, int teamId)
-//         {
-//             if (!playerDataCache.TryGetValue(playerId, out var playerData))
-//                 return OperationResult.FailureResult("PlayerNotFound", "Player data not found.");
+            foreach (var player in playerDataCache.Values)
+            {
+                if (player.TeamId == TeamIds.TEAM_A)
+                    teamA++;
+                else
+                    teamB++;
+            }
 
-//             // Ensure team ID is valid (0 or 1 for 2-team system)
-//             teamId = Mathf.Clamp(teamId, TeamIds.TEAM_A, TeamIds.TEAM_B);
+            return (teamA, teamB);
+        }
 
-//             playerData.TeamId = teamId;
+        #endregion
 
-//             var result = await UpdatePlayerData(playerId, playerData.Serialize());
-//             return result;
-//         }
+        #region Public Methods - Player Actions
 
-//         /// <summary>
-//         /// Automatically balances teams by moving players
-//         /// </summary>
-//         /// <returns>Operation result with details about the balancing operation</returns>
-//         public async Task<OperationResult> BalanceTeams()
-//         {
-//             if (!GameLobbyManager.Instance.IsHost)
-//                 return OperationResult.FailureResult("NotHost", "Only the host can balance teams.");
+        /// <summary>
+        /// Updates a player ready status.
+        /// </summary>
+        /// <param name="playerId">The ID of the player.</param>
+        /// <param name="isReady">Whether the player is ready.</param>
+        /// <returns>Operation result indicating success or failure.</returns>
+        public async Task<OperationResult> SetPlayerReady(string playerId, bool isReady)
+        {
+            if (!playerDataCache.TryGetValue(playerId, out _))
+                return OperationResult.FailureResult("PlayerNotFound", "Player data not found.");
 
-//             var players = GameLobbyManager.Instance.Players;
-//             int teamACount = players.Count(p => p.TeamId == TeamIds.TEAM_A);
-//             int teamBCount = players.Count(p => p.TeamId == TeamIds.TEAM_B);
+            return await UpdatePlayerAttribute(playerId, KEY_IS_READY, isReady.ToString().ToLower());
+        }
 
-//             if (Math.Abs(teamACount - teamBCount) <= 1)
-//                 return OperationResult.SuccessResult("AlreadyBalanced", "Teams are already balanced.");
+        /// <summary>
+        /// Sets the local player ready status.
+        /// </summary>
+        /// <param name="isReady">Whether the player is ready.</param>
+        /// <returns>Operation result indicating success or failure.</returns>
+        public Task<OperationResult> SetLocalPlayerReady(bool isReady)
+        {
+            string localPlayerId = AuthenticationService.Instance.PlayerId;
+            return SetPlayerReady(localPlayerId, isReady);
+        }
 
-//             int fromTeam = teamACount > teamBCount ? TeamIds.TEAM_A : TeamIds.TEAM_B;
-//             int toTeam = fromTeam == TeamIds.TEAM_A ? TeamIds.TEAM_B : TeamIds.TEAM_A;
-//             int playersToMove = Math.Abs(teamACount - teamBCount) / 2;
+        /// <summary>
+        /// Updates a player character selection.
+        /// </summary>
+        /// <param name="playerId">The ID of the player.</param>
+        /// <param name="characterId">The ID of the selected character.</param>
+        /// <returns>Operation result indicating success or failure.</returns>
+        public async Task<OperationResult> SelectCharacter(string playerId, string characterId)
+        {
+            if (string.IsNullOrEmpty(characterId))
+                return OperationResult.FailureResult("InvalidCharacterId", "Character ID cannot be empty.");
 
-//             // Get players from the team with more players, prioritizing non-local players
-//             var localPlayerId = AuthenticationService.Instance.PlayerId;
-//             var candidatePlayers = players
-//                 .Where(p => p.TeamId == fromTeam && p.PlayerId != localPlayerId)
-//                 .ToList();
+            return await UpdatePlayerAttribute(playerId, KEY_CHARACTER_ID, characterId);
+        }
 
-//             if (candidatePlayers.Count < playersToMove)
-//             {
-//                 candidatePlayers = players
-//                     .Where(p => p.TeamId == fromTeam)
-//                     .ToList();
-//             }
+        /// <summary>
+        /// Updates a player color selection.
+        /// </summary>
+        /// <param name="playerId">The ID of the player.</param>
+        /// <param name="colorId">The ID of the selected color.</param>
+        /// <returns>Operation result indicating success or failure.</returns>
+        public async Task<OperationResult> SelectColor(string playerId, string colorId)
+        {
+            if (string.IsNullOrEmpty(colorId))
+                return OperationResult.FailureResult("InvalidColorId", "Color ID cannot be empty.");
 
-//             int moved = 0;
-//             foreach (var player in candidatePlayers)
-//             {
-//                 if (moved >= playersToMove) break;
+            return await UpdatePlayerAttribute(playerId, KEY_COLOR_ID, colorId);
+        }
 
-//                 await SelectTeam(player.PlayerId, toTeam);
-//                 moved++;
-//             }
+        /// <summary>
+        /// Updates a player team selection.
+        /// </summary>
+        /// <param name="playerId">The ID of the player.</param>
+        /// <param name="teamId">The ID of the selected team.</param>
+        /// <returns>Operation result indicating success or failure.</returns>
+        public async Task<OperationResult> SelectTeam(string playerId, int teamId)
+        {
+            teamId = Mathf.Clamp(teamId, TeamIds.TEAM_A, TeamIds.TEAM_B);
 
-//             return OperationResult.SuccessResult("TeamsBalanced", $"Moved {moved} players to balance teams.");
-//         }
+            return await UpdatePlayerAttribute(playerId, KEY_TEAM_ID, teamId.ToString());
+        }
 
-//         #endregion
-//     }
-// }
+        /// <summary>
+        /// Toggles the local player team between Team A and Team B.
+        /// </summary>
+        /// <returns>Operation result indicating success or failure.</returns>
+        public async Task<OperationResult> ToggleLocalPlayerTeam()
+        {
+            var localPlayerData = GetLocalPlayerData();
+            if (localPlayerData == null)
+                return OperationResult.FailureResult("PlayerNotFound", "Local player data not found.");
+
+            int newTeamId = localPlayerData.TeamId == TeamIds.TEAM_A ? TeamIds.TEAM_B : TeamIds.TEAM_A;
+            return await SelectTeam(localPlayerData.PlayerId, newTeamId);
+        }
+
+        /// <summary>
+        /// Balances teams by moving players between them.
+        /// </summary>
+        /// <returns>Operation result indicating success or failure.</returns>
+        public async Task<OperationResult> BalanceTeams()
+        {
+            if (!LobbyManager.Instance.IsLobbyHost)
+                return OperationResult.FailureResult("NotHost", "Only the host can balance teams.");
+
+            var (teamACount, teamBCount) = GetTeamCounts();
+
+            if (Math.Abs(teamACount - teamBCount) <= 1)
+                return OperationResult.SuccessResult("AlreadyBalanced", "Teams are already balanced.");
+
+            int fromTeam = teamACount > teamBCount ? TeamIds.TEAM_A : TeamIds.TEAM_B;
+            int toTeam = fromTeam == TeamIds.TEAM_A ? TeamIds.TEAM_B : TeamIds.TEAM_A;
+            int playersToMove = Math.Abs(teamACount - teamBCount) / 2;
+
+            var localPlayerId = AuthenticationService.Instance.PlayerId;
+            var candidatePlayers = playerDataCache.Values.Where(p => p.TeamId == fromTeam && p.PlayerId != localPlayerId).ToList();
+
+            if (candidatePlayers.Count < playersToMove)
+                candidatePlayers = playerDataCache.Values.Where(p => p.TeamId == fromTeam).ToList();
+
+            int moved = 0;
+            foreach (var player in candidatePlayers)
+            {
+                if (moved >= playersToMove) break;
+
+                await SelectTeam(player.PlayerId, toTeam);
+                moved++;
+            }
+
+            return OperationResult.SuccessResult("TeamsBalanced", $"Moved {moved} players to balance teams.");
+        }
+
+        #endregion
+
+        #region Private Helper Methods
+
+        /// <summary>
+        /// Updates a single player attribute.
+        /// </summary>
+        /// <param name="playerId">The player ID.</param>
+        /// <param name="key">The attribute key.</param>
+        /// <param name="value">The attribute value.</param>
+        /// <returns>Operation result indicating success or failure.</returns>
+        private async Task<OperationResult> UpdatePlayerAttribute(string playerId, string key, string value)
+        {
+            if (string.IsNullOrEmpty(playerId))
+                return OperationResult.FailureResult("InvalidPlayerId", "Player ID cannot be empty.");
+
+            if (!LobbyManager.Instance.IsInLobby)
+                return OperationResult.FailureResult("NotInLobby", "Not in a lobby.");
+
+            if (!playerDataCache.TryGetValue(playerId, out var playerData))
+                return OperationResult.FailureResult("PlayerNotFound", "Player data not found.");
+
+            try
+            {
+                await Lobbies.Instance.UpdatePlayerAsync(
+                    LobbyManager.Instance.LobbyId,
+                    playerId,
+                    new UpdatePlayerOptions
+                    {
+                        Data = new Dictionary<string, PlayerDataObject>
+                        {
+                            { key, new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, value) }
+                        }
+                    }
+                );
+
+                switch (key)
+                {
+                    case KEY_PLAYER_NAME:
+                        playerData.PlayerName = value;
+                        break;
+                    case KEY_CHARACTER_ID:
+                        playerData.CharacterId = value;
+                        break;
+                    case KEY_COLOR_ID:
+                        playerData.ColorId = value;
+                        break;
+                    case KEY_TEAM_ID:
+                        playerData.TeamId = int.Parse(value);
+                        break;
+                    case KEY_IS_READY:
+                        playerData.IsReady = value.ToLower() == "true";
+                        break;
+                    case KEY_IS_HOST:
+                        playerData.IsHost = value.ToLower() == "true";
+                        break;
+                }
+
+                playerDataCache[playerId] = playerData;
+                return OperationResult.SuccessResult("AttributeUpdated", $"Updated {key} to {value}");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to update player attribute: {ex.Message}");
+                return OperationResult.FailureResult("UpdateFailed", ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Converts a Unity Player object to a LobbyPlayerData model.
+        /// </summary>
+        private LobbyPlayerData ConvertToLobbyPlayerData(Player player)
+        {
+            if (player == null || player.Data == null)
+                return null;
+
+            string playerName = GetPlayerValue(player, KEY_PLAYER_NAME, PlayerConstants.DEFAULT_PLAYER_NAME);
+            string characterId = GetPlayerValue(player, KEY_CHARACTER_ID, PlayerConstants.DEFAULT_CHARACTER_ID);
+            string colorId = GetPlayerValue(player, KEY_COLOR_ID, PlayerConstants.DEFAULT_COLOR_ID);
+
+            bool isReady = bool.TryParse(GetPlayerValue(player, KEY_IS_READY, "false"), out bool readyResult) && readyResult;
+            int.TryParse(GetPlayerValue(player, KEY_TEAM_ID, PlayerConstants.DEFAULT_TEAM_ID.ToString()), out int teamId);
+            bool isHost = LobbyManager.Instance != null && LobbyManager.Instance.IsInLobby && LobbyManager.Instance.IsLobbyHost &&
+                          player.Id == AuthenticationService.Instance.PlayerId;
+
+            return new LobbyPlayerData(
+                player.Id,
+                playerName,
+                characterId,
+                colorId,
+                teamId,
+                isReady,
+                isHost
+            );
+        }
+
+        /// <summary>
+        /// Gets a player data value with a default fallback.
+        /// </summary>
+        private string GetPlayerValue(Player player, string key, string defaultValue)
+        {
+            return player.Data != null && player.Data.TryGetValue(key, out var dataObject) ?
+                dataObject.Value : defaultValue;
+        }
+
+        #endregion
+    }
+}
