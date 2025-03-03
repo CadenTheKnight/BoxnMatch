@@ -5,7 +5,7 @@ using UnityEngine;
 public class AbilitySocket : MonoBehaviour
 {
     [SerializeField] private AbilityDirection socketDirection;
-    [SerializeField] private AbilityBinding ability;
+    [SerializeField] public AbilityBinding ability;
 
     public void UpdateRotation(int quarterCircles)
     {

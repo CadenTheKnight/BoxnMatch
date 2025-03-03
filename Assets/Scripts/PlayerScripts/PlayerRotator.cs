@@ -15,7 +15,7 @@ public class PlayerRotator : MonoBehaviour
     [SerializeField] private bool overrideBufferedInputs;
 
     [Header("Sockets")]
-    [SerializeField] private AbilitySocket[] sockets;
+    [SerializeField] public AbilitySocket[] sockets;
 
     private AbilityDirection currDirection;
     private bool currentlyRotating;
