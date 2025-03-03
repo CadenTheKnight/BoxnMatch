@@ -54,7 +54,7 @@ public class playerController : MonoBehaviour
         }
         //NEW
         //jumping 1
-        Debug.Log(isGrounded + " " + rb.velocity.y);
+        //Debug.Log(isGrounded + " " + rb.velocity.y);
         if (isGrounded && rb.velocity.y <= 0)
         {
             jumpCount = 0;
