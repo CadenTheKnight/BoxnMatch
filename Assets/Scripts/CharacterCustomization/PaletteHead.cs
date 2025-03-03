@@ -8,6 +8,9 @@ public class PaletteHead : MonoBehaviour
     //accessor
     public Color SelectedColor { get { return selectedColor; } }
 
+    [SerializeField] private ColorChannelButton[] channelButtons;
+    private ColorChannelButton currChannel;
+
     public delegate void OnColorChangedDel(Color color);
     public event OnColorChangedDel OnColorUpdated;
 
@@ -15,5 +18,15 @@ public class PaletteHead : MonoBehaviour
     {
         selectedColor = col;
         OnColorUpdated?.Invoke(selectedColor);
+    }
+
+    public void SetCurrChannel(ColorChannelButton ccb)
+    {
+        for(int i = 0; i < channelButtons.Length; i++)
+        {
+            channelButtons[i].DeselectChannel();
+        }
+        currChannel = ccb;
+        ccb.SelectChannel();
     }
 }

@@ -7,10 +7,7 @@ public enum CharacterShaderChannel
 {
     _BoxColor, 
     _LineColor,
-    _EyeColor,
-    _EyebrowsColor,
-    _MouthColor,
-    _NoseColor
+    _FaceColor
 }
 
 public class ColorChannelButton : MonoBehaviour
@@ -22,8 +19,6 @@ public class ColorChannelButton : MonoBehaviour
     {
         Button button = GetComponent<Button>();
         button.onClick.AddListener(EnablePalette);
-
-        palette.OnColorUpdated += UpdateColor;
     }
 
     private void UpdateColor(Color col)
@@ -34,6 +29,17 @@ public class ColorChannelButton : MonoBehaviour
     private void EnablePalette()
     {
         palette.gameObject.SetActive(true);
+        palette.SetCurrChannel(this);
+    }
+
+    public void SelectChannel()
+    {
+        palette.OnColorUpdated += UpdateColor;
+    }
+
+    public void DeselectChannel()
+    {
+        palette.OnColorUpdated -= UpdateColor;
     }
 
 }
