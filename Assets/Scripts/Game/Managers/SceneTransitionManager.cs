@@ -103,35 +103,35 @@ namespace Assets.Scripts.Game.Managers
         private void HandleAuthenticated()
         {
             // Set authentication success notification
-            SetPendingNotification(new OperationResult(true, "AUTH_SUCCESS", "Authentication successful!"), NotificationType.Success);
+            SetPendingNotification(OperationResult.SuccessResult("AUTH_SUCCESS", "Authentication successful!"), NotificationType.Success);
 
             SceneManager.LoadScene("Main");
         }
 
         private void HandleLobbyCreated(Lobby lobby)
         {
-            SetPendingNotification(new OperationResult(true, "LOBBY_CREATED", $"Created lobby '{lobby.Name}'!"), NotificationType.Success);
+            SetPendingNotification(OperationResult.SuccessResult("LOBBY_CREATED", $"Created lobby '{lobby.Name}'!"), NotificationType.Success);
 
             SceneManager.LoadScene("Lobby");
         }
 
         private void HandleLobbyJoined(Lobby lobby)
         {
-            SetPendingNotification(new OperationResult(true, "LOBBY_JOINED", $"Joined lobby '{lobby.Name}'!"), NotificationType.Success);
+            SetPendingNotification(OperationResult.SuccessResult("LOBBY_JOINED", $"Joined lobby '{lobby.Name}'!"), NotificationType.Success);
 
             SceneManager.LoadScene("Lobby");
         }
 
         private void HandleLobbyLeft()
         {
-            SetPendingNotification(new OperationResult(true, "LOBBY_LEFT", "Left the lobby."), NotificationType.Success);
+            SetPendingNotification(OperationResult.SuccessResult("LOBBY_LEFT", "Left the lobby."), NotificationType.Success);
 
             SceneManager.LoadScene("Main");
         }
 
         private void HandleLobbyKicked()
         {
-            SetPendingNotification(new OperationResult(false, "LOBBY_KICKED", "Kicked from the lobby."), NotificationType.Success);
+            SetPendingNotification(OperationResult.WarningResult("LOBBY_KICKED", "Kicked from the lobby."), NotificationType.Warning);
 
             SceneManager.LoadScene("Main");
         }

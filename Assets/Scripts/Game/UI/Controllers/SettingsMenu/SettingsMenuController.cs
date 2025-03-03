@@ -188,13 +188,25 @@ namespace Assets.Scripts.Game.UI.Controllers.SettingsMenu
         private void ApplyChanges()
         {
             if (gameSettingsController.gameObject.activeSelf)
+            {
                 gameSettingsController.SaveSettings();
+                resultHandler.HandleResult(OperationResult.SuccessResult("GameSettingsChanged", "Game settings changes applied"));
+            }
             else if (videoSettingsController.gameObject.activeSelf)
+            {
                 videoSettingsController.SaveSettings();
+                resultHandler.HandleResult(OperationResult.SuccessResult("VideoSettingsChanged", "Video settings changes applied"));
+            }
             else if (audioSettingsController.gameObject.activeSelf)
+            {
                 audioSettingsController.SaveSettings();
+                resultHandler.HandleResult(OperationResult.SuccessResult("AudioSettingsChanged", "Audio settings changes applied"));
+            }
             else if (controlsSettingsController.gameObject.activeSelf)
+            {
                 controlsSettingsController.SaveSettings();
+                resultHandler.HandleResult(OperationResult.SuccessResult("ControlsSettingsChanged", "Controls settings changes applied"));
+            }
 
             UpdateActionButtonsState();
         }
@@ -205,13 +217,25 @@ namespace Assets.Scripts.Game.UI.Controllers.SettingsMenu
         private void ResetToDefaults()
         {
             if (gameSettingsController.gameObject.activeSelf)
+            {
                 gameSettingsController.ResetToDefaults();
+                resultHandler.HandleResult(OperationResult.SuccessResult("GameSettingsReset", "Game settings reset to default"));
+            }
             else if (videoSettingsController.gameObject.activeSelf)
+            {
                 videoSettingsController.ResetToDefaults();
+                resultHandler.HandleResult(OperationResult.SuccessResult("VideoSettingsReset", "Video settings reset to default"));
+            }
             else if (audioSettingsController.gameObject.activeSelf)
+            {
                 audioSettingsController.ResetToDefaults();
+                resultHandler.HandleResult(OperationResult.SuccessResult("AudioSettingsReset", "Audio settings reset to default"));
+            }
             else if (controlsSettingsController.gameObject.activeSelf)
+            {
                 controlsSettingsController.ResetToDefaults();
+                resultHandler.HandleResult(OperationResult.SuccessResult("ControlsSettingsReset", "Controls settings reset to default"));
+            }
 
             UpdateActionButtonsState();
         }
@@ -222,13 +246,25 @@ namespace Assets.Scripts.Game.UI.Controllers.SettingsMenu
         private void DiscardChanges()
         {
             if (gameSettingsController.gameObject.activeSelf)
+            {
                 gameSettingsController.DiscardChanges();
+                resultHandler.HandleResult(OperationResult.WarningResult("GameSettingsDiscarded", "Game settings changes discarded"));
+            }
             else if (videoSettingsController.gameObject.activeSelf)
+            {
                 videoSettingsController.DiscardChanges();
+                resultHandler.HandleResult(OperationResult.WarningResult("VideoSettingsDiscarded", "Video settings changes discarded"));
+            }
             else if (audioSettingsController.gameObject.activeSelf)
+            {
                 audioSettingsController.DiscardChanges();
+                resultHandler.HandleResult(OperationResult.WarningResult("AudioSettingsDiscarded", "Audio settings changes discarded"));
+            }
             else if (controlsSettingsController.gameObject.activeSelf)
+            {
                 controlsSettingsController.DiscardChanges();
+                resultHandler.HandleResult(OperationResult.WarningResult("ControlsSettingsDiscarded", "Controls settings changes discarded"));
+            }
 
             UpdateActionButtonsState();
         }
@@ -246,15 +282,14 @@ namespace Assets.Scripts.Game.UI.Controllers.SettingsMenu
 
             if (hasUnsavedChanges)
             {
-                // Optionally show a confirmation dialog before closing
+                // TODO: show confirm dialog before closing
 
-                // For now, we'll just discard changes
                 gameSettingsController.DiscardChanges();
                 videoSettingsController.DiscardChanges();
                 audioSettingsController.DiscardChanges();
                 controlsSettingsController.DiscardChanges();
 
-                resultHandler.HandleResult(new OperationResult(true, "DISCARD_ALL_CHANGES", "All changes have been discarded."));
+                resultHandler.HandleResult(OperationResult.WarningResult("SettingsDiscarded", "Settings changes discarded"));
             }
 
             base.HidePanel();

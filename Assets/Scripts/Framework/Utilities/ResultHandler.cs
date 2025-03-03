@@ -15,10 +15,15 @@ namespace Assets.Scripts.Framework.Utilities
         /// <param name="retryAction">The action to retry the operation.</param>
         public void HandleResult(OperationResult operationResult, System.Action retryAction = null)
         {
-            if (operationResult.Success)
+            if (operationResult.Status == ResultStatus.Success)
             {
                 Debug.Log($"{operationResult.Code} - {operationResult.Message}");
                 resultNotification.ShowNotification(operationResult, NotificationType.Success);
+            }
+            else if (operationResult.Status == ResultStatus.Warning)
+            {
+                Debug.Log($"{operationResult.Code} - {operationResult.Message}");
+                resultNotification.ShowNotification(operationResult, NotificationType.Warning);
             }
             else
             {

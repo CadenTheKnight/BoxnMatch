@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Assets.Scripts.Game.UI.Controllers.SettingsMenu
+namespace Assets.Scripts.Game.UI.Components
 {
     public abstract class BaseSettingsPanel : MonoBehaviour
     {

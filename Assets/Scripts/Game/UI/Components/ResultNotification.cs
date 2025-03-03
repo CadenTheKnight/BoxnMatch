@@ -9,6 +9,7 @@ namespace Assets.Scripts.Game.UI.Components
     public enum NotificationType
     {
         Error,
+        Warning,
         Success
     }
 
@@ -19,21 +20,10 @@ namespace Assets.Scripts.Game.UI.Components
     {
         [Header("UI References")]
         [SerializeField] private Button closeButton;
-        [SerializeField] private float autoHideDelaySeconds = 3f;
         [SerializeField] private TextMeshProUGUI notificationText;
 
-        [Header("Error Colors")]
-        [SerializeField] private Color errorDefaultColor = new(1f, 0.28f, 0.34f); // FF4757
-        [SerializeField] private Color errorHoverColor = new(1f, 0.42f, 0.51f);   // FF6B81
-
-        [Header("Success Colors")]
-        [SerializeField] private Color successDefaultColor = new(0.18f, 0.84f, 0.45f); // 2ED573
-        [SerializeField] private Color successHoverColor = new(0.48f, 0.93f, 0.62f);   // 7BED9F
-
-        [Header("Shared Colors")]
-        [SerializeField] private Color disabledColor = new(0.34f, 0.38f, 0.44f); // 57606F
-
         private Coroutine autoHideCoroutine;
+        private readonly float autoHideDelaySeconds = 3f;
 
         private void OnEnable()
         {
@@ -53,7 +43,7 @@ namespace Assets.Scripts.Game.UI.Components
         /// <param name="type">The type of notification to display.</param>
         public void ShowNotification(OperationResult operationResult, NotificationType type)
         {
-            notificationText.text = $"{operationResult.Code} - {operationResult.Message}";
+            notificationText.text = operationResult.Message;
             ApplyTheme(type);
             gameObject.SetActive(true);
             StartAutoHide();
@@ -70,22 +60,29 @@ namespace Assets.Scripts.Game.UI.Components
             switch (type)
             {
                 case NotificationType.Error:
-                    colors.normalColor = errorDefaultColor;
-                    colors.highlightedColor = errorHoverColor;
-                    colors.pressedColor = errorDefaultColor;
-                    colors.selectedColor = errorHoverColor;
+                    colors.normalColor = UIColors.errorDefaultColor;
+                    colors.highlightedColor = UIColors.errorHoverColor;
+                    colors.pressedColor = UIColors.errorDefaultColor;
+                    colors.selectedColor = UIColors.errorHoverColor;
+                    break;
+
+                case NotificationType.Warning:
+                    colors.normalColor = UIColors.warningDefaultColor;
+                    colors.highlightedColor = UIColors.warningHoverColor;
+                    colors.pressedColor = UIColors.warningDefaultColor;
+                    colors.selectedColor = UIColors.warningHoverColor;
                     break;
 
                 case NotificationType.Success:
                 default:
-                    colors.normalColor = successDefaultColor;
-                    colors.highlightedColor = successHoverColor;
-                    colors.pressedColor = successDefaultColor;
-                    colors.selectedColor = successHoverColor;
+                    colors.normalColor = UIColors.successDefaultColor;
+                    colors.highlightedColor = UIColors.successHoverColor;
+                    colors.pressedColor = UIColors.successDefaultColor;
+                    colors.selectedColor = UIColors.successHoverColor;
                     break;
             }
 
-            colors.disabledColor = disabledColor;
+            colors.disabledColor = UIColors.disabledColor;
             closeButton.colors = colors;
         }
 

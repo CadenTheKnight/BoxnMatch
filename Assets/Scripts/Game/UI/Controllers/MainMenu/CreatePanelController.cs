@@ -63,7 +63,7 @@ namespace Assets.Scripts.Game.UI.Controllers.MainMenu
             OperationResult result = await GameLobbyManager.Instance.CreateLobby(lobbyNameInput.text.Trim());
             loadingBar.StopLoading();
 
-            if (result.Success)
+            if (result.Status == ResultStatus.Success)
                 SceneTransitionManager.Instance.SetPendingNotification(result, NotificationType.Success);
             else
                 resultHandler.HandleResult(result);

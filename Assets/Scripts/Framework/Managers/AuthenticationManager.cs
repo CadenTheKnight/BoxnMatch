@@ -16,6 +16,8 @@ namespace Assets.Scripts.Framework.Managers
     /// </summary>
     public class AuthenticationManager : Singleton<AuthenticationManager>
     {
+        public string PlayerId => AuthenticationService.Instance.PlayerId;
+
         /// <summary>
         /// Event that is invoked when the player is authenticated.
         /// </summary>

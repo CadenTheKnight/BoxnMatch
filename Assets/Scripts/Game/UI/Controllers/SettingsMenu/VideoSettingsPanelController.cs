@@ -1,8 +1,9 @@
 using TMPro;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
-using System.Linq;
+using Assets.Scripts.Game.UI.Components;
 
 namespace Assets.Scripts.Game.UI.Controllers.SettingsMenu
 {

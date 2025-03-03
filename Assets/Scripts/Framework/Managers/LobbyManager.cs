@@ -150,6 +150,7 @@ namespace Assets.Scripts.Framework.Managers
             try
             {
                 lobby = await LobbyService.Instance.JoinLobbyByCodeAsync(lobbyCode, joinLobbyByCodeOptions);
+                StartCoroutine(RefreshCoroutine(lobby.Id, 2f));
 
                 LobbyEvents.InvokeLobbyJoined(lobby);
 
@@ -172,6 +173,7 @@ namespace Assets.Scripts.Framework.Managers
             try
             {
                 lobby = await LobbyService.Instance.JoinLobbyByIdAsync(lobbyId, joinLobbyByIdOptions);
+                StartCoroutine(RefreshCoroutine(lobby.Id, 2f));
 
                 LobbyEvents.InvokeLobbyJoined(lobby);
 

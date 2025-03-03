@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using Unity.Services.Authentication;
+using Assets.Scripts.Game.UI.Components;
 
 namespace Assets.Scripts.Game.UI.Controllers.SettingsMenu
 {

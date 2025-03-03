@@ -11,10 +11,10 @@ GameObject:
   - component: {fileID: 8694858139305881600}
   - component: {fileID: 8787446347666999371}
   - component: {fileID: 1857101881811689178}
-  - component: {fileID: 1889245146047729134}
   - component: {fileID: 7547699915052002390}
+  - component: {fileID: 4290166312633067917}
   m_Layer: 5
-  m_Name: LobbyPlayer
+  m_Name: PlayerListEntry
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -79,20 +79,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &1889245146047729134
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 422842066557075415}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4aaee009b241e494483a38eb1761cca9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  playerNameText: {fileID: 8296134660851708183}
-  readyIndicatorImage: {fileID: 9102378097689889406}
 --- !u!114 &7547699915052002390
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -113,6 +99,22 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &4290166312633067917
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 422842066557075415}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc60d5c0c0c6a9149a07886608962082, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerNameText: {fileID: 8296134660851708183}
+  readyIndicator: {fileID: 9102378097689889406}
+  readyColor: {r: 0.18039216, g: 0.8352941, b: 0.4509804, a: 1}
+  unreadyColor: {r: 1, g: 0.2784314, b: 0.34117648, a: 1}
 --- !u!1 &1177094669593611521
 GameObject:
   m_ObjectHideFlags: 0

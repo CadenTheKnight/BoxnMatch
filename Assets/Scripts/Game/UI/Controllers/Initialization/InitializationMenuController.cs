@@ -28,7 +28,7 @@ namespace Assets.Scripts.Game.UI.Controllers.Initialization
             OperationResult result = await AuthenticationManager.Instance.InitializeAsync();
             loadingBar.StopLoading();
 
-            if (result.Success)
+            if (result.Status == ResultStatus.Success)
                 SceneTransitionManager.Instance.SetPendingNotification(result, NotificationType.Success);
             else
                 resultHandler.HandleResult(result);
