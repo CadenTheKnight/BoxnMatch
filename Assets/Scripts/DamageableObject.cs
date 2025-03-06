@@ -69,6 +69,6 @@ public class DamageableObject : MonoBehaviour
     private void HandleKnockback(float knockback, Vector2 dir)
     {
         Vector2 knockbackVelocity = dir * (knockback * currentDamage / 100);
-        rb.velocity += knockbackVelocity;
+        rb.AddForce(knockbackVelocity, ForceMode2D.Impulse);
     }
 }

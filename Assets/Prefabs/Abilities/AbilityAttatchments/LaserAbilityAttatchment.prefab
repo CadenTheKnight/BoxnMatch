@@ -10,7 +10,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2263655372429113230, guid: 8f867951f7bd9684e82859f0ec174919, type: 3}
       propertyPath: m_Name
-      value: FireballAbilityAttatchment Variant
+      value: LaserAbilityAttatchment
       objectReference: {fileID: 0}
     - target: {fileID: 2263655372429113230, guid: 8f867951f7bd9684e82859f0ec174919, type: 3}
       propertyPath: m_IsActive
@@ -63,14 +63,14 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 2263655372429113230, guid: 8f867951f7bd9684e82859f0ec174919, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2680395258922555074}
+      addedObject: {fileID: 6848564162844033001}
   m_SourcePrefab: {fileID: 100100000, guid: 8f867951f7bd9684e82859f0ec174919, type: 3}
 --- !u!1 &7609067020259386251 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2263655372429113230, guid: 8f867951f7bd9684e82859f0ec174919, type: 3}
   m_PrefabInstance: {fileID: 8571133710642566149}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &2680395258922555074
+--- !u!114 &6848564162844033001
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -79,10 +79,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 7609067020259386251}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1886f6dfd1640c9418b0de0745a1f987, type: 3}
+  m_Script: {fileID: 11500000, guid: 0621b66b588b56f418770f4f9f533b24, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   positionOffset: 1
   maxShots: 1
-  launchForce: {x: 15, y: 20}
-  Fireball: {fileID: 1345575990676556360, guid: d8ba9e5f1ecc7424abc1b85f9c9cd55a, type: 3}
+  Laser: {fileID: 215190149022633427, guid: 2cf651686091f5446ad8e3c1770fa825, type: 3}

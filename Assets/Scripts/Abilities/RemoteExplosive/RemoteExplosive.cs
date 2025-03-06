@@ -16,6 +16,7 @@ public class RemoteExplosive : MonoBehaviour
         e.explosionDuration = explosionDuration;
         d.damage = explosionDamage;
         d.knockback = explosionKnockback;
+        Destroy(gameObject);
     }
 
 
