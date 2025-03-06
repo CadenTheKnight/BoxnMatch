@@ -26,8 +26,7 @@ public class RocketlAbility : AbilityBinding
             time += Time.deltaTime;
 
             // accelerates player in opposite direction of use
-            rb.velocity += -1 * Time.deltaTime * (Vector2)direction.GetUnitDirection() * acceleration;
-            Debug.Log(rb.velocity);
+            rb.AddForce(-1 * Time.deltaTime * (Vector2)direction.GetUnitDirection() * acceleration, ForceMode2D.Impulse);
 
             if (time > abilityDuration)
             {
