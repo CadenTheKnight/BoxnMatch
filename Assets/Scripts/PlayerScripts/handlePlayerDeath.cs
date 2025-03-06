@@ -19,6 +19,8 @@ public class handlePlayerDeath : MonoBehaviour
         if (collision.gameObject.tag == "Player")
         {
             Debug.Log("exit");
+            collision.gameObject.GetComponent<DamageableObject>().currentDamage = 0;
+            collision.gameObject.GetComponent<Rigidbody2D>().velocity = Vector3.zero;
             collision.gameObject.transform.position = respawnPoint;
         }
     }

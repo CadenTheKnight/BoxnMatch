@@ -7,7 +7,7 @@ using UnityEngine;
 public class RocketlAbility : AbilityBinding
 {
 
-    [SerializeField] Vector2 acceleration;
+    [SerializeField] float acceleration = 60;
     [SerializeField] float positionOffset = 0.5f;
     [SerializeField] float abilityDuration = 5f;
 
