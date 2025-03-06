@@ -70,19 +70,6 @@ namespace Assets.Scripts.Game.Events
         public static event MatchSettingsUpdatedHandler OnMatchSettingsUpdated;
 
         /// <summary>
-        /// Fired when all players are ready and the match is about to begin.
-        /// </summary>
-        /// <param name="countdownSeconds">Seconds until match starts.</param>
-        public delegate void MatchStartingHandler(int countdownSeconds);
-        public static event MatchStartingHandler OnMatchStarting;
-
-        /// <summary>
-        /// Fired when the match start countdown is cancelled.
-        /// </summary>
-        public delegate void MatchStartingCancelledHandler();
-        public static event MatchStartingCancelledHandler OnMatchStartingCancelled;
-
-        /// <summary>
         /// Fired when the match has officially started.
         /// </summary>
         public delegate void MatchStartedHandler();
@@ -134,7 +121,6 @@ namespace Assets.Scripts.Game.Events
         public static void InvokeNotAllPlayersReady() => OnNotAllPlayersReady?.Invoke();
         public static void InvokeArenaSelected(string arenaId) => OnArenaSelected?.Invoke(arenaId);
         public static void InvokeMatchSettingsUpdated(Dictionary<string, string> settings) => OnMatchSettingsUpdated?.Invoke(settings);
-        public static void InvokeMatchStarting(int countdownSeconds) => OnMatchStarting?.Invoke(countdownSeconds);
         public static void InvokeMatchStarted() => OnMatchStarted?.Invoke();
         public static void InvokeLobbyChat(string playerId, string message) => OnLobbyChat?.Invoke(playerId, message);
         public static void InvokePersonalMessage(string playerId, string senderName, string message) => OnPersonalMessage?.Invoke(playerId, senderName, message);
@@ -158,7 +144,6 @@ namespace Assets.Scripts.Game.Events
             OnNotAllPlayersReady = null;
             OnArenaSelected = null;
             OnMatchSettingsUpdated = null;
-            OnMatchStarting = null;
             OnMatchStarted = null;
             OnLobbyChat = null;
             OnPersonalMessage = null;

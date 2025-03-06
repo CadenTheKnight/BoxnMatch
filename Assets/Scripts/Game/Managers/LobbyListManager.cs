@@ -68,7 +68,7 @@ namespace Assets.Scripts.Game.Managers
         /// <returns>Operation result indicating success or failure.</returns>
         public async Task<OperationResult> JoinLobbyByCode(string lobbyCode)
         {
-            JoinLobbyByCodeOptions joinLobbyByCodeOptions = new() { Player = PlayerDataManager.Instance.GetPlayer() };
+            JoinLobbyByCodeOptions joinLobbyByCodeOptions = new() { Player = PlayerDataManager.Instance.GetNewPlayer() };
 
             return await LobbyManager.Instance.JoinLobbyByCode(lobbyCode, joinLobbyByCodeOptions);
         }
@@ -80,7 +80,7 @@ namespace Assets.Scripts.Game.Managers
         /// <returns>Operation result indicating success or failure.</returns>
         public async Task<OperationResult> JoinSelectedLobby(string lobbyId)
         {
-            JoinLobbyByIdOptions joinLobbyByIdOptions = new() { Player = PlayerDataManager.Instance.GetPlayer() };
+            JoinLobbyByIdOptions joinLobbyByIdOptions = new() { Player = PlayerDataManager.Instance.GetNewPlayer() };
 
             return await LobbyManager.Instance.JoinLobbyById(lobbyId, joinLobbyByIdOptions);
         }

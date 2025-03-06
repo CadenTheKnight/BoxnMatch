@@ -13,6 +13,9 @@ using Assets.Scripts.Game.UI.Components;
 using Assets.Scripts.Framework.Utilities;
 using Assets.Scripts.Game.UI.Components.ListEntries;
 using System.Threading.Tasks;
+using System.Linq;
+using Unity.Netcode;
+using UnityEngine.SceneManagement;
 
 namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
 {
@@ -26,19 +29,12 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
         [SerializeField] private LobbySettingsPanelController lobbySettingsPanelController;
 
         [Header("Footer")]
-        [SerializeField] private Button startButton;
         [SerializeField] protected Button leaveButton;
         [SerializeField] private Button readyUnreadyButton;
         [SerializeField] private TextMeshProUGUI readyUnreadyButtonText;
-        [SerializeField] private GameObject countdownPanel;
         [SerializeField] private LoadingBar leaveLoadingBar;
-        [SerializeField] private TextMeshProUGUI countdownText;
         [SerializeField] private LoadingBar readyUnreadyLoadingBar;
-
-        [Header("Countdown Timer")]
-        private Coroutine countdownCoroutine;
-        private bool isCountdownActive = false;
-        private const float COUNTDOWN_DURATION = 5f;
+        [SerializeField] private Countdown countdown;
 
         [Header("Player List")]
         [SerializeField] private Transform playerListContent;
@@ -56,13 +52,15 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
             // LobbyEvents.OnPlayerJoined += OnPlayerJoined;
             // LobbyEvents.OnPlayerLeft += OnPlayerLeft;
             // LobbyEvents.OnPlayerDataChanged += OnPlayerDataChanged;
+
             Events.LobbyEvents.OnAllPlayersReady += OnLobbyReady;
             Events.LobbyEvents.OnNotAllPlayersReady += OnLobbyNotReady;
 
+            countdown.OnCountdownComplete += OnCountdownComplete;
+
             AddHostListeners();
 
-            if (countdownPanel != null)
-                countdownPanel.SetActive(false);
+            countdown.ShowNotReadyMessage();
         }
 
         private void OnDisable()
@@ -75,12 +73,13 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
             // LobbyEvents.OnPlayerJoined -= OnPlayerJoined;
             // LobbyEvents.OnPlayerLeft -= OnPlayerLeft;
             // LobbyEvents.OnPlayerDataChanged -= OnPlayerDataChanged;
+
             Events.LobbyEvents.OnAllPlayersReady -= OnLobbyReady;
             Events.LobbyEvents.OnNotAllPlayersReady -= OnLobbyNotReady;
 
-            RemoveHostListeners();
+            countdown.OnCountdownComplete -= OnCountdownComplete;
 
-            CancelCountdown();
+            RemoveHostListeners();
         }
 
         private void OnPlayerJoined(Player player)
@@ -99,61 +98,10 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
 
         void Start()
         {
+            lobbyCodeText.text = $"Code: {LobbyManager.Instance.LobbyCode}";
+
             OnLobbyUpdated(LobbyManager.Instance.lobby);
-            startButton.interactable = false;
-            UpdateReadyButton();
-        }
-
-        private async void OnReadyUnreadyClicked()
-        {
-            readyUnreadyButton.interactable = false;
-
-            readyUnreadyLoadingBar.StartLoading();
-            await Tests.TestDelay(1000);
-            OperationResult result = await GameLobbyManager.Instance.ToggleReadyStatus();
-            readyUnreadyLoadingBar.StopLoading();
-
-            resultHandler.HandleResult(result);
-
-            UpdateReadyButton();
-            await Task.Delay(2000); // temporary delay to prevent spamming the ready button
-
-            readyUnreadyButton.interactable = true;
-        }
-
-        private void UpdateReadyButton()
-        {
-            bool isReady = GameLobbyManager.Instance.IsPlayerReady();
-            readyUnreadyButtonText.text = isReady ? "Unready" : "Ready";
-
-            ColorBlock colors = readyUnreadyButton.colors;
-
-            if (isReady)
-            {
-                colors.normalColor = UIColors.successDefaultColor;
-                colors.highlightedColor = UIColors.successHoverColor;
-                colors.pressedColor = UIColors.successDefaultColor;
-                colors.selectedColor = UIColors.successHoverColor;
-            }
-            else
-            {
-                colors.normalColor = UIColors.errorDefaultColor;
-                colors.highlightedColor = UIColors.errorHoverColor;
-                colors.pressedColor = UIColors.errorDefaultColor;
-                colors.selectedColor = UIColors.errorHoverColor;
-            }
-
-            readyUnreadyButton.colors = colors;
-        }
-
-        private void OnPlayerDataChanged(Player player)
-        {
-            UpdatePlayerList(LobbyManager.Instance.lobby);
-
-            if (player.Id == AuthenticationManager.Instance.PlayerId)
-            {
-                UpdateReadyButton();
-            }
+            UpdateReadyButton(false);
         }
 
         private async void OnLeaveClicked()
@@ -161,7 +109,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
             leaveButton.interactable = false;
 
             leaveLoadingBar.StartLoading();
-            await Tests.TestDelay(1000);
+            // await Tests.TestDelay(1000);
             OperationResult result = await LobbyManager.Instance.LeaveLobby();
             leaveLoadingBar.StopLoading();
 
@@ -173,40 +121,23 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
             leaveButton.interactable = true;
         }
 
-        public async void OnApplicationQuit()
-        {
-            await LobbyManager.Instance.LeaveLobby();
-        }
-
         private void OnLobbySettingsClicked()
         {
             lobbySettingsPanelController.ShowPanel();
         }
 
-        private void OnLobbyReady()
-        {
-            if (LobbyManager.Instance.IsLobbyHost)
-                startButton.interactable = true;
-
-            StartCountdown();
-        }
-
-        public void OnLobbyNotReady()
-        {
-            if (LobbyManager.Instance.IsLobbyHost)
-                startButton.interactable = false;
-
-            CancelCountdown();
-        }
-
         private void OnLobbyUpdated(Lobby lobby)
         {
             lobbyNameText.text = LobbyManager.Instance.LobbyName;
-            lobbyCodeText.text = $"Code: {LobbyManager.Instance.LobbyCode}";
 
             UpdatePlayerList(lobby);
             UpdateHostUI();
-            UpdateReadyButton();
+
+            if (lobby.Data != null && lobby.Data.ContainsKey("CountdownStartTime") && !countdown.IsCountdownActive)
+            {
+                Debug.Log("Received countdown start from lobby data");
+                countdown.StartCountdown();
+            }
         }
 
         private void OnLobbyCodeClicked()
@@ -221,13 +152,11 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
             {
                 AddHostListeners();
                 lobbySettingsButton.interactable = true;
-                startButton.gameObject.SetActive(true);
             }
             else
             {
                 RemoveHostListeners();
                 lobbySettingsButton.interactable = false;
-                startButton.gameObject.SetActive(false);
             }
         }
 
@@ -258,77 +187,207 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
 
         #endregion
 
-        #region Countdown Management
-        private void StartCountdown()
+        #region Ready/Countdown Management
+
+        private async void OnReadyUnreadyClicked()
         {
-            if (isCountdownActive)
-                return;
+            readyUnreadyButton.interactable = false;
 
-            CancelCountdown();
+            readyUnreadyLoadingBar.StartLoading();
+            OperationResult result = await GameLobbyManager.Instance.ToggleReadyStatus();
 
-            countdownCoroutine = StartCoroutine(CountdownCoroutine());
+            await Task.Delay(500);
+
+
+            OnLobbyUpdated(LobbyManager.Instance.lobby);
+            UpdateReadyButton(GameLobbyManager.Instance.IsPlayerReady(AuthenticationManager.Instance.PlayerId));
+            GameLobbyManager.Instance.IsLobbyReady();
+
+            readyUnreadyLoadingBar.StopLoading();
+
+            await Task.Delay(2000);
+            readyUnreadyButton.interactable = true;
         }
 
-        private void CancelCountdown()
+        private void UpdateReadyButton(bool isReady)
         {
-            if (countdownCoroutine != null)
+            readyUnreadyButtonText.text = isReady ? "READY" : "NOT READY";
+
+            ColorBlock colors = readyUnreadyButton.colors;
+
+            if (isReady)
             {
-                StopCoroutine(countdownCoroutine);
-                countdownCoroutine = null;
+                colors.normalColor = UIColors.successDefaultColor;
+                colors.highlightedColor = UIColors.successHoverColor;
+                colors.pressedColor = UIColors.successDefaultColor;
+                colors.selectedColor = UIColors.successHoverColor;
+            }
+            else
+            {
+                colors.normalColor = UIColors.errorDefaultColor;
+                colors.highlightedColor = UIColors.errorHoverColor;
+                colors.pressedColor = UIColors.errorDefaultColor;
+                colors.selectedColor = UIColors.errorHoverColor;
             }
 
-            isCountdownActive = false;
+            readyUnreadyButton.colors = colors;
+        }
 
-            if (countdownPanel != null)
-                countdownPanel.SetActive(false);
+        private void OnLobbyReady()
+        {
+            Debug.Log("All players are now ready - starting countdown");
+
+            // send system chat message
+
+            if (LobbyManager.Instance.IsLobbyHost)
+            {
+                countdown.StartCountdown();
+            }
+        }
+
+        private void OnLobbyNotReady()
+        {
+            Debug.Log("Not all players are ready - cancelling countdown");
+
+            // send system chat message
+
+            countdown.CancelCountdown();
+            countdown.ShowNotReadyMessage();
         }
 
         private async void CancelCountdownAndUnreadyAll()
         {
-            CancelCountdown();
+            countdown.CancelCountdown();
+
+            // send system chat message
 
             if (LobbyManager.Instance.IsLobbyHost)
                 await GameLobbyManager.Instance.SetAllPlayersUnready();
         }
 
-        private IEnumerator CountdownCoroutine()
+        private async void OnCountdownComplete()
         {
-            isCountdownActive = true;
+            Debug.Log("Countdown complete - starting game");
 
-            if (countdownPanel != null)
-                countdownPanel.SetActive(true);
-
-            float remainingTime = COUNTDOWN_DURATION;
-
-            while (remainingTime > 0)
+            if (LobbyManager.Instance.IsLobbyHost)
             {
-                if (countdownText != null)
-                    countdownText.text = Mathf.CeilToInt(remainingTime).ToString();
+                try
+                {
+                    // Create relay session
+                    string joinCode = await RelayManager.Instance.CreateRelaySession(LobbyManager.Instance.MaxPlayers);
 
-                yield return null;
+                    // Check if we got a valid join code
+                    if (string.IsNullOrEmpty(joinCode))
+                    {
+                        Debug.LogError("Failed to get relay join code");
+                        countdown.ShowNotReadyMessage();
+                        return; // Exit early if we don't have a join code
+                    }
 
-                remainingTime -= Time.deltaTime;
+                    // Update lobby with join code
+                    await GameLobbyManager.Instance.SetGameInProgress(true, joinCode);
+
+                    // Start networking as host
+                    NetworkManager.Singleton.StartHost();
+
+                    // Load game scene
+                    await LoadGameSceneAdditively();
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"Error starting host: {ex.Message}");
+                    countdown.ShowNotReadyMessage();
+                }
+            }
+            else
+            {
+                try
+                {
+                    await WaitForRelayJoinCode();
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"Error joining as client: {ex.Message}");
+                    countdown.ShowNotReadyMessage();
+                }
             }
 
-            isCountdownActive = false;
-
-            if (countdownPanel != null)
-                countdownPanel.SetActive(false);
-
-            StartGame();
+            readyUnreadyButton.interactable = false;
         }
 
-        private async void StartGame()
+        private async Task WaitForRelayJoinCode()
         {
-            Debug.Log("Game starting: (Countdown completed)");
+            float waitTime = 0;
+            int refreshAttempts = 0;
+            const float refreshInterval = 1.0f;
+            const int maxRefreshAttempts = 10;
 
-            // temporary - reset the lobby ready status
-            if (LobbyManager.Instance.IsLobbyHost)
-                await GameLobbyManager.Instance.SetAllPlayersUnready();
+            Debug.Log("Client waiting for relay join code...");
+
+            while (string.IsNullOrEmpty(LobbyManager.Instance.RelayJoinCode) && refreshAttempts < maxRefreshAttempts)
+            {
+                if (!string.IsNullOrEmpty(LobbyManager.Instance.RelayJoinCode))
+                {
+                    Debug.Log($"Received relay join code: {LobbyManager.Instance.RelayJoinCode}");
+                    break;
+                }
+
+                await Task.Delay((int)(refreshInterval * 1000));
+                waitTime += refreshInterval;
+                refreshAttempts++;
+            }
+
+            if (string.IsNullOrEmpty(LobbyManager.Instance.RelayJoinCode))
+            {
+                Debug.LogError($"Failed to get relay join code after {maxRefreshAttempts} attempts");
+                countdown.ShowNotReadyMessage();
+                return;
+            }
+
+            Debug.Log("Attempting to join relay session...");
+            bool success = await RelayManager.Instance.JoinRelaySession(LobbyManager.Instance.RelayJoinCode);
+
+            if (success)
+            {
+                Debug.Log("Successfully joined relay session, starting client");
+                NetworkManager.Singleton.StartClient();
+                await LoadGameSceneAdditively();
+            }
+            else
+            {
+                Debug.LogError("Failed to join Relay session");
+                countdown.ShowNotReadyMessage();
+            }
+        }
+
+        private async Task LoadGameSceneAdditively()
+        {
+            AsyncOperation asyncLoad = SceneManager.LoadSceneAsync("Game", LoadSceneMode.Additive);
+
+            while (!asyncLoad.isDone)
+                await Task.Yield();
+
+            Scene gameScene = SceneManager.GetSceneByName("Game");
+            SceneManager.SetActiveScene(gameScene);
+
+            gameObject.SetActive(false);
+        }
+
+
+        public async void ReturnToLobby()
+        {
+            gameObject.SetActive(true);
+
+            SceneManager.UnloadSceneAsync("Game");
 
             readyUnreadyButton.interactable = true;
-            UpdateReadyButton();
+            UpdateReadyButton(false);
+            countdown.ShowNotReadyMessage();
+
+            if (LobbyManager.Instance.IsLobbyHost)
+                await GameLobbyManager.Instance.SetGameInProgress(false);
         }
+
         #endregion
     }
 }

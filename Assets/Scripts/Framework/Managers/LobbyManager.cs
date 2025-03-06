@@ -65,6 +65,16 @@ namespace Assets.Scripts.Framework.Managers
         public string GameMode => lobby.Data["GameMode"].Value;
 
         /// <summary>
+        /// Is the game in progress.
+        /// </summary>
+        public bool IsGameInProgress => lobby.Data["GameInProgress"].Value == "true";
+
+        /// <summary>
+        /// Relay join code for the lobby.
+        /// </summary>
+        public string RelayJoinCode => lobby.Data["JoinCode"].Value ?? string.Empty;
+
+        /// <summary>
         /// List of players in the lobby.
         /// </summary>
         public IReadOnlyList<Player> Players => IsInLobby ? lobby.Players : new List<Player>();
@@ -129,7 +139,7 @@ namespace Assets.Scripts.Framework.Managers
 
                 LobbyEvents.InvokeLobbyCreated(lobby);
                 StartCoroutine(HeartbeatCoroutine(lobby.Id, 15f));
-                StartCoroutine(RefreshCoroutine(lobby.Id, 2f));
+                StartCoroutine(RefreshCoroutine(lobby.Id, 1.5f));
 
                 return OperationResult.SuccessResult("LobbyCreated", $"Lobby: {lobby.Name} created");
             }
@@ -150,7 +160,7 @@ namespace Assets.Scripts.Framework.Managers
             try
             {
                 lobby = await LobbyService.Instance.JoinLobbyByCodeAsync(lobbyCode, joinLobbyByCodeOptions);
-                StartCoroutine(RefreshCoroutine(lobby.Id, 2f));
+                StartCoroutine(RefreshCoroutine(lobby.Id, 1.5f));
 
                 LobbyEvents.InvokeLobbyJoined(lobby);
 
@@ -173,7 +183,7 @@ namespace Assets.Scripts.Framework.Managers
             try
             {
                 lobby = await LobbyService.Instance.JoinLobbyByIdAsync(lobbyId, joinLobbyByIdOptions);
-                StartCoroutine(RefreshCoroutine(lobby.Id, 2f));
+                StartCoroutine(RefreshCoroutine(lobby.Id, 1.5f));
 
                 LobbyEvents.InvokeLobbyJoined(lobby);
 
@@ -261,5 +271,40 @@ namespace Assets.Scripts.Framework.Managers
         }
 
         #endregion
+
+        public async Task<OperationResult> UpdateLobby(string lobbyId, UpdateLobbyOptions updateLobbyOptions)
+        {
+            try
+            {
+                await LobbyService.Instance.UpdateLobbyAsync(lobbyId, updateLobbyOptions);
+
+                LobbyEvents.InvokeLobbyUpdated(lobby);
+
+                return OperationResult.SuccessResult("UpdateLobby", $"Lobby {lobbyId} updated");
+            }
+            catch (LobbyServiceException e)
+            {
+                return OperationResult.FailureResult(e.ErrorCode.ToString(), e.Message);
+            }
+        }
+
+
+        public async Task<OperationResult> UpdatePlayer(string playerId, UpdatePlayerOptions updatePlayerOptions)
+        {
+            try
+            {
+                await LobbyService.Instance.UpdatePlayerAsync(LobbyManager.Instance.LobbyId, playerId, updatePlayerOptions);
+
+                LobbyEvents.InvokePlayerUpdated(lobby.Players.Find(player => player.Id == playerId));
+
+                return OperationResult.SuccessResult("UpdatePlayer", $"Player {playerId} updated");
+            }
+            catch (LobbyServiceException e)
+            {
+                return OperationResult.FailureResult(e.ErrorCode.ToString(), e.Message);
+            }
+        }
+
+
     }
 }

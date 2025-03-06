@@ -3,13 +3,13 @@ using System.Linq;
 using UnityEngine;
 using Unity.Services.Lobbies;
 using System.Threading.Tasks;
+using Assets.Scripts.Framework;
 using System.Collections.Generic;
+using Assets.Scripts.Game.Events;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Core;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Framework.Utilities;
-
-
 
 namespace Assets.Scripts.Game.Managers
 {
@@ -24,24 +24,36 @@ namespace Assets.Scripts.Game.Managers
         /// </summary>
         /// <param name="lobbyName">The name of the lobby.</param>
         /// <param name="maxPlayers">The maximum number of players allowed in the lobby.</param>
+        /// <param name="isPrivate">Whether the lobby is private.</param>
         /// <returns>Operation result indicating success or failure</returns>
-        public async Task<OperationResult> CreateLobby(string lobbyName, int maxPlayers = 4)
+        public async Task<OperationResult> CreateLobby(string lobbyName, int maxPlayers = 4, bool isPrivate = false)
+        // maxplayers and isprivate hardcoded until lobby creation is updated, will probably pass a whole object with all the new data eventually
         {
             CreateLobbyOptions createLobbyOptions = new()
             {
-                IsPrivate = false,
-                Player = PlayerDataManager.Instance.GetPlayer(),
+                IsPrivate = isPrivate,
+                Player = PlayerDataManager.Instance.GetNewPlayer(),
                 Data = new Dictionary<string, DataObject>
                 {
                     { "GameMode", new DataObject(DataObject.VisibilityOptions.Public, "Standard") },
-                    { "Map", new DataObject(DataObject.VisibilityOptions.Public, "Default")},
-                    { "RoundCount", new DataObject(DataObject.VisibilityOptions.Public, "3")},
-                    { "MatchTimeMinutes", new DataObject(DataObject.VisibilityOptions.Public, "5")},
-                    { "MapIndex", new DataObject(DataObject.VisibilityOptions.Public, "0")}
+                    { "MapName", new DataObject(DataObject.VisibilityOptions.Public, "Default")},
+                    { "RoundCount", new DataObject(DataObject.VisibilityOptions.Public, "5")},
+                    { "RoundTimeMinutes", new DataObject(DataObject.VisibilityOptions.Public, "2")},
+                    { "GameInProgress", new DataObject(DataObject.VisibilityOptions.Public, "false")},
                 }
             };
 
             return await LobbyManager.Instance.CreateLobby(lobbyName, maxPlayers, createLobbyOptions);
+        }
+
+        /// <summary>
+        /// Checks if the given player is ready.
+        /// </summary>
+        /// <param name="playerId">The ID of the player to check.</param>
+        /// <returns>True if the player is ready, false otherwise.</returns>
+        public bool IsPlayerReady(string playerId)
+        {
+            return LobbyManager.Instance.Players.FirstOrDefault(p => p.Id == playerId)?.Data["IsReady"].Value == "true";
         }
 
 
@@ -53,32 +65,21 @@ namespace Assets.Scripts.Game.Managers
         {
             try
             {
-                var currentPlayer = LobbyManager.Instance.lobby.Players
-                    .FirstOrDefault(p => p.Id == AuthenticationManager.Instance.PlayerId);
+                bool newReadyStatus = !IsPlayerReady(AuthenticationManager.Instance.PlayerId);
 
-                if (currentPlayer == null)
-                    return OperationResult.FailureResult("PlayerNotFound", "Player not found in lobby");
-
-                bool isCurrentlyReady = currentPlayer.Data["IsReady"].Value == "true";
-                bool newReadyStatus = !isCurrentlyReady;
-
-                await Lobbies.Instance.UpdatePlayerAsync(
-                    LobbyManager.Instance.LobbyId,
-                    AuthenticationManager.Instance.PlayerId,
-                    new UpdatePlayerOptions
+                UpdatePlayerOptions options = new()
+                {
+                    Data = new Dictionary<string, PlayerDataObject>
                     {
-                        Data = new Dictionary<string, PlayerDataObject>
-                        {
-                    { "IsReady", new PlayerDataObject(
-                        PlayerDataObject.VisibilityOptions.Member,
-                        newReadyStatus.ToString().ToLower()) }
-                        }
-                    });
+                        { "IsReady", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, newReadyStatus.ToString().ToLower()) }
+                    }
+                };
 
-                return OperationResult.SuccessResult(
-                    "ReadyStatusToggled",
-                    $"You are now {(newReadyStatus ? "ready" : "unready")}"
-                );
+                await LobbyManager.Instance.UpdatePlayer(AuthenticationManager.Instance.PlayerId, options);
+
+                LobbyEvents.InvokePlayerReadyChanged(AuthenticationManager.Instance.PlayerId, newReadyStatus);
+
+                return OperationResult.SuccessResult("ReadyStatusToggled", $"{(newReadyStatus ? "Ready" : "Not Ready")}");
             }
             catch (Exception ex)
             {
@@ -86,24 +87,30 @@ namespace Assets.Scripts.Game.Managers
             }
         }
 
-        /// <summary>
-        /// Checks if the current player is ready.
+
+
+        /// <summar>
+        /// Invokes the appropriate event based on the readiness of all players in the lobby.
         /// </summary>
-        /// <returns>True if the player is ready, false otherwise.</returns>
-        public bool IsPlayerReady()
+        public void IsLobbyReady()
         {
             if (!LobbyManager.Instance.IsInLobby)
-                return false;
+                return;
 
-            var localPlayer = LobbyManager.Instance.lobby.Players
-                .FirstOrDefault(p => p.Id == AuthenticationManager.Instance.PlayerId);
+            bool allReady = true;
 
-            if (localPlayer == null)
-                return false;
+            foreach (var player in LobbyManager.Instance.Players)
+                if (!IsPlayerReady(player.Id))
+                {
+                    allReady = false;
+                    break;
+                }
 
-            return localPlayer.Data["IsReady"].Value == "true";
+            if (allReady)
+                LobbyEvents.InvokeAllPlayersReady();
+            else
+                LobbyEvents.InvokeNotAllPlayersReady();
         }
-
 
         /// <summary>
         /// Sets all players to unready.
@@ -113,30 +120,49 @@ namespace Assets.Scripts.Game.Managers
         {
             try
             {
-                var updateTasks = new List<Task>();
-
                 foreach (var player in LobbyManager.Instance.Players)
                 {
-                    updateTasks.Add(Lobbies.Instance.UpdatePlayerAsync(
-                        LobbyManager.Instance.LobbyId,
-                        player.Id,
-                        new UpdatePlayerOptions
-                        {
-                            Data = new Dictionary<string, PlayerDataObject>
+                    UpdatePlayerOptions options = new()
+                    {
+                        Data = new Dictionary<string, PlayerDataObject>
                             {
-                        { "IsReady", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, "false") }
+                                { "IsReady", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, "false") }
                             }
-                        }
-                    ));
-                }
+                    };
 
-                await Task.WhenAll(updateTasks);
+                    await LobbyManager.Instance.UpdatePlayer(player.Id, options);
+                }
 
                 return OperationResult.SuccessResult("AllPlayersUnreadied", "All players have been set to unready");
             }
             catch (Exception ex)
             {
                 return OperationResult.FailureResult("UnreadyError", ex.Message);
+            }
+        }
+
+        public async Task<OperationResult> SetGameInProgress(bool inProgress, string joinCode = "")
+        {
+            try
+            {
+                UpdateLobbyOptions options = new()
+                {
+                    Data = new Dictionary<string, DataObject>
+                    {
+                        { "GameInProgress", new DataObject(DataObject.VisibilityOptions.Public, inProgress.ToString().ToLower()) }
+                    }
+                };
+
+                if (!string.IsNullOrEmpty(joinCode))
+                    options.Data.Add("JoinCode", new DataObject(DataObject.VisibilityOptions.Public, joinCode));
+
+                await LobbyManager.Instance.UpdateLobby(LobbyManager.Instance.LobbyId, options);
+
+                return OperationResult.SuccessResult("GameStateUpdated", $"Game is now {(inProgress ? "in progress" : "inactive")}");
+            }
+            catch (LobbyServiceException e)
+            {
+                return OperationResult.FailureResult(e.ErrorCode.ToString(), e.Message);
             }
         }
     }

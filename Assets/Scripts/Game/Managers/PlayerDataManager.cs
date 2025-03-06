@@ -1,9 +1,7 @@
 using UnityEngine;
-using Assets.Scripts.Game.Data;
 using System.Collections.Generic;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Core;
-using Assets.Scripts.Framework.Managers;
 
 namespace Assets.Scripts.Game.Managers
 {
@@ -15,10 +13,10 @@ namespace Assets.Scripts.Game.Managers
         public const bool DEFAULT_READY_STATUS = false;
 
         /// <summary>
-        /// Creates a Player object with the current player's name and other properties.
+        /// Creates a Player object with the current player's name, ready status, current team, and ...? .
         /// </summary>
         /// <returns>The Player object for lobby operations.</returns>
-        public Player GetPlayer()
+        public Player GetNewPlayer()
         {
             return new Player
             {
@@ -26,6 +24,7 @@ namespace Assets.Scripts.Game.Managers
                 {
                     { "PlayerName", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, PlayerPrefs.GetString("PlayerName")) },
                     { "IsReady", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, DEFAULT_READY_STATUS.ToString()) },
+                    { "TeamId", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, "0") },
                 }
             };
         }

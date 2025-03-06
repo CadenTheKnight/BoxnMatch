@@ -82,6 +82,10 @@ namespace Assets.Scripts.Framework.Events
         public delegate void LobbyDataChangedHandler(Lobby lobby, Dictionary<string, DataObject> changedData);
         public static event LobbyDataChangedHandler OnLobbyDataChanged;
 
+
+        public delegate void PlayerUpdatedHandler(Player player);
+        public static event PlayerUpdatedHandler OnPlayerUpdated;
+
         /// <summary>
         /// Triggered when a player's data is updated.
         /// </summary>
@@ -120,6 +124,8 @@ namespace Assets.Scripts.Framework.Events
             OnLobbyDataChanged?.Invoke(lobby, changedData);
         public static void InvokePlayerDataChanged(string playerId, Dictionary<string, PlayerDataObject> changedData) =>
             OnPlayerDataChanged?.Invoke(playerId, changedData);
+
+        public static void InvokePlayerUpdated(Player player) => OnPlayerUpdated?.Invoke(player);
         public static void InvokeLobbyListChanged(List<Lobby> lobbies) => OnLobbyListChanged?.Invoke(lobbies);
         public static void InvokeLobbyHostMigrated(string newHostId) => OnLobbyHostMigrated?.Invoke(newHostId);
 
@@ -143,6 +149,7 @@ namespace Assets.Scripts.Framework.Events
             OnLobbyUpdated = null;
             OnLobbyDataChanged = null;
             OnPlayerDataChanged = null;
+            OnPlayerUpdated = null;
             OnLobbyListChanged = null;
             OnLobbyHostMigrated = null;
         }
