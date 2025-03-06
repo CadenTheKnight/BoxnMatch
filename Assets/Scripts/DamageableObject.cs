@@ -10,8 +10,8 @@ public class DamageableObject : MonoBehaviour
 {
 
     public float damageModifier = 1f;
+    public float currentDamage = 0f;
 
-    private float currentDamage = 0f;
     private Rigidbody2D rb;
     private TMP_Text damageText;
 
@@ -30,16 +30,23 @@ public class DamageableObject : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
+        handleCollision(collision.gameObject);
+    }
 
-        if(collision.gameObject.tag == "DamageObject")
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        handleCollision(collision.gameObject);
+    }
+
+    private void handleCollision(GameObject go)
+    {
+        if (go.CompareTag("DamageObject"))
         {
-
-
             // Try to access the damage object (extra check in case something got miss labeled)
             DamageObject d;
             try
             {
-                d = collision.gameObject.GetComponent<DamageObject>();
+                d = go.GetComponent<DamageObject>();
             }
             catch (Exception e)
             {
@@ -54,15 +61,14 @@ public class DamageableObject : MonoBehaviour
             float knockback = damageKnockback[1];
 
             currentDamage += damage;
-            Vector2 collisionDirection = transform.position - collision.transform.position;
-            handleKnockback(knockback, collisionDirection);
+            Vector2 collisionDirection = transform.position - go.transform.position;
+            HandleKnockback(knockback, collisionDirection);
         }
     }
 
-    private void handleKnockback(float knockback, Vector2 dir)
+    private void HandleKnockback(float knockback, Vector2 dir)
     {
         Vector2 knockbackVelocity = dir * (knockback * currentDamage / 100);
         rb.velocity += knockbackVelocity;
-        Debug.Log("Knockback added " + knockbackVelocity + " to velocity");
     }
 }
