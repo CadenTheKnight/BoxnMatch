@@ -5,16 +5,6 @@ using UnityEngine;
 
 public class Fireball : MonoBehaviour
 {
-    public AbilityDirection dir;
-    public float speed = 1f;
-
-    // Update is called once per frame
-    void Update()
-    {
-        // fireball moves in straight line in fired direction
-        transform.position += dir.GetUnitDirection() * Time.deltaTime * speed;
-    }
-
     void OnCollisionEnter2D(Collision2D collision)
     {
         Destroy(gameObject);
