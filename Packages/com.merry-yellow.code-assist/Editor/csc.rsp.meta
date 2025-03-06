@@ -1,6 +1,10 @@
 fileFormatVersion: 2
 <<<<<<<< HEAD:Assets/Scenes/Menus/Init.unity.meta
+<<<<<<< HEAD
+guid: 1d31fdf19a474a24faed608db015dfb6
+=======
 guid: 55da1b051a254444a8816362c0e308a4
+>>>>>>> origin/main
 ========
 guid: 45ca2846d675c9a438e49991db89e437
 >>>>>>>> origin/main:Packages/com.merry-yellow.code-assist/Editor/csc.rsp.meta
