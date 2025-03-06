@@ -56,5 +56,5 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "BoxnMatch.sln"
+    "dotnet.defaultSolution": "Box'n Match.sln"
 }
