@@ -3,25 +3,23 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-public class handlePlayerDeath : MonoBehaviour
+public class handleExitPlay : MonoBehaviour
 {
 
     [SerializeField] Vector3 respawnPoint;
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
     private void OnTriggerExit2D(Collider2D collision)
     {
-        if (collision.gameObject.tag == "Player")
+        if (collision.gameObject.tag == "Player") // handle player exiting
         {
             Debug.Log("exit");
             collision.gameObject.GetComponent<DamageableObject>().currentDamage = 0;
             collision.gameObject.GetComponent<Rigidbody2D>().velocity = Vector3.zero;
             collision.gameObject.transform.position = respawnPoint;
+        }
+        else // Destroy everything that exits thats not a player
+        {
+            Destroy(collision.gameObject);
         }
     }
 }

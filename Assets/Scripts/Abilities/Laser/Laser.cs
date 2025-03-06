@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-public class Fireball : MonoBehaviour
+public class Laser : MonoBehaviour
 {
     public AbilityDirection dir;
     public float speed = 1f;
@@ -11,7 +11,7 @@ public class Fireball : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // fireball moves in straight line in fired direction
+        // Laser moves in straight line in fired direction
         transform.position += dir.GetUnitDirection() * Time.deltaTime * speed;
     }
 
