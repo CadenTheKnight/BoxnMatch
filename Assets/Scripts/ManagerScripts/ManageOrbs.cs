@@ -9,7 +9,9 @@ public class ManageOrbs : MonoBehaviour
     public float secBetweenSpawn = 5f;
     public bool endGame = false;
     public Vector2 spawnRangeX;
-    public float spawnY = 4;
+    public float spawnY;
+
+    [SerializeField] private AbilityBinding[] abilities;
 
     private float tempTime = 0;
 
@@ -28,6 +30,7 @@ public class ManageOrbs : MonoBehaviour
         if (!endGame)
         {
             GameObject temp = Instantiate(orb, new Vector3(Random.Range(spawnRangeX[0], spawnRangeX[1]), spawnY, 0), transform.rotation);
+            temp.GetComponent<AbilityOrbHandler>().ability = abilities[0];
         }
     }
 }

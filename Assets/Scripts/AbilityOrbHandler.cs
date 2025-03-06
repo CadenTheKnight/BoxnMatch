@@ -8,7 +8,7 @@ public class AbilityOrbHandler : MonoBehaviour
     [SerializeField] float movementSpeed = 1f;    // Speed of movement
     [SerializeField] float fallSpeed = 0.01f;     // How fast the object falls off the screen
 
-    public GameObject type;
+    public AbilityBinding ability;
 
     private Vector3 startPos;
     private float time;
@@ -43,5 +43,88 @@ public class AbilityOrbHandler : MonoBehaviour
 
         // Update object position
         transform.position = currentPosition + startPos;
+    }
+
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if(collision.gameObject.tag == "Player")
+        {
+            Vector2 playerPos = collision.gameObject.transform.position;
+            Vector2 relativePos = (Vector2)transform.position - playerPos;
+            int[] bindingOrder = new int[4];
+
+            // Set the order of the closest ability bindings to the collision spot
+            if(Mathf.Abs(relativePos.x) >= Mathf.Abs(relativePos.y))
+            {
+                if (relativePos.x >= 0)
+                {
+                    bindingOrder[0] = 1;
+                    bindingOrder[2] = 3;
+                }
+                else
+                {
+                    bindingOrder[0] = 3;
+                    bindingOrder[2] = 1;
+                }
+
+                if (relativePos.y >= 0)
+                {
+                    bindingOrder[1] = 0;
+                    bindingOrder[3] = 2;
+                }
+                else
+                {
+                    bindingOrder[1] = 2;
+                    bindingOrder[3] = 0;
+                }
+            }
+
+            else
+            {
+                if (relativePos.x >= 0)
+                {
+                    bindingOrder[1] = 1;
+                    bindingOrder[3] = 3;
+                }
+                else
+                {
+                    bindingOrder[1] = 3;
+                    bindingOrder[3] = 1;
+                }
+
+                if (relativePos.y >= 0)
+                {
+                    bindingOrder[0] = 0;
+                    bindingOrder[2] = 2;
+                }
+                else
+                {
+                    bindingOrder[0] = 2;
+                    bindingOrder[2] = 0;
+                }
+            }
+
+            // try to bind the abilty
+            bool success = bindToAvailableInOrder(bindingOrder, collision.gameObject);
+
+            if (success) Destroy(gameObject);
+
+        }
+    }
+
+    private bool bindToAvailableInOrder(int[] bindingOrder, GameObject player)
+    {
+        foreach(int slot in bindingOrder)
+        {
+            if (!(player.GetComponent<PlayerRotator>().sockets[slot].GetComponent<AbilitySocket>().ability))
+            {
+                Debug.Log(slot);
+                player.GetComponent<PlayerRotator>().sockets[slot].GetComponent<AbilitySocket>().ability = ability;
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -1,5 +1,14 @@
 fileFormatVersion: 2
+<<<<<<< HEAD
 guid: 3025e540ec8145241bb4780887d03108
+=======
+<<<<<<<< HEAD:Assets/Scenes/Menus/Lobby.unity.meta
+guid: 1e77f243e3df6a441af7db2e5927c753
+========
+guid: af23b658e094f8647b4936d5348a930a
+folderAsset: yes
+>>>>>>>> origin/main:Assets/Input.meta
+>>>>>>> origin/main
 DefaultImporter:
   externalObjects: {}
   userData: 
