@@ -82,7 +82,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1007e039eb81e0040a19164ee07da3c2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  acceleration: 15
+  acceleration: {x: 6000, y: 60}
   positionOffset: 0.6
-  abilityDuration: 2
+  abilityDuration: 1
   rocket: {fileID: 4699008584265216525, guid: 4d5c52f90f62bdd4f93c41e00dba7870, type: 3}

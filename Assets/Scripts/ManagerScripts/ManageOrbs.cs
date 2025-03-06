@@ -29,8 +29,10 @@ public class ManageOrbs : MonoBehaviour
     {
         if (!endGame)
         {
+            int randomAbilityIndex = (int)Random.Range(0, abilities.Length);
             GameObject temp = Instantiate(orb, new Vector3(Random.Range(spawnRangeX[0], spawnRangeX[1]), spawnY, 0), transform.rotation);
-            temp.GetComponent<AbilityOrbHandler>().ability = abilities[0];
+            temp.GetComponent<AbilityOrbHandler>().ability = abilities[randomAbilityIndex];
+            Debug.Log("ability is : " + randomAbilityIndex);
         }
     }
 }
