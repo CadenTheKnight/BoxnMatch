@@ -44,19 +44,8 @@ namespace Assets.Scripts.Game.UI.Controllers.SettingsMenu
             ResetChangeTracking();
         }
 
-        public override void SaveSettings()
-        {
-            PlayerPrefs.Save();
-
-            ApplyGameSettings();
-
-            ResetChangeTracking();
-        }
-
         public override void DiscardChanges()
         {
-            ApplyGameSettings();
-
             ResetChangeTracking();
         }
 
@@ -80,10 +69,11 @@ namespace Assets.Scripts.Game.UI.Controllers.SettingsMenu
             }
         }
 
-
-        private void ApplyGameSettings()
+        public override void ApplyChanges()
         {
+            PlayerPrefs.Save();
 
+            ResetChangeTracking();
         }
     }
 }

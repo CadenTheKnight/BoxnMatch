@@ -55,7 +55,7 @@ namespace Assets.Scripts.Game.UI.Controllers.SettingsMenu
             ResetChangeTracking();
         }
 
-        public override void SaveSettings()
+        public override void ApplyChanges()
         {
             // PlayerPrefs.SetFloat("MasterVolume", masterVolumeSlider.value);
             // PlayerPrefs.SetFloat("MusicVolume", musicVolumeSlider.value);

@@ -70,8 +70,8 @@ namespace Assets.Scripts.Framework.Events
         /// Triggered when any lobby data is updated.
         /// </summary>
         /// <param name="lobby">The updated lobby data.</param>
-        public delegate void LobbyUpdatedHandler(Lobby lobby);
-        public static event LobbyUpdatedHandler OnLobbyUpdated;
+        public delegate void LobbyUpdated(Lobby lobby);
+        public static event LobbyUpdated OnLobbyUpdated;
 
 
         /// <summary>

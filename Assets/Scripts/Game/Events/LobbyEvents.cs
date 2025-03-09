@@ -12,6 +12,9 @@ namespace Assets.Scripts.Game.Events
     {
         #region Events
 
+        public delegate void LobbyUpdated();
+        public static event LobbyUpdated OnLobbyUpdated;
+
         /// <summary>
         /// Fired when a lobby is single clicked in the lobby list.
         /// </summary>
@@ -112,7 +115,7 @@ namespace Assets.Scripts.Game.Events
         #endregion
 
         #region Invocations
-
+        public static void InvokeLobbyUpdated() => OnLobbyUpdated?.Invoke();
         public static void InvokeLobbySelected(Lobby lobby, LobbyListEntry lobbyListEntry) => OnLobbySelected?.Invoke(lobby, lobbyListEntry);
         public static void InvokeLobbyDoubleClicked(Lobby lobby) => OnLobbyDoubleClicked?.Invoke(lobby);
         public static void InvokeCharacterSelected(string playerId, string characterId) => OnCharacterSelected?.Invoke(playerId, characterId);
@@ -136,6 +139,7 @@ namespace Assets.Scripts.Game.Events
         /// </summary>
         public static void ClearAllEventHandlers()
         {
+            OnLobbyUpdated = null;
             OnLobbySelected = null;
             OnLobbyDoubleClicked = null;
             OnCharacterSelected = null;

@@ -1,10 +1,10 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement; //NEW
+using Unity.Netcode;
+using System.Collections;
 using UnityEngine.InputSystem;
 
-public class playerController : MonoBehaviour
+[RequireComponent(typeof(Rigidbody2D))]
+public class PlayerController : NetworkBehaviour
 {
     [Header("References")]
     [SerializeField] private PlayerInputManager input;
@@ -14,11 +14,11 @@ public class playerController : MonoBehaviour
     private Rigidbody2D rb;
 
     float currentSpeed;
-    
+
     //NEW
     [SerializeField] private float JUMP_FORCE = 5f;
     [SerializeField] private float groundCheckOffset = -0.5f;
-    public Vector2 groundCheckSize = new Vector2(0.5f, 0.1f);
+    public Vector2 groundCheckSize = new(0.5f, 0.1f);
     public LayerMask groundLayer;
     public int jumpCount = 0;
     public int maxJumps = 2;
@@ -30,6 +30,18 @@ public class playerController : MonoBehaviour
     private bool jumpInput;
     private bool crouchInput;
 
+    public override void OnNetworkSpawn()
+    {
+        // can do camera things here like swapping to other players view when dead
+        if (!IsOwner)
+        {
+            // CINEMACHINE package
+        }
+        else
+        {
+
+        }
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -58,14 +70,16 @@ public class playerController : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
-        Vector3 dir = new Vector3(horizontalInput, 0, 0);
+        if (!IsLocalPlayer) return;
+
+        Vector3 dir = new(horizontalInput, 0, 0);
 
         //switched it over to use a universal offset, because rotation
         //makes the groundCheckTransform unusable
-        Vector3 checkPosition = new Vector3(transform.position.x, transform.position.y + groundCheckOffset);
-        
+        Vector3 checkPosition = new(transform.position.x, transform.position.y + groundCheckOffset);
+
         isGrounded = Physics2D.OverlapBox(checkPosition, groundCheckSize, 0f, groundLayer);
-        
+
         //debugging
         /*
         Debug.Log("isGrounded: " + isGrounded);
@@ -84,10 +98,11 @@ public class playerController : MonoBehaviour
         }
     }
 
-
     //physics based things in fixedupdate
     private void FixedUpdate()
     {
+        if (!IsLocalPlayer) return;
+
         //Debug.Log("jumpInput: " + jumpInput);
         if (jumpInput && jumpCount < maxJumps)
         {
@@ -112,10 +127,10 @@ public class playerController : MonoBehaviour
 
     private void TryJump(InputAction.CallbackContext val)
     {
-        if(val.performed)
+        if (val.performed)
         {
             jumpInput = true;
-        } 
+        }
     }
 
     private void TryGoDown(InputAction.CallbackContext val)
@@ -130,6 +145,8 @@ public class playerController : MonoBehaviour
 
     private void EnableInputs()
     {
+        if (!IsLocalPlayer) return;
+
         input.jumpInput += TryJump;
         input.crouchInput += TryGoDown;
         input.x_movementInput += TryHorizontalMovement;
@@ -137,6 +154,8 @@ public class playerController : MonoBehaviour
 
     private void DisableInputs()
     {
+        if (!IsLocalPlayer) return;
+
         input.jumpInput -= TryJump;
         input.crouchInput -= TryGoDown;
         input.x_movementInput -= TryHorizontalMovement;

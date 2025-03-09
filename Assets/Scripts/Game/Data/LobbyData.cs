@@ -1,56 +1,83 @@
 using System.Collections.Generic;
 using Unity.Services.Lobbies.Models;
+using UnityEngine.XR;
 
 namespace Assets.Scripts.Game.Data
 {
     /// <summary>
-    /// Represents the data of a lobby, including the team mode, map index, round count, and match time.
+    /// Represents the data of a lobby.
     /// </summary>
     public class LobbyData
     {
-        private int teamMode; // 0 = FFA, 1 = 2TEAMS
+        private string lobbyName;
+        private int maxPlayers;
+        private bool isPrivate;
         private int mapIndex;
-        private int roundCount;
-        private int matchTimeMinutes;
+        public string gameMode;
+        public string relayJoinCode;
+        private string mapSceneName;
 
-        public int TeamMode { get => teamMode; set => teamMode = value; }
-        public int MapIndex { get => mapIndex; set => mapIndex = value; }
-        public int RoundCount { get => roundCount; set => roundCount = value; }
-        public int MatchTimeMinutes { get => matchTimeMinutes; set => matchTimeMinutes = value; }
-
-        public void Initialize(int teamMode = 1, int mapIndex = 0, int roundCount = 1, int matchTimeMinutes = 3)
+        public int MapIndex
         {
-            this.teamMode = teamMode;
-            this.mapIndex = mapIndex;
-            this.roundCount = roundCount;
-            this.matchTimeMinutes = matchTimeMinutes;
+            get => mapIndex;
+            set => mapIndex = value;
+        }
+
+        public string RelayJoinCode
+        {
+            get => relayJoinCode;
+            set => relayJoinCode = value;
+        }
+
+        public string MapSceneName
+        {
+            get => mapSceneName;
+            set => mapSceneName = value;
+        }
+
+        public void Initialize(string lobbyName, int maxPlayers, bool isPrivate)
+        {
+            this.lobbyName = lobbyName;
+            this.maxPlayers = maxPlayers;
+            this.isPrivate = isPrivate;
+            mapIndex = 0;
+            gameMode = "Standard";
         }
 
         public void Initialize(Dictionary<string, DataObject> lobbyData)
         {
-            if (lobbyData == null) return;
+            UpdateState(lobbyData);
+        }
 
-            if (lobbyData.TryGetValue("teamMode", out var teamModeData))
-                int.TryParse(teamModeData.Value, out teamMode);
-
-            if (lobbyData.TryGetValue("mapIndex", out var mapIndexData))
-                int.TryParse(mapIndexData.Value, out mapIndex);
-
-            if (lobbyData.TryGetValue("roundCount", out var roundCountData))
-                int.TryParse(roundCountData.Value, out roundCount);
-
-            if (lobbyData.TryGetValue("matchTimeMinutes", out var matchTimeData))
-                int.TryParse(matchTimeData.Value, out matchTimeMinutes);
+        public void UpdateState(Dictionary<string, DataObject> lobbyData)
+        {
+            if (lobbyData.ContainsKey("LobbyName"))
+                lobbyName = lobbyData["LobbyName"].Value;
+            if (lobbyData.ContainsKey("MaxPlayers"))
+                maxPlayers = int.Parse(lobbyData["MaxPlayers"].Value);
+            if (lobbyData.ContainsKey("IsPrivate"))
+                isPrivate = lobbyData["IsPrivate"].Value == "true";
+            if (lobbyData.ContainsKey("MapIndex"))
+                mapIndex = int.Parse(lobbyData["MapIndex"].Value);
+            if (lobbyData.ContainsKey("GameMode"))
+                gameMode = lobbyData["GameMode"].Value;
+            if (lobbyData.ContainsKey("RelayJoinCode"))
+                relayJoinCode = lobbyData["RelayJoinCode"].Value;
+            if (lobbyData.ContainsKey("MapSceneName"))
+                mapSceneName = lobbyData["MapSceneName"].Value;
         }
 
         public Dictionary<string, string> Serialize()
         {
             return new Dictionary<string, string>
             {
-                { "teamMode", teamMode.ToString() },
-                { "mapIndex", mapIndex.ToString() },
-                { "roundCount", roundCount.ToString() },
-                { "matchTimeMinutes", matchTimeMinutes.ToString() },
+                { "LobbyName", lobbyName },
+                { "MaxPlayers", maxPlayers.ToString() },
+                { "IsPrivate", isPrivate.ToString().ToLower() },
+                { "MapIndex", mapIndex.ToString() },
+                { "GameMode", gameMode },
+                { "RelayJoinCode", relayJoinCode },
+                { "MapSceneName", mapSceneName }
             };
         }
     }

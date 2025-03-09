@@ -5,6 +5,7 @@ using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Core;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Framework.Utilities;
+using Assets.Scripts.Game.Data;
 using Unity.Services.Lobbies;
 
 namespace Assets.Scripts.Game.Managers
@@ -29,7 +30,7 @@ namespace Assets.Scripts.Game.Managers
         /// <summary>
         /// Gets the list of available lobbies.
         /// </summary>
-        public IReadOnlyList<Lobby> AvailableLobbies => _availableLobbies;
+        public List<Lobby> AvailableLobbies => _availableLobbies;
 
         /// <summary>
         /// Sets the selected lobby.
@@ -59,30 +60,6 @@ namespace Assets.Scripts.Game.Managers
             ClearSelection();
 
             return await LobbyManager.Instance.GetLobbies();
-        }
-
-        /// <summary>
-        /// Joins a lobby using the lobby code.
-        /// </summary>
-        /// <param name="lobbyCode">The lobby code to join.</param>
-        /// <returns>Operation result indicating success or failure.</returns>
-        public async Task<OperationResult> JoinLobbyByCode(string lobbyCode)
-        {
-            JoinLobbyByCodeOptions joinLobbyByCodeOptions = new() { Player = PlayerDataManager.Instance.GetNewPlayer() };
-
-            return await LobbyManager.Instance.JoinLobbyByCode(lobbyCode, joinLobbyByCodeOptions);
-        }
-
-        /// <summary>
-        /// Joins the selected lobby using the lobby ID.
-        /// </summary>
-        /// <param name="lobbyId">The lobby ID to join.</param>
-        /// <returns>Operation result indicating success or failure.</returns>
-        public async Task<OperationResult> JoinSelectedLobby(string lobbyId)
-        {
-            JoinLobbyByIdOptions joinLobbyByIdOptions = new() { Player = PlayerDataManager.Instance.GetNewPlayer() };
-
-            return await LobbyManager.Instance.JoinLobbyById(lobbyId, joinLobbyByIdOptions);
         }
     }
 }

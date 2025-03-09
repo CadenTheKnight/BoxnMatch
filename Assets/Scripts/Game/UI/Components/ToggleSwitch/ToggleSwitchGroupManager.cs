@@ -16,8 +16,8 @@ namespace Assets.Scripts.Game.UI.Components.ToggleSwitch
         private void Awake()
         {
             ToggleSwitch[] toggleSwitches = GetComponentsInChildren<ToggleSwitch>();
-            foreach (ToggleSwitch toggleSwitch in toggleSwitches)
-                RegisterToggleButtonToGroup(toggleSwitch);
+            foreach (ToggleSwitch _toggleSwitch in toggleSwitches)
+                RegisterToggleButtonToGroup(_toggleSwitch);
         }
 
         private void RegisterToggleButtonToGroup(ToggleSwitch toggleSwitch)
