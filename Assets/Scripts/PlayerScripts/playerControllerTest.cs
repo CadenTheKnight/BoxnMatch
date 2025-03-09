@@ -12,6 +12,7 @@ public class playerControllerTest : MonoBehaviour
 
     [Header("Movement")]
     [SerializeField] private float BASE_SPEED = 5;
+    [SerializeField] private float TOP_SPEED = 20;
     private Rigidbody2D rb;
 
     float currentSpeed;
@@ -68,23 +69,11 @@ public class playerControllerTest : MonoBehaviour
 
         isGrounded = Physics2D.OverlapBox(checkPosition, groundCheckSize, 0f, groundLayer);
 
-        //debugging
-        /*
-        Debug.Log("isGrounded: " + isGrounded);
-        Debug.DrawLine(checkPosition + new Vector3(-0.05f, 0f), 
-            checkPosition + new Vector3(0.05f, 0f), Color.red, 0.5f);
-        */
-
-        /* rb.velocity = new Vector2((dir * currentSpeed).x, rb.velocity.y);*/
-
-        //NEW
-        //jumping 1
-        //Debug.Log(isGrounded + " " + rb.velocity.y);
         if (isGrounded)
         {
             jumpCount = 0;
         }
-        Debug.Log("isGrounded: " + isGrounded);
+        //Debug.Log("isGrounded: " + isGrounded);
     }
 
 
@@ -92,16 +81,21 @@ public class playerControllerTest : MonoBehaviour
     private void FixedUpdate()
     {
 
-        
-        float moveX = Input.GetAxis("Horizontal");
-        float moveZ = Input.GetAxis("Vertical");
+        Vector2 force = new Vector2(horizontalInput * forceAmount, 0);
+        rb.AddForce(force, ForceMode2D.Impulse);
+        Vector2 current_velocity = rb.velocity;
 
-        Vector2 force = new Vector2(moveX * forceAmount, 0);
-        rb.AddForce(force, ForceMode2D.Impulse); // Impulse makes movement snappier
+        if (Mathf.Abs(rb.velocity.x) > TOP_SPEED)
+        {
+            // Limit speed while keeping direction
+            rb.velocity = new Vector2(Mathf.Sign(rb.velocity.x) * TOP_SPEED, rb.velocity.y);
+        }
+        //Debug.Log("Velocity: " + rb.velocity.magnitude);
 
-        Debug.Log("jumpInput: " + jumpInput);
+        //Debug.Log("jumpInput: " + jumpInput);
         if (jumpInput && jumpCount < maxJumps)
         {
+            rb.velocity = new Vector2(rb.velocity.x, 0);
             rb.AddForce(Vector2.up * JUMP_FORCE, ForceMode2D.Impulse);
             jumpCount++;
         }
