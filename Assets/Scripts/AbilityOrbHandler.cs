@@ -48,8 +48,10 @@ public class AbilityOrbHandler : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        
         if(collision.gameObject.tag == "Player")
         {
+            Debug.Log("Player collision");
             Vector2 playerPos = collision.gameObject.transform.position;
             Vector2 relativePos = (Vector2)transform.position - playerPos;
             int[] bindingOrder = new int[4];
@@ -115,12 +117,14 @@ public class AbilityOrbHandler : MonoBehaviour
 
     private bool bindToAvailableInOrder(int[] bindingOrder, GameObject player)
     {
-        foreach(int slot in bindingOrder)
+        //Debug.Log("try bind");
+        foreach (int slot in bindingOrder)
         {
+            Debug.Log("try slot: " + slot + " ability: " + player.GetComponent<PlayerRotator>().sockets[slot].GetComponent<AbilitySocket>().ability);
             if (!(player.GetComponent<PlayerRotator>().sockets[slot].GetComponent<AbilitySocket>().ability))
             {
-                Debug.Log(slot);
-                player.GetComponent<PlayerRotator>().sockets[slot].GetComponent<AbilitySocket>().ability = ability;
+                Debug.Log("succes slot: " + slot);
+                player.GetComponent<PlayerRotator>().sockets[slot].GetComponent<AbilitySocket>().ability = Instantiate(ability);
                 return true;
             }
         }

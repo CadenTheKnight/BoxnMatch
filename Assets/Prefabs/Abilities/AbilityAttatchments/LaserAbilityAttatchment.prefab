@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1001 &594944544617098192
+--- !u!1001 &8571133710642566149
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -10,7 +10,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2263655372429113230, guid: 8f867951f7bd9684e82859f0ec174919, type: 3}
       propertyPath: m_Name
-      value: RocketAbilityAttatchment Variant
+      value: LaserAbilityAttatchment
       objectReference: {fileID: 0}
     - target: {fileID: 2263655372429113230, guid: 8f867951f7bd9684e82859f0ec174919, type: 3}
       propertyPath: m_IsActive
@@ -63,26 +63,25 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 2263655372429113230, guid: 8f867951f7bd9684e82859f0ec174919, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1362734038867535891}
+      addedObject: {fileID: 6848564162844033001}
   m_SourcePrefab: {fileID: 100100000, guid: 8f867951f7bd9684e82859f0ec174919, type: 3}
---- !u!1 &1669626514854894686 stripped
+--- !u!1 &7609067020259386251 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2263655372429113230, guid: 8f867951f7bd9684e82859f0ec174919, type: 3}
-  m_PrefabInstance: {fileID: 594944544617098192}
+  m_PrefabInstance: {fileID: 8571133710642566149}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1362734038867535891
+--- !u!114 &6848564162844033001
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1669626514854894686}
+  m_GameObject: {fileID: 7609067020259386251}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1007e039eb81e0040a19164ee07da3c2, type: 3}
+  m_Script: {fileID: 11500000, guid: 0621b66b588b56f418770f4f9f533b24, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  acceleration: {x: 6000, y: 60}
-  positionOffset: 0.6
-  abilityDuration: 1
-  rocket: {fileID: 4699008584265216525, guid: 4d5c52f90f62bdd4f93c41e00dba7870, type: 3}
+  positionOffset: 1
+  maxShots: 1
+  Laser: {fileID: 215190149022633427, guid: 2cf651686091f5446ad8e3c1770fa825, type: 3}

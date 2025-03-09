@@ -56,6 +56,5 @@
 		"temp/": true,
 		"Temp/": true
 	},
-	"dotnet.defaultSolution": "Box'n Match.sln",
-	"cSpell.words": ["Behaviour", "interactable", "Prefs", "Unreadied"]
+	"dotnet.defaultSolution": "BoxnMatch.sln"
 }
