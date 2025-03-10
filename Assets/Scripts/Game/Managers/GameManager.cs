@@ -1,165 +1,400 @@
-using System.Collections;
 using UnityEngine;
 using Unity.Netcode;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine.SceneManagement;
-using Assets.Scripts.Game.UI.Controllers.LobbyMenu;
-using TMPro;
+using Unity.Netcode.Transports.UTP;
 using Assets.Scripts.Framework.Managers;
-using System;
 
 namespace Assets.Scripts.Game.Managers
 {
-    public class GameManager : MonoBehaviour  // Changed from NetworkBehaviour to MonoBehaviour
+    public class GameManager : NetworkBehaviour
     {
-        [SerializeField] private TextMeshProUGUI countdownText;
-        private float returnToLobbyTime = 5f;
-        private float currentTime;
-        private LobbyPanelController lobbyPanel;
+        public static GameManager Instance { get; private set; }
 
-        private bool isCountdownStarted = false;
+        [SerializeField] private GameObject inGameUI;
 
-        private void Start()
+        [SerializeField] private int maxRounds = 5; // temporary value until lobby set up with this setting
+        private NetworkVariable<int> currentRound = new(1);
+        private NetworkVariable<int> team1Score = new(0);
+        private NetworkVariable<int> team2Score = new(0);
+        private NetworkVariable<int> lastRoundWinner = new(0);
+        private Dictionary<ulong, bool> clientReadyStatus = new();
+        private NetworkVariable<float> gameEndCountdownTimer = new(5.0f);
+        private NetworkVariable<float> roundStartingCountdownTimer = new(3.0f);
+        private NetworkVariable<GameState> gameState = new(GameState.WaitingForPlayers);
+
+
+        private InGameUIController inGameUIController;
+        private bool isCountingDown = false;
+
+        public enum GameState
         {
-            lobbyPanel = FindObjectOfType<LobbyPanelController>(true);
-            if (lobbyPanel == null)
-            {
-                Debug.LogError("LobbyPanelController not found!");
-            }
-
-            countdownText.text = "Establishing connection...";
-
-            // Start a routine to check network status
-            StartCoroutine(CheckNetworkAndStartCountdown());
+            WaitingForPlayers,
+            RoundStarting,
+            RoundInProgress,
+            RoundEnding,
+            GameEnding,
+            ReturnToLobby
         }
 
-        private IEnumerator CheckNetworkAndStartCountdown()
+        private void Awake()
         {
-            // Wait a short delay for network to initialize
-            yield return new WaitForSeconds(0.5f);
+            if (Instance == null)
+                Instance = this;
+            else
+                Destroy(gameObject);
+        }
 
-            // Check if we're initialized yet
-            if (isCountdownStarted) yield break;
+        void Start()
+        {
+            NetworkManager.Singleton.NetworkConfig.ConnectionApproval = true;
 
-            bool isHost = false;
-            bool isClient = false;
-
-            // Check if NetworkManager exists and get roles
-            if (NetworkManager.Singleton != null)
+            if (RelayManager.Instance.IsHost)
             {
-                isHost = NetworkManager.Singleton.IsHost;
-                isClient = NetworkManager.Singleton.IsClient;
+                NetworkManager.Singleton.ConnectionApprovalCallback = ConnectionApproval;
+                (byte[] allocationId, byte[] key, byte[] connectionData, string ipAddress, int port) = RelayManager.Instance.GetHostConnectionInfo();
+                NetworkManager.Singleton.GetComponent<UnityTransport>().SetHostRelayData(ipAddress, (ushort)port, allocationId, key, connectionData, true);
+                NetworkManager.Singleton.StartHost();
 
-                Debug.Log($"Network check - IsHost: {isHost}, IsClient: {isClient}");
+                NetworkObject netObj = GetComponent<NetworkObject>();
+                if (!netObj.IsSpawned)
+                    netObj.Spawn();
             }
             else
             {
-                Debug.LogWarning("NetworkManager.Singleton is null! Assuming host role as fallback.");
-                isHost = true; // Fallback assumption
-            }
-
-            // Start appropriate countdown
-            isCountdownStarted = true;
-
-            if (isHost)
-            {
-                Debug.Log("Starting host countdown");
-                StartCoroutine(AutoReturnToLobbyAfterDelay());
-            }
-            else if (isClient)
-            {
-                Debug.Log("Starting client countdown");
-                StartCoroutine(ShowCountdown());
-            }
-            else
-            {
-                // If we can't determine role, default to showing countdown
-                Debug.LogWarning("Could not determine network role - defaulting to client countdown");
-                StartCoroutine(ShowCountdown());
+                (byte[] allocationId, byte[] key, byte[] connectionData, byte[] hostConnectionData, string ipAddress, int port) = RelayManager.Instance.GetClientConnectionInfo();
+                NetworkManager.Singleton.GetComponent<UnityTransport>().SetClientRelayData(ipAddress, (ushort)port, allocationId, key, connectionData, hostConnectionData, true);
+                NetworkManager.Singleton.StartClient();
             }
         }
 
-        private IEnumerator AutoReturnToLobbyAfterDelay()
+        public override void OnNetworkSpawn()
         {
-            currentTime = returnToLobbyTime;
+            base.OnNetworkSpawn();
 
-            while (currentTime > 0)
+            Debug.Log($"OnNetworkSpawn called - IsClient: {IsClient}, IsServer: {IsServer}, IsHost: {IsHost}");
+
+            if (IsClient)
             {
-                countdownText.text = $"Returning to lobby in {Mathf.CeilToInt(currentTime)}...";
-                yield return null;
-                currentTime -= Time.deltaTime;
+                if (inGameUIController == null)
+                {
+                    GameObject uiObject = Instantiate(inGameUI);
+                    inGameUIController = uiObject.GetComponent<InGameUIController>();
+                    inGameUIController.ShowWaitingScreen();
+
+                    gameState.OnValueChanged += OnGameStateChanged;
+                    currentRound.OnValueChanged += OnRoundChanged;
+                    team1Score.OnValueChanged += OnTeam1ScoreChanged;
+                    team2Score.OnValueChanged += OnTeam2ScoreChanged;
+                    roundStartingCountdownTimer.OnValueChanged += OnCountdownChanged;
+                    gameEndCountdownTimer.OnValueChanged += OnCountdownChanged;
+                }
+
+                NotifyClientReadyServerRpc(NetworkManager.Singleton.LocalClientId);
             }
 
-            Debug.Log("Host countdown complete - initiating return to lobby");
-            countdownText.text = "Returning to lobby...";
+            if (IsServer)
+            {
+                clientReadyStatus[NetworkManager.Singleton.LocalClientId] = true;
 
-            // Since we're not using NetworkBehaviour anymore, manually notify clients
+                NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
+                NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
+
+                gameState.Value = GameState.WaitingForPlayers;
+            }
+        }
+
+        private void OnDisable()
+        {
             if (NetworkManager.Singleton != null)
             {
-                // Direct shutdown for simplicity
-                NetworkManager.Singleton.Shutdown();
+                NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
+                NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnected;
             }
-
-            // Wait a moment for network shutdown
-            yield return new WaitForSeconds(0.5f);
-
-            // Return to lobby
-            ReturnToLobby();
         }
 
-        private IEnumerator ShowCountdown()
+        private void OnClientConnected(ulong clientId)
         {
-            currentTime = returnToLobbyTime;
-
-            while (currentTime > 0)
+            Debug.Log($"Client connected: {clientId}");
+            if (IsServer)
             {
-                countdownText.text = $"Returning to lobby in {Mathf.CeilToInt(currentTime)}...";
-                yield return null;
-                currentTime -= Time.deltaTime;
+                if (!clientReadyStatus.ContainsKey(clientId))
+                    clientReadyStatus[clientId] = false;
+            }
+        }
+
+        private void OnClientDisconnected(ulong clientId)
+        {
+            Debug.Log($"Client disconnected: {clientId}");
+            if (IsServer && clientReadyStatus.ContainsKey(clientId))
+                clientReadyStatus.Remove(clientId);
+        }
+
+        private void Update()
+        {
+            if (IsServer && isCountingDown)
+            {
+                if (gameState.Value == GameState.RoundStarting)
+                {
+                    roundStartingCountdownTimer.Value -= Time.deltaTime;
+
+                    if (roundStartingCountdownTimer.Value <= 0)
+                    {
+                        isCountingDown = false;
+                        AdvanceGameState();
+                    }
+                }
+                else if (gameState.Value == GameState.GameEnding || gameState.Value == GameState.RoundEnding)
+                {
+                    gameEndCountdownTimer.Value -= Time.deltaTime;
+
+                    if (gameEndCountdownTimer.Value <= 0)
+                    {
+                        isCountingDown = false;
+                        AdvanceGameState();
+                    }
+                }
+            }
+        }
+
+        private void CheckAllClientsReady()
+        {
+            if (!IsServer) return;
+
+            var connectedClients = NetworkManager.Singleton.ConnectedClientsList;
+
+            bool allReady = true;
+            foreach (var client in connectedClients)
+                if (!clientReadyStatus.TryGetValue(client.ClientId, out bool isReady) || !isReady)
+                {
+                    allReady = false;
+                    break;
+                }
+
+            if (allReady && gameState.Value == GameState.WaitingForPlayers)
+                AdvanceGameState();
+        }
+
+        private void ConnectionApproval(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response)
+        {
+            response.Approved = true;
+            response.CreatePlayerObject = true;
+            response.Pending = false;
+
+            // temp spawn positions
+            response.Position = new Vector3(NetworkManager.Singleton.ConnectedClientsList.Count * 2.0f, 1, 0);
+        }
+
+        #region Game Flow Methods
+
+        private void StartCountdown(int seconds)
+        {
+            if (!IsServer) return;
+
+            switch (gameState.Value)
+            {
+                case GameState.RoundStarting:
+                    roundStartingCountdownTimer.Value = seconds;
+                    break;
+                case GameState.RoundEnding:
+                    gameEndCountdownTimer.Value = seconds;
+                    break;
+                case GameState.GameEnding:
+                    gameEndCountdownTimer.Value = seconds;
+                    break;
             }
 
-            countdownText.text = "Waiting for host...";
+            isCountingDown = true;
+        }
 
-            // Wait up to 5 more seconds for host to return us
-            float waitTime = 0;
-            while (waitTime < 5)
+        private void AdvanceGameState()
+        {
+            if (!IsServer) return;
+
+            switch (gameState.Value)
             {
-                yield return null;
-                waitTime += Time.deltaTime;
-            }
+                case GameState.WaitingForPlayers:
+                    gameState.Value = GameState.RoundStarting;
+                    StartCountdown(3);
+                    break;
 
-            // If we've waited too long, try to return ourselves
-            Debug.LogWarning("Host didn't return us to lobby after waiting - attempting self-return");
-            ReturnToLobby();
+                case GameState.RoundStarting:
+                    gameState.Value = GameState.RoundInProgress;
+                    break;
+
+                case GameState.RoundEnding:
+                    if (currentRound.Value >= maxRounds || team1Score.Value >= (maxRounds / 2) + 1 || team2Score.Value >= (maxRounds / 2) + 1)
+                    {
+                        gameState.Value = GameState.GameEnding;
+                        StartCountdown(5);
+                    }
+                    else
+                    {
+                        currentRound.Value++;
+                        gameState.Value = GameState.RoundStarting;
+                        StartCountdown(3);
+                    }
+                    break;
+
+                case GameState.GameEnding:
+                    gameState.Value = GameState.ReturnToLobby;
+                    ReturnToLobby();
+                    break;
+            }
+        }
+
+        public void Team1Wins()
+        {
+            if (IsServer && gameState.Value == GameState.RoundInProgress)
+            {
+                team1Score.Value++;
+                EndRound(1);
+            }
+            else if (IsClient && NetworkManager.Singleton.IsHost)
+                Team1WinsServerRpc();
+        }
+
+        public void Team2Wins()
+        {
+            if (IsServer && gameState.Value == GameState.RoundInProgress)
+            {
+                team2Score.Value++;
+                EndRound(2);
+            }
+            else if (IsClient && NetworkManager.Singleton.IsHost)
+                Team2WinsServerRpc();
+        }
+
+        private void EndRound(int winningTeam)
+        {
+            if (!IsServer) return;
+
+            lastRoundWinner.Value = winningTeam;
+
+            gameState.Value = GameState.RoundEnding;
+            StartCountdown(2);
         }
 
         private void ReturnToLobby()
         {
-            try
-            {
-                Debug.Log("Executing ReturnToLobby()");
+            if (IsServer)
+                ReturnToLobbyClientRpc();
+        }
 
-                // Ensure NetworkManager is shut down if it exists
-                if (NetworkManager.Singleton != null)
-                {
-                    NetworkManager.Singleton.Shutdown();
-                    Debug.Log("NetworkManager shut down");
-                }
+        #endregion
 
-                // Return to lobby via the panel controller
-                if (lobbyPanel != null)
-                {
-                    Debug.Log("Calling lobbyPanel.ReturnToLobby()");
-                    lobbyPanel.ReturnToLobby();
-                }
-                else
-                {
-                    Debug.LogError("LobbyPanel is null, can't return to lobby!");
-                }
-            }
-            catch (Exception ex)
+        #region ServerRPCs
+
+        [ServerRpc(RequireOwnership = false)]
+        private void Team1WinsServerRpc()
+        {
+            if (gameState.Value == GameState.RoundInProgress)
             {
-                Debug.LogError($"Error returning to lobby: {ex.Message}");
+                team1Score.Value++;
+                EndRound(1);
             }
         }
+
+        [ServerRpc(RequireOwnership = false)]
+        private void Team2WinsServerRpc()
+        {
+            if (gameState.Value == GameState.RoundInProgress)
+            {
+                team2Score.Value++;
+                EndRound(2);
+            }
+        }
+
+
+        [ServerRpc(RequireOwnership = false)]
+        private void NotifyClientReadyServerRpc(ulong clientId)
+        {
+            Debug.Log($"Client {clientId} is ready");
+            clientReadyStatus[clientId] = true;
+            CheckAllClientsReady();
+        }
+
+        #endregion
+
+        #region ClientRPCs
+
+        [ClientRpc]
+        private void ReturnToLobbyClientRpc()
+        {
+            if (inGameUIController != null)
+            {
+                Destroy(inGameUIController.gameObject);
+                inGameUIController = null;
+            }
+
+            NetworkManager.Singleton.Shutdown();
+            SceneManager.LoadScene("Lobby");
+            GameLobbyManager.Instance.SetAllPlayersUnready();
+        }
+
+        #endregion
+
+        #region Network Variable Callbacks
+
+        private void OnGameStateChanged(GameState previous, GameState current)
+        {
+            UpdateUIState(current);
+        }
+
+        private void OnCountdownChanged(float previous, float current)
+        {
+            inGameUIController.UpdateCountdown(Mathf.CeilToInt(current));
+        }
+
+        private void OnTeam1ScoreChanged(int previous, int current)
+        {
+            inGameUIController.UpdateScores(current, team2Score.Value);
+        }
+
+        private void OnTeam2ScoreChanged(int previous, int current)
+        {
+            inGameUIController.UpdateScores(team1Score.Value, current);
+        }
+
+        private void OnRoundChanged(int previous, int current)
+        {
+            inGameUIController.UpdateRound(current, maxRounds);
+        }
+
+        private void UpdateUIState(GameState state)
+        {
+            if (inGameUIController == null) return;
+
+            switch (state)
+            {
+                case GameState.WaitingForPlayers:
+                    inGameUIController.ShowWaitingScreen();
+                    break;
+
+                case GameState.RoundStarting:
+                    inGameUIController.ShowRoundStartingScreen(currentRound.Value, maxRounds);
+                    break;
+
+                case GameState.RoundInProgress:
+                    inGameUIController.ShowGameplayScreen(NetworkManager.Singleton.IsHost);
+                    break;
+
+                case GameState.RoundEnding:
+                    inGameUIController.ShowRoundEndScreen(lastRoundWinner.Value);
+                    break;
+
+                case GameState.GameEnding:
+                    int gameWinner = team1Score.Value > team2Score.Value ? 1 : 2;
+                    inGameUIController.ShowGameEndScreen(gameWinner, team1Score.Value, team2Score.Value);
+                    break;
+
+                case GameState.ReturnToLobby:
+                    inGameUIController.ShowReturnToLobbyScreen();
+                    break;
+            }
+        }
+
+        #endregion
     }
 }

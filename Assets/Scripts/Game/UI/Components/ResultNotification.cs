@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using Assets.Scripts.Framework.Utilities;
+using Assets.Scripts.Game.UI.Components.Colors;
 
 namespace Assets.Scripts.Game.UI.Components
 {
@@ -60,29 +61,29 @@ namespace Assets.Scripts.Game.UI.Components
             switch (type)
             {
                 case NotificationType.Error:
-                    colors.normalColor = UIColors.errorDefaultColor;
-                    colors.highlightedColor = UIColors.errorHoverColor;
-                    colors.pressedColor = UIColors.errorDefaultColor;
-                    colors.selectedColor = UIColors.errorHoverColor;
+                    colors.normalColor = UIColors.redDefaultColor;
+                    colors.highlightedColor = UIColors.redHoverColor;
+                    colors.pressedColor = UIColors.redDefaultColor;
+                    colors.selectedColor = UIColors.redHoverColor;
                     break;
 
                 case NotificationType.Warning:
-                    colors.normalColor = UIColors.warningDefaultColor;
-                    colors.highlightedColor = UIColors.warningHoverColor;
-                    colors.pressedColor = UIColors.warningDefaultColor;
-                    colors.selectedColor = UIColors.warningHoverColor;
+                    colors.normalColor = UIColors.yellowDefaultColor;
+                    colors.highlightedColor = UIColors.yellowHoverColor;
+                    colors.pressedColor = UIColors.yellowDefaultColor;
+                    colors.selectedColor = UIColors.yellowHoverColor;
                     break;
 
                 case NotificationType.Success:
                 default:
-                    colors.normalColor = UIColors.successDefaultColor;
-                    colors.highlightedColor = UIColors.successHoverColor;
-                    colors.pressedColor = UIColors.successDefaultColor;
-                    colors.selectedColor = UIColors.successHoverColor;
+                    colors.normalColor = UIColors.greenDefaultColor;
+                    colors.highlightedColor = UIColors.greenHoverColor;
+                    colors.pressedColor = UIColors.greenDefaultColor;
+                    colors.selectedColor = UIColors.greenHoverColor;
                     break;
             }
 
-            colors.disabledColor = UIColors.disabledColor;
+            colors.disabledColor = UIColors.primaryDisabledColor;
             closeButton.colors = colors;
         }
 

@@ -1,11 +1,11 @@
 using UnityEngine;
+using Assets.Scripts.Game.UI.Components;
 using Assets.Scripts.Framework.Utilities;
-using Assets.Scripts.Game.Managers;
 
-namespace Assets.Scripts.Game.UI.Components
+namespace Assets.Scripts.Game.Managers
 {
     /// <summary>
-    /// Checks for pending notifications when a scene loads and displays them
+    /// Checks for pending notifications when a scene loads and displays them.
     /// </summary>
     public class SceneNotificationHandler : MonoBehaviour
     {

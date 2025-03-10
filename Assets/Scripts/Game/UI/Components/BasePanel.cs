@@ -8,6 +8,7 @@ namespace Assets.Scripts.Game.UI.Components
     /// </summary>
     public abstract class BasePanel : MonoBehaviour
     {
+        [Header("Base Panel Components")]
         [SerializeField] protected Button closeButton;
         [SerializeField] protected Button backgroundButton;
 

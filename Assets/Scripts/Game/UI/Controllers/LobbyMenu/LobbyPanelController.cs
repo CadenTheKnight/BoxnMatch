@@ -1,21 +1,15 @@
 using TMPro;
-using System;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
-using Assets.Scripts.Testing;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 using Assets.Scripts.Game.Managers;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Game.UI.Components;
 using Assets.Scripts.Framework.Utilities;
-using Assets.Scripts.Game.UI.Components.ListEntries;
-using System.Threading.Tasks;
-using System.Linq;
-using Unity.Netcode;
-using UnityEngine.SceneManagement;
+using Assets.Scripts.Game.UI.Components.Colors;
+using Assets.Scripts.Game.Data;
 
 namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
 {
@@ -23,27 +17,37 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
     {
         [Header("Header")]
         [SerializeField] private Button lobbyCodeButton;
-        [SerializeField] private Button lobbySettingsButton;
         [SerializeField] private TextMeshProUGUI lobbyNameText;
         [SerializeField] private TextMeshProUGUI lobbyCodeText;
-        [SerializeField] private LobbySettingsPanelController lobbySettingsPanelController;
-
-        [Header("Footer")]
-        [SerializeField] protected Button leaveButton;
-        [SerializeField] private Button readyUnreadyButton;
-        [SerializeField] private TextMeshProUGUI readyUnreadyButtonText;
-        [SerializeField] private LoadingBar leaveLoadingBar;
-        [SerializeField] private LoadingBar readyUnreadyLoadingBar;
-        [SerializeField] private Countdown countdown;
 
         [Header("Player List")]
-        [SerializeField] private Transform playerListContent;
-        [SerializeField] private GameObject playerListItemPrefab;
+        [SerializeField] private Transform playerList;
+        [SerializeField] private GameObject playerListEntry;
 
+        [Header("Map Display")]
+        [SerializeField] private Image mapImage;
+        [SerializeField] private Button leftButton;
+        [SerializeField] private Button rightButton;
+        [SerializeField] private TextMeshProUGUI mapName;
+        [SerializeField] private MapSelectionData mapSelectionData;
+
+        [Header("Footer")]
+        [SerializeField] private Button startButton;
+        [SerializeField] private Button leaveButton;
+        [SerializeField] private Button readyUnreadyButton;
+        [SerializeField] private LoadingBar leaveLoadingBar;
+        [SerializeField] private TextMeshProUGUI startButtonText;
+        [SerializeField] private LoadingBar readyUnreadyLoadingBar;
+        [SerializeField] private TextMeshProUGUI readyUnreadyButtonText;
+
+        private int currentMapIndex = 0;
         [SerializeField] private ResultHandler resultHandler;
 
         private void OnEnable()
         {
+            leftButton.onClick.AddListener(OnLeftClicked);
+            rightButton.onClick.AddListener(OnRightClicked);
+            startButton.onClick.AddListener(OnStartClicked);
             leaveButton.onClick.AddListener(OnLeaveClicked);
             lobbyCodeButton.onClick.AddListener(OnLobbyCodeClicked);
             readyUnreadyButton.onClick.AddListener(OnReadyUnreadyClicked);
@@ -56,15 +60,14 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
             Events.LobbyEvents.OnAllPlayersReady += OnLobbyReady;
             Events.LobbyEvents.OnNotAllPlayersReady += OnLobbyNotReady;
 
-            countdown.OnCountdownComplete += OnCountdownComplete;
-
-            AddHostListeners();
-
-            countdown.ShowNotReadyMessage();
+            startButton.interactable = false;
         }
 
         private void OnDisable()
         {
+            leftButton.onClick.RemoveListener(OnLeftClicked);
+            rightButton.onClick.RemoveListener(OnRightClicked);
+            startButton.onClick.RemoveListener(OnStartClicked);
             leaveButton.onClick.RemoveListener(OnLeaveClicked);
             lobbyCodeButton.onClick.RemoveListener(OnLobbyCodeClicked);
             readyUnreadyButton.onClick.RemoveListener(OnReadyUnreadyClicked);
@@ -76,31 +79,29 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
 
             Events.LobbyEvents.OnAllPlayersReady -= OnLobbyReady;
             Events.LobbyEvents.OnNotAllPlayersReady -= OnLobbyNotReady;
-
-            countdown.OnCountdownComplete -= OnCountdownComplete;
-
-            RemoveHostListeners();
         }
 
         private void OnPlayerJoined(Player player)
         {
-            CancelCountdownAndUnreadyAll();
-
-            UpdatePlayerList(LobbyManager.Instance.lobby);
         }
 
         private void OnPlayerLeft(Player player)
         {
-            CancelCountdownAndUnreadyAll();
-
-            UpdatePlayerList(LobbyManager.Instance.lobby);
         }
 
-        void Start()
+        async void Start()
         {
+            lobbyNameText.text = $"{LobbyManager.Instance.LobbyName}" + (LobbyManager.Instance.IsPrivate ? " (Private)" : "");
             lobbyCodeText.text = $"Code: {LobbyManager.Instance.LobbyCode}";
 
-            OnLobbyUpdated(LobbyManager.Instance.lobby);
+            if (!LobbyManager.Instance.IsLobbyHost)
+            {
+                leftButton.gameObject.SetActive(false);
+                rightButton.gameObject.SetActive(false);
+            }
+            else
+                await GameLobbyManager.Instance.SetSelectedMap(currentMapIndex, mapSelectionData.Maps[currentMapIndex].MapSceneName);
+
             UpdateReadyButton(false);
         }
 
@@ -109,7 +110,6 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
             leaveButton.interactable = false;
 
             leaveLoadingBar.StartLoading();
-            // await Tests.TestDelay(1000);
             OperationResult result = await LobbyManager.Instance.LeaveLobby();
             leaveLoadingBar.StopLoading();
 
@@ -120,24 +120,14 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
 
             leaveButton.interactable = true;
         }
-
-        private void OnLobbySettingsClicked()
-        {
-            lobbySettingsPanelController.ShowPanel();
-        }
-
         private void OnLobbyUpdated(Lobby lobby)
         {
-            lobbyNameText.text = LobbyManager.Instance.LobbyName;
+            lobbyNameText.text = $"{LobbyManager.Instance.LobbyName}" + (LobbyManager.Instance.IsPrivate ? " (Private)" : "");
+            lobbyCodeText.text = $"Code: {LobbyManager.Instance.LobbyCode}";
 
-            UpdatePlayerList(lobby);
-            UpdateHostUI();
+            currentMapIndex = GameLobbyManager.Instance.GetMapIndex();
 
-            if (lobby.Data != null && lobby.Data.ContainsKey("CountdownStartTime") && !countdown.IsCountdownActive)
-            {
-                Debug.Log("Received countdown start from lobby data");
-                countdown.StartCountdown();
-            }
+            UpdateMap();
         }
 
         private void OnLobbyCodeClicked()
@@ -146,67 +136,19 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
             resultHandler.HandleResult(OperationResult.SuccessResult("LobbyCode", $"Lobby code: {LobbyManager.Instance.LobbyCode} copied to clipboard"));
         }
 
-        private void UpdateHostUI()
-        {
-            if (LobbyManager.Instance.IsLobbyHost)
-            {
-                AddHostListeners();
-                lobbySettingsButton.interactable = true;
-            }
-            else
-            {
-                RemoveHostListeners();
-                lobbySettingsButton.interactable = false;
-            }
-        }
-
-        private void AddHostListeners()
-        {
-            lobbySettingsButton.onClick.AddListener(OnLobbySettingsClicked);
-        }
-
-        private void RemoveHostListeners()
-        {
-            lobbySettingsButton.onClick.RemoveListener(OnLobbySettingsClicked);
-        }
-
-        #region Player List Management
-
-        private void UpdatePlayerList(Lobby lobby)
-        {
-            foreach (Transform t in playerListContent)
-                Destroy(t.gameObject);
-
-            foreach (var player in lobby.Players)
-            {
-                GameObject playerItem = Instantiate(playerListItemPrefab, playerListContent);
-                PlayerListEntry playerListEntry = playerItem.GetComponent<PlayerListEntry>();
-                playerListEntry.SetPlayer(player);
-            }
-        }
-
-        #endregion
-
-        #region Ready/Countdown Management
+        #region Ready Status Management
 
         private async void OnReadyUnreadyClicked()
         {
             readyUnreadyButton.interactable = false;
-
             readyUnreadyLoadingBar.StartLoading();
-            OperationResult result = await GameLobbyManager.Instance.ToggleReadyStatus();
 
-            await Task.Delay(500);
-
-
-            OnLobbyUpdated(LobbyManager.Instance.lobby);
+            await GameLobbyManager.Instance.TogglePlayerReady();
             UpdateReadyButton(GameLobbyManager.Instance.IsPlayerReady(AuthenticationManager.Instance.PlayerId));
-            GameLobbyManager.Instance.IsLobbyReady();
-
-            readyUnreadyLoadingBar.StopLoading();
 
             await Task.Delay(2000);
             readyUnreadyButton.interactable = true;
+            readyUnreadyLoadingBar.StopLoading();
         }
 
         private void UpdateReadyButton(bool isReady)
@@ -217,17 +159,17 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
 
             if (isReady)
             {
-                colors.normalColor = UIColors.successDefaultColor;
-                colors.highlightedColor = UIColors.successHoverColor;
-                colors.pressedColor = UIColors.successDefaultColor;
-                colors.selectedColor = UIColors.successHoverColor;
+                colors.normalColor = UIColors.greenDefaultColor;
+                colors.highlightedColor = UIColors.greenHoverColor;
+                colors.pressedColor = UIColors.greenDefaultColor;
+                colors.selectedColor = UIColors.greenHoverColor;
             }
             else
             {
-                colors.normalColor = UIColors.errorDefaultColor;
-                colors.highlightedColor = UIColors.errorHoverColor;
-                colors.pressedColor = UIColors.errorDefaultColor;
-                colors.selectedColor = UIColors.errorHoverColor;
+                colors.normalColor = UIColors.redDefaultColor;
+                colors.highlightedColor = UIColors.redHoverColor;
+                colors.pressedColor = UIColors.redDefaultColor;
+                colors.selectedColor = UIColors.redHoverColor;
             }
 
             readyUnreadyButton.colors = colors;
@@ -235,157 +177,74 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
 
         private void OnLobbyReady()
         {
-            Debug.Log("All players are now ready - starting countdown");
-
             // send system chat message
 
+            startButtonText.text = "START";
+
             if (LobbyManager.Instance.IsLobbyHost)
-            {
-                countdown.StartCountdown();
-            }
+                startButton.interactable = true;
         }
 
-        private void OnLobbyNotReady()
+        private void OnLobbyNotReady(int playersReady, int maxPlayerCount)
         {
-            Debug.Log("Not all players are ready - cancelling countdown");
-
             // send system chat message
 
-            countdown.CancelCountdown();
-            countdown.ShowNotReadyMessage();
-        }
-
-        private async void CancelCountdownAndUnreadyAll()
-        {
-            countdown.CancelCountdown();
-
-            // send system chat message
+            startButtonText.text = $"{playersReady}/{maxPlayerCount} READY";
 
             if (LobbyManager.Instance.IsLobbyHost)
-                await GameLobbyManager.Instance.SetAllPlayersUnready();
+                startButton.interactable = false;
         }
 
-        private async void OnCountdownComplete()
+        private async void OnStartClicked()
         {
-            Debug.Log("Countdown complete - starting game");
+            startButton.interactable = false;
 
-            if (LobbyManager.Instance.IsLobbyHost)
-            {
-                try
-                {
-                    // Create relay session
-                    string joinCode = await RelayManager.Instance.CreateRelaySession(LobbyManager.Instance.MaxPlayers);
+            await GameLobbyManager.Instance.StartGame();
 
-                    // Check if we got a valid join code
-                    if (string.IsNullOrEmpty(joinCode))
-                    {
-                        Debug.LogError("Failed to get relay join code");
-                        countdown.ShowNotReadyMessage();
-                        return; // Exit early if we don't have a join code
-                    }
+            await Task.Delay(2000);
+            startButton.interactable = true;
+        }
 
-                    // Update lobby with join code
-                    await GameLobbyManager.Instance.SetGameInProgress(true, joinCode);
+        #endregion
 
-                    // Start networking as host
-                    NetworkManager.Singleton.StartHost();
+        #region Map Selection
 
-                    // Load game scene
-                    await LoadGameSceneAdditively();
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogError($"Error starting host: {ex.Message}");
-                    countdown.ShowNotReadyMessage();
-                }
-            }
+        private async void OnLeftClicked()
+        {
+            leftButton.interactable = false;
+            if (currentMapIndex > 0)
+                currentMapIndex--;
             else
-            {
-                try
-                {
-                    await WaitForRelayJoinCode();
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogError($"Error joining as client: {ex.Message}");
-                    countdown.ShowNotReadyMessage();
-                }
-            }
+                currentMapIndex = mapSelectionData.Maps.Count - 1;
 
-            readyUnreadyButton.interactable = false;
+            UpdateMap();
+            await GameLobbyManager.Instance.SetSelectedMap(currentMapIndex, mapSelectionData.Maps[currentMapIndex].MapSceneName);
+
+            await Task.Delay(1200);
+            leftButton.interactable = true;
         }
 
-        private async Task WaitForRelayJoinCode()
+        private async void OnRightClicked()
         {
-            float waitTime = 0;
-            int refreshAttempts = 0;
-            const float refreshInterval = 1.0f;
-            const int maxRefreshAttempts = 10;
-
-            Debug.Log("Client waiting for relay join code...");
-
-            while (string.IsNullOrEmpty(LobbyManager.Instance.RelayJoinCode) && refreshAttempts < maxRefreshAttempts)
-            {
-                if (!string.IsNullOrEmpty(LobbyManager.Instance.RelayJoinCode))
-                {
-                    Debug.Log($"Received relay join code: {LobbyManager.Instance.RelayJoinCode}");
-                    break;
-                }
-
-                await Task.Delay((int)(refreshInterval * 1000));
-                waitTime += refreshInterval;
-                refreshAttempts++;
-            }
-
-            if (string.IsNullOrEmpty(LobbyManager.Instance.RelayJoinCode))
-            {
-                Debug.LogError($"Failed to get relay join code after {maxRefreshAttempts} attempts");
-                countdown.ShowNotReadyMessage();
-                return;
-            }
-
-            Debug.Log("Attempting to join relay session...");
-            bool success = await RelayManager.Instance.JoinRelaySession(LobbyManager.Instance.RelayJoinCode);
-
-            if (success)
-            {
-                Debug.Log("Successfully joined relay session, starting client");
-                NetworkManager.Singleton.StartClient();
-                await LoadGameSceneAdditively();
-            }
+            rightButton.interactable = false;
+            if (currentMapIndex < mapSelectionData.Maps.Count - 1)
+                currentMapIndex++;
             else
-            {
-                Debug.LogError("Failed to join Relay session");
-                countdown.ShowNotReadyMessage();
-            }
+                currentMapIndex = 0;
+
+            UpdateMap();
+            await GameLobbyManager.Instance.SetSelectedMap(currentMapIndex, mapSelectionData.Maps[currentMapIndex].MapSceneName);
+
+            await Task.Delay(1200);
+            rightButton.interactable = true;
         }
 
-        private async Task LoadGameSceneAdditively()
+        private void UpdateMap()
         {
-            AsyncOperation asyncLoad = SceneManager.LoadSceneAsync("Game", LoadSceneMode.Additive);
+            // send system chat message
 
-            while (!asyncLoad.isDone)
-                await Task.Yield();
-
-            Scene gameScene = SceneManager.GetSceneByName("Game");
-            SceneManager.SetActiveScene(gameScene);
-
-            gameObject.SetActive(false);
-        }
-
-
-        public async void ReturnToLobby()
-        {
-            gameObject.SetActive(true);
-
-            SceneManager.UnloadSceneAsync("Game");
-
-            readyUnreadyButton.interactable = true;
-            UpdateReadyButton(false);
-            countdown.ShowNotReadyMessage();
-
-            if (LobbyManager.Instance.IsLobbyHost)
-                await GameLobbyManager.Instance.SetGameInProgress(false);
+            mapImage.color = mapSelectionData.Maps[currentMapIndex].MapThumbnail;
+            mapName.text = mapSelectionData.Maps[currentMapIndex].MapName;
         }
 
         #endregion

@@ -24,7 +24,7 @@ namespace Assets.Scripts.Game.UI.Controllers.SettingsMenu
             ResetChangeTracking();
         }
 
-        public override void SaveSettings()
+        public override void ApplyChanges()
         {
             PlayerPrefs.Save();
 

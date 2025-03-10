@@ -11,11 +11,11 @@ namespace Assets.Scripts.Game.UI.Components
 
         public abstract void LoadSettings();
 
-        public abstract void SaveSettings();
-
         public abstract void DiscardChanges();
 
         public abstract void ResetToDefaults();
+
+        public abstract void ApplyChanges();
 
         public virtual bool HasChanges() => _hasChanges;
 

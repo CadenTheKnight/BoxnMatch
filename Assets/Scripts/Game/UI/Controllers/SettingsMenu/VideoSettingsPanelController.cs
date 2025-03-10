@@ -75,7 +75,7 @@ namespace Assets.Scripts.Game.UI.Controllers.SettingsMenu
 
         public override void LoadSettings()
         {
-            _originalFullscreen = Screen.fullScreen;
+            _originalFullscreen = PlayerPrefs.GetInt("Fullscreen", 1) == 1;
             fullscreenToggle.SetIsOnWithoutNotify(_originalFullscreen);
 
             // int currentWidth = Screen.width;
@@ -99,36 +99,11 @@ namespace Assets.Scripts.Game.UI.Controllers.SettingsMenu
             ResetChangeTracking();
         }
 
-        public override void SaveSettings()
-        {
-            PlayerPrefs.SetInt("Fullscreen", fullscreenToggle.isOn ? 1 : 0);
-
-            // if (resolutionDropdown.value >= 0 && resolutionDropdown.value < _resolutions.Count)
-            // {
-            //     PlayerPrefs.SetInt("ResolutionWidth", _resolutions[resolutionDropdown.value].width);
-            //     PlayerPrefs.SetInt("ResolutionHeight", _resolutions[resolutionDropdown.value].height);
-            //     PlayerPrefs.SetInt("ResolutionIndex", resolutionDropdown.value);
-            // }
-
-            // PlayerPrefs.SetInt("QualityLevel", qualityDropdown.value);
-
-            ApplyGameSettings();
-
-            _originalFullscreen = fullscreenToggle.isOn;
-            // _originalResolutionIndex = resolutionDropdown.value;
-            // _originalQualityIndex = qualityDropdown.value;
-
-            PlayerPrefs.Save();
-            ResetChangeTracking();
-        }
-
         public override void DiscardChanges()
         {
             fullscreenToggle.SetIsOnWithoutNotify(_originalFullscreen);
             // resolutionDropdown.SetValueWithoutNotify(_originalResolutionIndex);
             // qualityDropdown.SetValueWithoutNotify(_originalQualityIndex);
-
-            ApplyGameSettings();
 
             ResetChangeTracking();
         }
@@ -179,7 +154,8 @@ namespace Assets.Scripts.Game.UI.Controllers.SettingsMenu
             CheckForChanges();
         }
 
-        private void ApplyGameSettings()
+
+        public override void ApplyChanges()
         {
             // if (resolutionDropdown.value >= 0 && resolutionDropdown.value < _resolutions.Count)
             // {
@@ -193,6 +169,16 @@ namespace Assets.Scripts.Game.UI.Controllers.SettingsMenu
 
             Screen.fullScreen = fullscreenToggle.isOn;
             // QualitySettings.SetQualityLevel(qualityDropdown.value);
+
+
+            PlayerPrefs.SetInt("Fullscreen", fullscreenToggle.isOn ? 1 : 0);
+            // PlayerPrefs.SetInt("ResolutionWidth", Screen.width);
+            // PlayerPrefs.SetInt("ResolutionHeight", Screen.height);
+            // PlayerPrefs.SetInt("ResolutionIndex", resolutionDropdown.value);
+
+            PlayerPrefs.Save();
+
+            ResetChangeTracking();
         }
     }
 }

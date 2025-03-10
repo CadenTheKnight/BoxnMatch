@@ -1,10 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
+using Unity.Netcode;
 using UnityEngine.InputSystem;
 
-public class PlayerRotator : MonoBehaviour
+public class PlayerRotator : NetworkBehaviour
 {
     [Header("References")]
     [SerializeField] private PlayerInputManager input;
@@ -14,9 +13,7 @@ public class PlayerRotator : MonoBehaviour
     [SerializeField] private float rotationTime;
     [SerializeField] private bool overrideBufferedInputs;
 
-    [Header("Sockets")]
-    [SerializeField] public AbilitySocket[] sockets;
-
+    public AbilitySocket[] sockets;
     private AbilityDirection currDirection;
     private bool currentlyRotating;
 
@@ -41,9 +38,10 @@ public class PlayerRotator : MonoBehaviour
     }
 
     //actually useful methods
-
-    private void UseAbility(AbilityDirection ab)
+    private void UseAbility(AbilityDirection abDirection)
     {
+        if (!IsLocalPlayer) return;
+
         /*access the socket that is at that direction, 
          * by using its index in the socket array.
          * relies on the ordering in the inspector to be
@@ -54,7 +52,7 @@ public class PlayerRotator : MonoBehaviour
         //2nd socket should fire (the East socket, currently north
         //my dir: 3. Button pressed: 0. Should fire: 1
 
-        int socketToFire = ((int)ab - (int)currDirection);
+        int socketToFire = (int)abDirection - (int)currDirection;
         if (socketToFire < 0) socketToFire += 4;
         //Debug.Log(socketToFire);
 
@@ -63,11 +61,12 @@ public class PlayerRotator : MonoBehaviour
 
     private void Rotate(int quarterCirclesCW)
     {
+        if (!IsLocalPlayer) return;
         //buffer input
         if (currentlyRotating)
         {
             //if already 1 input buffered, just ignore based on setting (?)
-            if(rotateInputBuffer != 0 && !overrideBufferedInputs)
+            if (rotateInputBuffer != 0 && !overrideBufferedInputs)
             {
                 return;
             }
@@ -101,8 +100,10 @@ public class PlayerRotator : MonoBehaviour
 
     private void FinishRotation()
     {
+        if (!IsLocalPlayer) return;
+
         currentlyRotating = false;
-        if(rotateInputBuffer != 0)
+        if (rotateInputBuffer != 0)
         {
             int tmp = rotateInputBuffer;
             rotateInputBuffer = 0;
@@ -113,17 +114,20 @@ public class PlayerRotator : MonoBehaviour
     //input methods
     public void UseAbility_N(InputAction.CallbackContext val)
     {
-        if(val.performed)
+        if (val.performed)
             UseAbility(AbilityDirection.NORTH);
     }
+
     public void UseAbility_E(InputAction.CallbackContext val)
     {
         if (val.performed) UseAbility(AbilityDirection.EAST);
     }
+
     public void UseAbility_S(InputAction.CallbackContext val)
     {
         if (val.performed) UseAbility(AbilityDirection.SOUTH);
     }
+
     public void UseAbility_W(InputAction.CallbackContext val)
     {
         if (val.performed) UseAbility(AbilityDirection.WEST);
@@ -141,24 +145,28 @@ public class PlayerRotator : MonoBehaviour
 
     private void EnableInputs()
     {
-        input.abilityNorthInput += UseAbility_N;
-        input.abilityEastInput += UseAbility_E;
-        input.abilitySouthInput += UseAbility_S;
-        input.abilityWestInput += UseAbility_W;
+        if (!IsLocalPlayer) return;
 
-        input.rotateCWInput += RotateCW;
-        input.rotateCounterCWInput += RotateCCW;
+        input.AbilityNorthInput += UseAbility_N;
+        input.AbilityEastInput += UseAbility_E;
+        input.AbilitySouthInput += UseAbility_S;
+        input.AbilityWestInput += UseAbility_W;
+
+        input.RotateCWInput += RotateCW;
+        input.RotateCCWInput += RotateCCW;
     }
 
     private void DisableInputs()
     {
-        input.abilityNorthInput -= UseAbility_N;
-        input.abilityEastInput -= UseAbility_E;
-        input.abilitySouthInput -= UseAbility_S;
-        input.abilityWestInput -= UseAbility_W;
+        if (!IsLocalPlayer) return;
 
-        input.rotateCWInput -= RotateCW;
-        input.rotateCounterCWInput -= RotateCCW;
+        input.AbilityNorthInput -= UseAbility_N;
+        input.AbilityEastInput -= UseAbility_E;
+        input.AbilitySouthInput -= UseAbility_S;
+        input.AbilityWestInput -= UseAbility_W;
+
+        input.RotateCWInput -= RotateCW;
+        input.RotateCCWInput -= RotateCCW;
     }
 
 }

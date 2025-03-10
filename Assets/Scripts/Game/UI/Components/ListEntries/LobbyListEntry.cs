@@ -50,11 +50,8 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
             lobbyNameText.text = lobby.Name;
             playerCountText.text = $"{lobby.Players.Count}/{lobby.MaxPlayers}";
-
-            if (lobby.Data != null && lobby.Data.ContainsKey("GameMode"))
-                gameModeText.text = lobby.Data["GameMode"].Value;
-            else
-                gameModeText.text = "Standard";
+            Debug.Log($"GameMode: {lobby.Data["GameMode"].Value}");
+            gameModeText.text = lobby.Data["GameMode"].Value;
         }
     }
 }

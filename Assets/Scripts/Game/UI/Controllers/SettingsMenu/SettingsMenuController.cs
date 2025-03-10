@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Assets.Scripts.Game.UI.Components;
 using Assets.Scripts.Framework.Utilities;
+using Assets.Scripts.Game.UI.Components.Colors;
 
 namespace Assets.Scripts.Game.UI.Controllers.SettingsMenu
 {
@@ -27,10 +28,6 @@ namespace Assets.Scripts.Game.UI.Controllers.SettingsMenu
         [SerializeField] private Button applyButton;
         [SerializeField] private Button discardChangesButton;
         [SerializeField] private Button resetToDefaultsButton;
-
-        [Header("Tab Visual Indicators")]
-        [SerializeField] private Color selectedTabColor = new(0.8f, 0.8f, 0.8f);
-        [SerializeField] private Color unselectedTabColor = new(0.5f, 0.5f, 0.5f);
 
         [Header("Result Handling")]
         [SerializeField] private ResultHandler resultHandler;
@@ -133,12 +130,12 @@ namespace Assets.Scripts.Game.UI.Controllers.SettingsMenu
         /// <param name="selectedTab">The selected tab.</param>
         private void SetSelectedTab(Button selectedTab)
         {
-            SetTabColor(gameTabButton, unselectedTabColor);
-            SetTabColor(videoTabButton, unselectedTabColor);
-            SetTabColor(audioTabButton, unselectedTabColor);
-            SetTabColor(controlsTabButton, unselectedTabColor);
+            SetTabColor(gameTabButton, UIColors.primaryPressedColor);
+            SetTabColor(videoTabButton, UIColors.primaryPressedColor);
+            SetTabColor(audioTabButton, UIColors.primaryPressedColor);
+            SetTabColor(controlsTabButton, UIColors.primaryPressedColor);
 
-            SetTabColor(selectedTab, selectedTabColor);
+            SetTabColor(selectedTab, UIColors.primaryHoverColor);
         }
 
         /// <summary>
@@ -148,7 +145,9 @@ namespace Assets.Scripts.Game.UI.Controllers.SettingsMenu
         /// <param name="color">The color being applied.</param>
         private void SetTabColor(Button tab, Color color)
         {
-            tab.targetGraphic.color = color;
+            var colors = tab.colors;
+            colors.normalColor = color;
+            tab.colors = colors;
         }
 
         /// <summary>
@@ -189,22 +188,22 @@ namespace Assets.Scripts.Game.UI.Controllers.SettingsMenu
         {
             if (gameSettingsController.gameObject.activeSelf)
             {
-                gameSettingsController.SaveSettings();
+                gameSettingsController.ApplyChanges();
                 resultHandler.HandleResult(OperationResult.SuccessResult("GameSettingsChanged", "Game settings changes applied"));
             }
             else if (videoSettingsController.gameObject.activeSelf)
             {
-                videoSettingsController.SaveSettings();
+                videoSettingsController.ApplyChanges();
                 resultHandler.HandleResult(OperationResult.SuccessResult("VideoSettingsChanged", "Video settings changes applied"));
             }
             else if (audioSettingsController.gameObject.activeSelf)
             {
-                audioSettingsController.SaveSettings();
+                audioSettingsController.ApplyChanges();
                 resultHandler.HandleResult(OperationResult.SuccessResult("AudioSettingsChanged", "Audio settings changes applied"));
             }
             else if (controlsSettingsController.gameObject.activeSelf)
             {
-                controlsSettingsController.SaveSettings();
+                controlsSettingsController.ApplyChanges();
                 resultHandler.HandleResult(OperationResult.SuccessResult("ControlsSettingsChanged", "Controls settings changes applied"));
             }
 

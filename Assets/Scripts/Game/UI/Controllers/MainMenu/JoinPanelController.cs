@@ -81,9 +81,9 @@ namespace Assets.Scripts.Game.UI.Controllers.MainMenu
 
             OperationResult result;
             if (!string.IsNullOrEmpty(lobbyCodeInput.text) && lobbyCodeInput.text.Length == 6)
-                result = await LobbyListManager.Instance.JoinLobbyByCode(lobbyCodeInput.text);
+                result = await GameLobbyManager.Instance.JoinLobbyByCode(lobbyCodeInput.text);
             else
-                result = await LobbyListManager.Instance.JoinSelectedLobby(LobbyListManager.Instance.SelectedLobby.Id);
+                result = await GameLobbyManager.Instance.JoinLobbyById(LobbyListManager.Instance.SelectedLobby.Id);
 
             joinLoadingBar.StopLoading();
 
@@ -136,7 +136,7 @@ namespace Assets.Scripts.Game.UI.Controllers.MainMenu
 
             joinLoadingBar.StartLoading();
             await Tests.TestDelay(1000);
-            var result = await LobbyListManager.Instance.JoinSelectedLobby(LobbyListManager.Instance.SelectedLobby.Id);
+            var result = await GameLobbyManager.Instance.JoinLobbyById(LobbyListManager.Instance.SelectedLobby.Id);
             joinLoadingBar.StopLoading();
 
             if (result.Status == ResultStatus.Success)

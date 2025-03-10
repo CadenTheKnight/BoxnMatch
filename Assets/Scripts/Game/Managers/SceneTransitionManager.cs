@@ -42,7 +42,7 @@ namespace Assets.Scripts.Game.Managers
         /// Sets a notification to be displayed in the next scene.
         /// </summary>
         /// <param name="result">Operation result containing message data.</param>
-        /// <param name="type">Type of notification (Success, Error, etc).</param>
+        /// <param name="type">The notification type.</param>
         public void SetPendingNotification(OperationResult result, NotificationType type)
         {
             pendingNotification = result;
@@ -86,7 +86,6 @@ namespace Assets.Scripts.Game.Managers
             LobbyEvents.OnLobbyJoined += HandleLobbyJoined;
             LobbyEvents.OnLobbyLeft += HandleLobbyLeft;
             LobbyEvents.OnLobbyKicked += HandleLobbyKicked;
-            // Add other events as needed
         }
 
         private void UnsubscribeFromEvents()
@@ -97,42 +96,35 @@ namespace Assets.Scripts.Game.Managers
             LobbyEvents.OnLobbyJoined -= HandleLobbyJoined;
             LobbyEvents.OnLobbyLeft -= HandleLobbyLeft;
             LobbyEvents.OnLobbyKicked -= HandleLobbyKicked;
-            // Remove other events as well
         }
 
         private void HandleAuthenticated()
         {
-            // Set authentication success notification
             SetPendingNotification(OperationResult.SuccessResult("AUTH_SUCCESS", "Authentication successful!"), NotificationType.Success);
-
             SceneManager.LoadScene("Main");
         }
 
         private void HandleLobbyCreated(Lobby lobby)
         {
             SetPendingNotification(OperationResult.SuccessResult("LOBBY_CREATED", $"Created lobby '{lobby.Name}'!"), NotificationType.Success);
-
             SceneManager.LoadScene("Lobby");
         }
 
         private void HandleLobbyJoined(Lobby lobby)
         {
             SetPendingNotification(OperationResult.SuccessResult("LOBBY_JOINED", $"Joined lobby '{lobby.Name}'!"), NotificationType.Success);
-
             SceneManager.LoadScene("Lobby");
         }
 
         private void HandleLobbyLeft()
         {
             SetPendingNotification(OperationResult.SuccessResult("LOBBY_LEFT", "Left the lobby."), NotificationType.Success);
-
             SceneManager.LoadScene("Main");
         }
 
         private void HandleLobbyKicked()
         {
             SetPendingNotification(OperationResult.WarningResult("LOBBY_KICKED", "Kicked from the lobby."), NotificationType.Warning);
-
             SceneManager.LoadScene("Main");
         }
     }
