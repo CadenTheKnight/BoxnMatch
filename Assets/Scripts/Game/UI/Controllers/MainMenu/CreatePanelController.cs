@@ -6,7 +6,6 @@ using Assets.Scripts.Game.Managers;
 using System.Text.RegularExpressions;
 using Assets.Scripts.Game.UI.Components;
 using Assets.Scripts.Framework.Utilities;
-using System.Collections.Generic;
 using Assets.Scripts.Game.UI.Components.Colors;
 
 namespace Assets.Scripts.Game.UI.Controllers.MainMenu

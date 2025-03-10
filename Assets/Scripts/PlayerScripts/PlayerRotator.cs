@@ -13,9 +13,7 @@ public class PlayerRotator : NetworkBehaviour
     [SerializeField] private float rotationTime;
     [SerializeField] private bool overrideBufferedInputs;
 
-    [Header("Sockets")]
-    [SerializeField] public AbilitySocket[] sockets;
-
+    public AbilitySocket[] sockets;
     private AbilityDirection currDirection;
     private bool currentlyRotating;
 
@@ -40,8 +38,7 @@ public class PlayerRotator : NetworkBehaviour
     }
 
     //actually useful methods
-
-    private void UseAbility(AbilityDirection ab)
+    private void UseAbility(AbilityDirection abDirection)
     {
         if (!IsLocalPlayer) return;
 
@@ -55,7 +52,7 @@ public class PlayerRotator : NetworkBehaviour
         //2nd socket should fire (the East socket, currently north
         //my dir: 3. Button pressed: 0. Should fire: 1
 
-        int socketToFire = (int)ab - (int)currDirection;
+        int socketToFire = (int)abDirection - (int)currDirection;
         if (socketToFire < 0) socketToFire += 4;
         //Debug.Log(socketToFire);
 
@@ -120,14 +117,17 @@ public class PlayerRotator : NetworkBehaviour
         if (val.performed)
             UseAbility(AbilityDirection.NORTH);
     }
+
     public void UseAbility_E(InputAction.CallbackContext val)
     {
         if (val.performed) UseAbility(AbilityDirection.EAST);
     }
+
     public void UseAbility_S(InputAction.CallbackContext val)
     {
         if (val.performed) UseAbility(AbilityDirection.SOUTH);
     }
+
     public void UseAbility_W(InputAction.CallbackContext val)
     {
         if (val.performed) UseAbility(AbilityDirection.WEST);
@@ -147,26 +147,26 @@ public class PlayerRotator : NetworkBehaviour
     {
         if (!IsLocalPlayer) return;
 
-        input.abilityNorthInput += UseAbility_N;
-        input.abilityEastInput += UseAbility_E;
-        input.abilitySouthInput += UseAbility_S;
-        input.abilityWestInput += UseAbility_W;
+        input.AbilityNorthInput += UseAbility_N;
+        input.AbilityEastInput += UseAbility_E;
+        input.AbilitySouthInput += UseAbility_S;
+        input.AbilityWestInput += UseAbility_W;
 
-        input.rotateCWInput += RotateCW;
-        input.rotateCounterCWInput += RotateCCW;
+        input.RotateCWInput += RotateCW;
+        input.RotateCCWInput += RotateCCW;
     }
 
     private void DisableInputs()
     {
         if (!IsLocalPlayer) return;
 
-        input.abilityNorthInput -= UseAbility_N;
-        input.abilityEastInput -= UseAbility_E;
-        input.abilitySouthInput -= UseAbility_S;
-        input.abilityWestInput -= UseAbility_W;
+        input.AbilityNorthInput -= UseAbility_N;
+        input.AbilityEastInput -= UseAbility_E;
+        input.AbilitySouthInput -= UseAbility_S;
+        input.AbilityWestInput -= UseAbility_W;
 
-        input.rotateCWInput -= RotateCW;
-        input.rotateCounterCWInput -= RotateCCW;
+        input.RotateCWInput -= RotateCW;
+        input.RotateCCWInput -= RotateCCW;
     }
 
 }

@@ -306,6 +306,30 @@ namespace Assets.Scripts.Framework.Managers
             }
         }
 
+        public async Task<OperationResult> UpdateAllPlayerData(List<Dictionary<string, string>> playersData)
+        {
+            foreach (Dictionary<string, string> playerData in playersData)
+            {
+                UpdatePlayerOptions updatePlayerOptions = new()
+                {
+                    Data = SerializePlayerData(playerData)
+                };
+
+                try
+                {
+                    lobby = await LobbyService.Instance.UpdatePlayerAsync(lobby.Id, AuthenticationService.Instance.PlayerId, updatePlayerOptions);
+
+                    LobbyEvents.InvokeLobbyUpdated(lobby);
+                }
+                catch (LobbyServiceException e)
+                {
+                    return OperationResult.FailureResult(e.ErrorCode.ToString(), e.Message);
+                }
+            }
+
+            return OperationResult.SuccessResult("UpdateAllPlayerData", "All player data updated");
+        }
+
         public async Task<OperationResult> UpdateLobbyData(Dictionary<string, string> lobbyData)
         {
             UpdateLobbyOptions updateLobbyOptions = new()

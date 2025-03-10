@@ -1,23 +1,41 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class PlayerInputManager : MonoBehaviour
 {
+    public void SetUpNetworkedPlayer(bool isLocalPlayer)
+    {
+        GetComponent<PlayerInput>().enabled = isLocalPlayer;
+    }
+
+    public bool inputsEnabled = false;
+
+    private void EnableAllInputs()
+    {
+        inputsEnabled = true;
+    }
+
+    private void DisableAllInputs()
+    {
+        inputsEnabled = false;
+    }
+
     public delegate void InputEvent(InputAction.CallbackContext val);
 
-    public event InputEvent x_movementInput;
-    public event InputEvent jumpInput;
-    public event InputEvent rotateCWInput;
-    public event InputEvent rotateCounterCWInput;
-    public event InputEvent abilityNorthInput;
-    public event InputEvent abilityEastInput;
-    public event InputEvent abilitySouthInput;
-    public event InputEvent abilityWestInput;
-    public event InputEvent signatureAbilityInput;
-    public event InputEvent crouchInput;
-    public event InputEvent pauseInput;
+    public event InputEvent HorizontalInput;
+    public event InputEvent JumpInput;
+    public event InputEvent RotateCWInput;
+    public event InputEvent RotateCCWInput;
+    public event InputEvent AbilityNorthInput;
+    public event InputEvent AbilityEastInput;
+    public event InputEvent AbilitySouthInput;
+    public event InputEvent AbilityWestInput;
+    public event InputEvent SignatureAbilityInput;
+    public event InputEvent CrouchInput;
+    public event InputEvent PauseInput;
+    public event InputEvent UnPauseInput;
+    public event InputEvent OpenChatInput;
+    public event InputEvent CloseChatInput;
 
     //events -------------------------------
 
@@ -50,49 +68,74 @@ public class PlayerInputManager : MonoBehaviour
      * 
      */
 
-    public void XMovement(InputAction.CallbackContext val)
+    //input actions ------------------------
+    public void OnHorizontal(InputAction.CallbackContext val)
     {
-        x_movementInput?.Invoke(val);
-    }
-    public void Jump(InputAction.CallbackContext val)
-    {
-        jumpInput?.Invoke(val);
-    }
-    public void RotateCW(InputAction.CallbackContext val)
-    {
-        rotateCWInput?.Invoke(val);
-    }
-    public void RotateCounterCW(InputAction.CallbackContext val)
-    {
-        rotateCounterCWInput?.Invoke(val);
-    }
-    public void AbilityNorth(InputAction.CallbackContext val)
-    {
-        abilityNorthInput?.Invoke(val);
+        if (inputsEnabled) HorizontalInput?.Invoke(val);
     }
 
-    public void AbilityEast(InputAction.CallbackContext val)
+    public void OnJump(InputAction.CallbackContext val)
     {
-        abilityEastInput?.Invoke(val);
+        if (inputsEnabled) JumpInput?.Invoke(val);
     }
-    public void AbilitySouth(InputAction.CallbackContext val)
+
+    public void OnRotateCW(InputAction.CallbackContext val)
     {
-        abilitySouthInput?.Invoke(val);
+        if (inputsEnabled) RotateCWInput?.Invoke(val);
     }
-    public void AbilityWest(InputAction.CallbackContext val)
+
+    public void OnRotateCCW(InputAction.CallbackContext val)
     {
-        abilityWestInput?.Invoke(val);
+        if (inputsEnabled) RotateCCWInput?.Invoke(val);
     }
-    public void SignatureAbility(InputAction.CallbackContext val)
+
+    public void OnAbilityNorth(InputAction.CallbackContext val)
     {
-        signatureAbilityInput?.Invoke(val);
+        if (inputsEnabled) AbilityNorthInput?.Invoke(val);
     }
-    public void Crouch(InputAction.CallbackContext val)
+
+    public void OnAbilityEast(InputAction.CallbackContext val)
     {
-        crouchInput?.Invoke(val);
+        if (inputsEnabled) AbilityEastInput?.Invoke(val);
     }
-    public void Pause(InputAction.CallbackContext val)
+
+    public void OnAbilitySouth(InputAction.CallbackContext val)
     {
-        pauseInput?.Invoke(val);
+        if (inputsEnabled) AbilitySouthInput?.Invoke(val);
+    }
+
+    public void OnAbilityWest(InputAction.CallbackContext val)
+    {
+        if (inputsEnabled) AbilityWestInput?.Invoke(val);
+    }
+
+    public void OnSignatureAbility(InputAction.CallbackContext val)
+    {
+        if (inputsEnabled) SignatureAbilityInput?.Invoke(val);
+    }
+
+    public void OnCrouch(InputAction.CallbackContext val)
+    {
+        if (inputsEnabled) CrouchInput?.Invoke(val);
+    }
+
+    public void OnPause(InputAction.CallbackContext val)
+    {
+        if (inputsEnabled) PauseInput?.Invoke(val);
+    }
+
+    public void OnUnPause(InputAction.CallbackContext val)
+    {
+        if (inputsEnabled) UnPauseInput?.Invoke(val);
+    }
+
+    public void OnOpenChat(InputAction.CallbackContext val)
+    {
+        if (inputsEnabled) OpenChatInput?.Invoke(val);
+    }
+
+    public void OnCloseChat(InputAction.CallbackContext val)
+    {
+        if (inputsEnabled) CloseChatInput?.Invoke(val);
     }
 }

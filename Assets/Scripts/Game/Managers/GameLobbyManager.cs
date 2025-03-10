@@ -124,7 +124,7 @@ namespace Assets.Scripts.Game.Managers
             if (playersReady == LobbyManager.Instance.MaxPlayers)
                 LobbyEvents.InvokeAllPlayersReady();
             else
-                LobbyEvents.InvokeNotAllPlayersReady();
+                LobbyEvents.InvokeNotAllPlayersReady(playersReady, LobbyManager.Instance.MaxPlayers);
 
             if (lobbyData.RelayJoinCode != default && !inGame)
             {
@@ -175,6 +175,14 @@ namespace Assets.Scripts.Game.Managers
             await LobbyManager.Instance.UpdatePlayerData(localLobbyPlayerData.PlayerId, localLobbyPlayerData.Serialize(), allocationId, connectionData);
 
             return true;
+        }
+
+        public async void SetAllPlayersUnready()
+        {
+            foreach (LobbyPlayerData playerData in lobbyPlayersData)
+                playerData.IsReady = false;
+
+            await LobbyManager.Instance.UpdateAllPlayerData(lobbyPlayersData.Select(player => player.Serialize()).ToList());
         }
     }
 }

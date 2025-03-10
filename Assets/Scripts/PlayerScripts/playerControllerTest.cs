@@ -134,15 +134,15 @@ public class playerControllerTest : MonoBehaviour
 
     private void EnableInputs()
     {
-        input.jumpInput += TryJump;
-        input.crouchInput += TryGoDown;
-        input.x_movementInput += TryHorizontalMovement;
+        input.JumpInput += TryJump;
+        input.CrouchInput += TryGoDown;
+        input.HorizontalInput += TryHorizontalMovement;
     }
 
     private void DisableInputs()
     {
-        input.jumpInput -= TryJump;
-        input.crouchInput -= TryGoDown;
-        input.x_movementInput -= TryHorizontalMovement;
+        input.JumpInput -= TryJump;
+        input.CrouchInput -= TryGoDown;
+        input.HorizontalInput -= TryHorizontalMovement;
     }
 }

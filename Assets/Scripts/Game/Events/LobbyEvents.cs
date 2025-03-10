@@ -55,7 +55,7 @@ namespace Assets.Scripts.Game.Events
         /// <summary>
         /// Fired when at least one player in the lobby is not ready.
         /// </summary>
-        public delegate void NotAllPlayersReadyHandler();
+        public delegate void NotAllPlayersReadyHandler(int playersReady, int maxPlayerCount);
         public static event NotAllPlayersReadyHandler OnNotAllPlayersReady;
 
         /// <summary>
@@ -121,7 +121,7 @@ namespace Assets.Scripts.Game.Events
         public static void InvokeCharacterSelected(string playerId, string characterId) => OnCharacterSelected?.Invoke(playerId, characterId);
         public static void InvokePlayerReadyChanged(string playerId, bool isReady) => OnPlayerReadyChanged?.Invoke(playerId, isReady);
         public static void InvokeAllPlayersReady() => OnAllPlayersReady?.Invoke();
-        public static void InvokeNotAllPlayersReady() => OnNotAllPlayersReady?.Invoke();
+        public static void InvokeNotAllPlayersReady(int playersReady, int maxPlayerCount) => OnNotAllPlayersReady?.Invoke(playersReady, maxPlayerCount);
         public static void InvokeArenaSelected(string arenaId) => OnArenaSelected?.Invoke(arenaId);
         public static void InvokeMatchSettingsUpdated(Dictionary<string, string> settings) => OnMatchSettingsUpdated?.Invoke(settings);
         public static void InvokeMatchStarted() => OnMatchStarted?.Invoke();

@@ -36,6 +36,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
         [SerializeField] private Button leaveButton;
         [SerializeField] private Button readyUnreadyButton;
         [SerializeField] private LoadingBar leaveLoadingBar;
+        [SerializeField] private TextMeshProUGUI startButtonText;
         [SerializeField] private LoadingBar readyUnreadyLoadingBar;
         [SerializeField] private TextMeshProUGUI readyUnreadyButtonText;
 
@@ -44,13 +45,9 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
 
         private void OnEnable()
         {
-            if (LobbyManager.Instance.IsLobbyHost)
-            {
-                leftButton.onClick.AddListener(OnLeftClicked);
-                rightButton.onClick.AddListener(OnRightClicked);
-                startButton.onClick.AddListener(OnStartClicked);
-            }
-
+            leftButton.onClick.AddListener(OnLeftClicked);
+            rightButton.onClick.AddListener(OnRightClicked);
+            startButton.onClick.AddListener(OnStartClicked);
             leaveButton.onClick.AddListener(OnLeaveClicked);
             lobbyCodeButton.onClick.AddListener(OnLobbyCodeClicked);
             readyUnreadyButton.onClick.AddListener(OnReadyUnreadyClicked);
@@ -103,9 +100,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
                 rightButton.gameObject.SetActive(false);
             }
             else
-            {
                 await GameLobbyManager.Instance.SetSelectedMap(currentMapIndex, mapSelectionData.Maps[currentMapIndex].MapSceneName);
-            }
 
             UpdateReadyButton(false);
         }
@@ -151,6 +146,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
             await GameLobbyManager.Instance.TogglePlayerReady();
             UpdateReadyButton(GameLobbyManager.Instance.IsPlayerReady(AuthenticationManager.Instance.PlayerId));
 
+            await Task.Delay(2000);
             readyUnreadyButton.interactable = true;
             readyUnreadyLoadingBar.StopLoading();
         }
@@ -183,13 +179,17 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
         {
             // send system chat message
 
+            startButtonText.text = "START";
+
             if (LobbyManager.Instance.IsLobbyHost)
                 startButton.interactable = true;
         }
 
-        private void OnLobbyNotReady()
+        private void OnLobbyNotReady(int playersReady, int maxPlayerCount)
         {
             // send system chat message
+
+            startButtonText.text = $"{playersReady}/{maxPlayerCount} READY";
 
             if (LobbyManager.Instance.IsLobbyHost)
                 startButton.interactable = false;
@@ -200,8 +200,8 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
             startButton.interactable = false;
 
             await GameLobbyManager.Instance.StartGame();
-            await Task.Delay(2000);
 
+            await Task.Delay(2000);
             startButton.interactable = true;
         }
 

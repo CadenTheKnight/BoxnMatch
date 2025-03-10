@@ -3,9 +3,12 @@ using Unity.Netcode;
 using System.Collections;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(Rigidbody2D))]
 public class PlayerController : NetworkBehaviour
 {
+    private NetworkVariable<Vector3> networkPosition = new();
+    private NetworkVariable<float> networkHorizontalInput = new();
+    private NetworkVariable<bool> networkIsJumping = new(false);
+
     [Header("References")]
     [SerializeField] private PlayerInputManager input;
 
@@ -32,14 +35,28 @@ public class PlayerController : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        // can do camera things here like swapping to other players view when dead
-        if (!IsOwner)
+        // Set up player based on ownership
+        if (IsOwner)
         {
-            // CINEMACHINE package
+            // Local player setup
+            // if (Camera.main != null && Camera.main.TryGetComponent<CameraFollow>(out var cameraFollow))
+            // {
+            //     cameraFollow.SetTarget(transform);
+            // }
+
+            // Initialize PlayerInputManager for the local player
+            if (input != null)
+            {
+                input.SetUpNetworkedPlayer(true);
+            }
         }
         else
         {
-
+            // Remote player setup - disable local input processing
+            if (input != null)
+            {
+                input.SetUpNetworkedPlayer(false);
+            }
         }
     }
 
@@ -70,58 +87,74 @@ public class PlayerController : NetworkBehaviour
     // Update is called once per frame
     private void Update()
     {
-        if (!IsLocalPlayer) return;
-
-        Vector3 dir = new(horizontalInput, 0, 0);
-
-        //switched it over to use a universal offset, because rotation
-        //makes the groundCheckTransform unusable
-        Vector3 checkPosition = new(transform.position.x, transform.position.y + groundCheckOffset);
-
-        isGrounded = Physics2D.OverlapBox(checkPosition, groundCheckSize, 0f, groundLayer);
-
-        //debugging
-        /*
-        Debug.Log("isGrounded: " + isGrounded);
-        Debug.DrawLine(checkPosition + new Vector3(-0.05f, 0f), 
-            checkPosition + new Vector3(0.05f, 0f), Color.red, 0.5f);
-        */
-
-        rb.velocity = new Vector2((dir * currentSpeed).x, rb.velocity.y);
-
-        //NEW
-        //jumping 1
-        //Debug.Log(isGrounded + " " + rb.velocity.y);
-        if (isGrounded && rb.velocity.y <= 0)
+        if (IsOwner)
         {
-            jumpCount = 0;
+            Vector3 dir = new(horizontalInput, 0, 0);
+
+            //switched it over to use a universal offset, because rotation
+            //makes the groundCheckTransform unusable
+            Vector3 checkPosition = new(transform.position.x, transform.position.y + groundCheckOffset);
+            isGrounded = Physics2D.OverlapBox(checkPosition, groundCheckSize, 0f, groundLayer);
+
+            //debugging
+            /*
+            Debug.Log("isGrounded: " + isGrounded);
+            Debug.DrawLine(checkPosition + new Vector3(-0.05f, 0f), 
+                checkPosition + new Vector3(0.05f, 0f), Color.red, 0.5f);
+            */
+
+            rb.velocity = new Vector2((dir * currentSpeed).x, rb.velocity.y);
+
+            //NEW
+            //jumping 1
+            //Debug.Log(isGrounded + " " + rb.velocity.y);
+            if (isGrounded && rb.velocity.y <= 0)
+            {
+                jumpCount = 0;
+            }
+
+            UpdateServerPositionServerRpc(transform.position, horizontalInput);
+        }
+        else
+        {
+            transform.position = Vector3.Lerp(transform.position, networkPosition.Value, Time.deltaTime * 15f);
         }
     }
+
+    [ServerRpc]
+    private void UpdateServerPositionServerRpc(Vector3 position, float hInput)
+    {
+        networkPosition.Value = position;
+        networkHorizontalInput.Value = hInput;
+    }
+
+
 
     //physics based things in fixedupdate
     private void FixedUpdate()
     {
-        if (!IsLocalPlayer) return;
-
-        //Debug.Log("jumpInput: " + jumpInput);
-        if (jumpInput && jumpCount < maxJumps)
+        if (IsOwner)
         {
-            rb.velocity = new Vector2(rb.velocity.x, 0);
-            rb.AddForce(new Vector2(0, JUMP_FORCE), ForceMode2D.Impulse);
-            jumpCount++;
-        }
+            //Debug.Log("jumpInput: " + jumpInput);
+            if (jumpInput && jumpCount < maxJumps)
+            {
+                rb.velocity = new Vector2(rb.velocity.x, 0);
+                rb.AddForce(new Vector2(0, JUMP_FORCE), ForceMode2D.Impulse);
+                jumpCount++;
+            }
 
-        /*flush the jumpInput so it doesnt buffer in air.
-            we could potentially delay this by input flush by a small timer (like 0.2 sec)
-            to add a friendly jump buffer (?)
-        */
-        jumpInput = false;
+            /*flush the jumpInput so it doesnt buffer in air.
+                we could potentially delay this by input flush by a small timer (like 0.2 sec)
+                to add a friendly jump buffer (?)
+            */
+            jumpInput = false;
 
-        if (crouchInput)
-        {
-            rb.AddForce(new Vector2(0, -JUMP_FORCE), ForceMode2D.Impulse);
+            if (crouchInput)
+            {
+                rb.AddForce(new Vector2(0, -JUMP_FORCE), ForceMode2D.Impulse);
 
-            crouchInput = false;
+                crouchInput = false;
+            }
         }
     }
 
@@ -130,7 +163,16 @@ public class PlayerController : NetworkBehaviour
         if (val.performed)
         {
             jumpInput = true;
+
+            if (IsOwner)
+                JumpServerRpc();
         }
+    }
+
+    [ServerRpc]
+    private void JumpServerRpc()
+    {
+        networkIsJumping.Value = true;
     }
 
     private void TryGoDown(InputAction.CallbackContext val)
@@ -147,17 +189,17 @@ public class PlayerController : NetworkBehaviour
     {
         if (!IsLocalPlayer) return;
 
-        input.jumpInput += TryJump;
-        input.crouchInput += TryGoDown;
-        input.x_movementInput += TryHorizontalMovement;
+        input.JumpInput += TryJump;
+        input.CrouchInput += TryGoDown;
+        input.HorizontalInput += TryHorizontalMovement;
     }
 
     private void DisableInputs()
     {
         if (!IsLocalPlayer) return;
 
-        input.jumpInput -= TryJump;
-        input.crouchInput -= TryGoDown;
-        input.x_movementInput -= TryHorizontalMovement;
+        input.JumpInput -= TryJump;
+        input.CrouchInput -= TryGoDown;
+        input.HorizontalInput -= TryHorizontalMovement;
     }
 }
