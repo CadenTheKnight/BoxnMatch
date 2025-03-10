@@ -20,6 +20,7 @@ public class playerControllerTest : MonoBehaviour
     //NEW
     [SerializeField] private float JUMP_FORCE = 5f;
     [SerializeField] private float groundCheckOffset = -0.5f;
+    [SerializeField] private float FALL_FORCE = 5f;
     public Vector2 groundCheckSize = new Vector2(0.5f, 0.1f);
     public LayerMask groundLayer;
     public int jumpCount = 0;
@@ -108,7 +109,7 @@ public class playerControllerTest : MonoBehaviour
 
         if (crouchInput)
         {
-            rb.AddForce(new Vector2(0, -JUMP_FORCE), ForceMode2D.Impulse);
+            rb.AddForce(new Vector2(0, -FALL_FORCE), ForceMode2D.Impulse);
 
             crouchInput = false;
         }
