@@ -25,6 +25,7 @@ namespace Assets.Scripts.Framework.Managers
         public string LobbyCode => IsInLobby ? lobby.LobbyCode : string.Empty;
         public bool IsInLobby => lobby != null;
         public string LobbyId => IsInLobby ? lobby.Id : string.Empty;
+        public bool IsHostId(string playerId) => lobby.HostId == playerId;
         public bool IsLobbyHost => lobby.HostId == AuthenticationService.Instance.PlayerId;
         public int PlayerCount => lobby.Players.Count;
         public int MaxPlayers => lobby.MaxPlayers;

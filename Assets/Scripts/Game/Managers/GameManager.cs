@@ -322,9 +322,14 @@ namespace Assets.Scripts.Game.Managers
         [ClientRpc]
         private void ReturnToLobbyClientRpc()
         {
-            inGameUIController = null;
+            if (inGameUIController != null)
+            {
+                Destroy(inGameUIController.gameObject);
+                inGameUIController = null;
+            }
+
             NetworkManager.Singleton.Shutdown();
-            SceneManager.LoadSceneAsync("Lobby");
+            SceneManager.LoadScene("Lobby");
             GameLobbyManager.Instance.SetAllPlayersUnready();
         }
 

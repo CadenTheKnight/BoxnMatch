@@ -2,6 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Assets.Scripts.Game.Data;
+using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Game.UI.Components.Colors;
 
 namespace Assets.Scripts.Game.UI.Components.ListEntries
@@ -17,7 +18,9 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         public void SetData(LobbyPlayerData playerData)
         {
-            playerNameText.text = playerData.PlayerName;
+            bool isHost = LobbyManager.Instance.IsHostId(playerData.PlayerId);
+
+            playerNameText.text = isHost ? $"{playerData.PlayerName} (Host)" : playerData.PlayerName;
             readyIndicator.color = playerData.IsReady ? readyColor : unreadyColor;
         }
     }

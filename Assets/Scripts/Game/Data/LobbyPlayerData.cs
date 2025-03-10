@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Unity.Services.Lobbies.Models;
-using UnityEngine;
 
 namespace Assets.Scripts.Game.Data
 {
