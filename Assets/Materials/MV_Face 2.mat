@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: MV_Face
+  m_Name: MV_Face 2
   m_Shader: {fileID: -6465566751694194690, guid: 9d2c5caaface2f1418502ca773e0fa3b, type: 3}
   m_Parent: {fileID: 2100000, guid: 31a0d0fd7524cd24dbdf8acb2a4b377b, type: 2}
   m_ModifiedSerializedProperties: 0
@@ -36,15 +36,19 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - _Box:
+        m_Texture: {fileID: 2800000, guid: e85e26dbeb4e21e46bb9205f5a9b2d59, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _Face:
-        m_Texture: {fileID: 2800000, guid: 4c22bbc0d09067b48834dc4b19e7aef9, type: 3}
+        m_Texture: {fileID: 2800000, guid: a2d04598b21ec1540b94f93e46455564, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
     - _DistortionAmt: 0
     m_Colors:
-    - _BoxColor: {r: 0.35766602, g: 0.106906354, b: 0.3962264, a: 1}
-    - _FaceColor: {r: 0.9804263, g: 0, b: 1, a: 1}
-    - _LineColor: {r: 0.9854684, g: 0, b: 1, a: 1}
+    - _BoxColor: {r: 0.89433956, g: 0.72476697, b: 0, a: 1}
+    - _FaceColor: {r: 0, g: 0, b: 0, a: 1}
+    - _LineColor: {r: 0.4641509, g: 0.19059975, b: 0.10421497, a: 1}
   m_BuildTextureStacks: []
