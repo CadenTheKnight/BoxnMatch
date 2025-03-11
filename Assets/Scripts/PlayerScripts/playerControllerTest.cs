@@ -20,7 +20,8 @@ public class playerControllerTest : MonoBehaviour
     //NEW
     [SerializeField] private float JUMP_FORCE = 5f;
     [SerializeField] private float groundCheckOffset = -0.5f;
-    [SerializeField] private float FALL_FORCE = 5f;
+    [SerializeField] private float FALL_FORCE = -5f;
+    [SerializeField] private float sideDrag = 2f;
     public Vector2 groundCheckSize = new Vector2(0.5f, 0.1f);
     public LayerMask groundLayer;
     public int jumpCount = 0;
@@ -84,12 +85,17 @@ public class playerControllerTest : MonoBehaviour
 
         Vector2 force = new Vector2(horizontalInput * forceAmount, 0);
         rb.AddForce(force, ForceMode2D.Impulse);
-        Vector2 current_velocity = rb.velocity;
+        
 
         if (Mathf.Abs(rb.velocity.x) > TOP_SPEED)
         {
             // Limit speed while keeping direction
             rb.velocity = new Vector2(Mathf.Sign(rb.velocity.x) * TOP_SPEED, rb.velocity.y);
+     
+            Vector2 current_velocity = rb.velocity;
+            current_velocity.x *= 1f - (sideDrag * Time.fixedDeltaTime);
+
+            rb.velocity = current_velocity;
         }
         //Debug.Log("Velocity: " + rb.velocity.magnitude);
 
@@ -109,7 +115,7 @@ public class playerControllerTest : MonoBehaviour
 
         if (crouchInput)
         {
-            rb.AddForce(new Vector2(0, -FALL_FORCE), ForceMode2D.Impulse);
+            rb.AddForce(new Vector2(0, FALL_FORCE), ForceMode2D.Impulse);
 
             crouchInput = false;
         }
