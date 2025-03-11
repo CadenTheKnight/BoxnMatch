@@ -12,6 +12,7 @@ public class ManageOrbs : MonoBehaviour
     public float spawnY;
 
     [SerializeField] private AbilityBinding[] abilities;
+    [SerializeField] private Sprite[] ability_sprites;
 
     private float tempTime = 0;
 
@@ -32,6 +33,7 @@ public class ManageOrbs : MonoBehaviour
             int randomAbilityIndex = (int)Random.Range(0, abilities.Length);
             GameObject temp = Instantiate(orb, new Vector3(Random.Range(spawnRangeX[0], spawnRangeX[1]), spawnY, 0), transform.rotation);
             temp.GetComponent<AbilityOrbHandler>().ability = abilities[randomAbilityIndex];
+            temp.GetComponent<SpriteRenderer>().sprite = ability_sprites[randomAbilityIndex];
             Debug.Log("ability is : " + randomAbilityIndex);
         }
     }

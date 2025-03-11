@@ -84,3 +84,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   explosivePrefab: {fileID: 9222737732797618968, guid: 76fad720fa706794abfc85a51e9431ce, type: 3}
   positionOffset: 1
+  noAbility: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}

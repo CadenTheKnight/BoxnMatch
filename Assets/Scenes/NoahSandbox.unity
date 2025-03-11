@@ -442,43 +442,10 @@ PrefabInstance:
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 8264808577834005721, guid: 3b97bb70d28e3874d8b317113af1aedf, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1526797182}
     - targetCorrespondingSourceObject: {fileID: 6203915750487138583, guid: 3b97bb70d28e3874d8b317113af1aedf, type: 3}
       insertIndex: -1
       addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: 3b97bb70d28e3874d8b317113af1aedf, type: 3}
---- !u!1 &1526797173 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8264808577834005721, guid: 3b97bb70d28e3874d8b317113af1aedf, type: 3}
-  m_PrefabInstance: {fileID: 1286624822}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1526797182
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1526797173}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d71eae54c7743764db6b9ecdff109de2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  input: {fileID: 2113050641}
-  BASE_SPEED: 15
-  TOP_SPEED: 20
-  JUMP_FORCE: 15
-  groundCheckOffset: -0.5
-  FALL_FORCE: -5
-  groundCheckSize: {x: 0.5, y: 0.1}
-  groundLayer:
-    serializedVersion: 2
-    m_Bits: 8
-  jumpCount: 0
-  maxJumps: 2
-  forceAmount: 3
 --- !u!1001 &2046219265
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -544,17 +511,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a19b9d6bfb245f44888413a423466b11, type: 3}
---- !u!114 &2113050641 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5972663554129578023, guid: 3b97bb70d28e3874d8b317113af1aedf, type: 3}
-  m_PrefabInstance: {fileID: 1286624822}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1d3754d7e5332344884444be4f662155, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1001 &4971763510425051653
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -565,8 +521,32 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3391311882854758568, guid: 096fc797519de2b4dbac6cfc122c3a27, type: 3}
       propertyPath: m_Enabled
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3391311882854758568, guid: 096fc797519de2b4dbac6cfc122c3a27, type: 3}
+      propertyPath: secBetweenSpawn
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3391311882854758568, guid: 096fc797519de2b4dbac6cfc122c3a27, type: 3}
+      propertyPath: ability_sprites.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3391311882854758568, guid: 096fc797519de2b4dbac6cfc122c3a27, type: 3}
+      propertyPath: ability_sprites.Array.data[0]
+      value: 
+      objectReference: {fileID: 21300000, guid: 8f8606e3f64117a448a46e77d44d9201, type: 3}
+    - target: {fileID: 3391311882854758568, guid: 096fc797519de2b4dbac6cfc122c3a27, type: 3}
+      propertyPath: ability_sprites.Array.data[1]
+      value: 
+      objectReference: {fileID: 21300000, guid: ff2fdcf237d5bdc4790e55f7bb589b18, type: 3}
+    - target: {fileID: 3391311882854758568, guid: 096fc797519de2b4dbac6cfc122c3a27, type: 3}
+      propertyPath: ability_sprites.Array.data[2]
+      value: 
+      objectReference: {fileID: 21300000, guid: 32c0a15864fcbf148a9c1e88beefc8e6, type: 3}
+    - target: {fileID: 3391311882854758568, guid: 096fc797519de2b4dbac6cfc122c3a27, type: 3}
+      propertyPath: ability_sprites.Array.data[3]
+      value: 
+      objectReference: {fileID: 21300000, guid: 48281b0022d996c40bfcb08b9d074a00, type: 3}
     - target: {fileID: 5460704952463864590, guid: 096fc797519de2b4dbac6cfc122c3a27, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.054960184

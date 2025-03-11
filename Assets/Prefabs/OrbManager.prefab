@@ -39,13 +39,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5862949730485368779}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b4b6354fd5edbb648889c28fbc08e31c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   orb: {fileID: 1193362371953575053, guid: d1d2bc52a55e26a47820c7dfb4f984bd, type: 3}
-  secBetweenSpawn: 5
+  secBetweenSpawn: 1
   endGame: 0
   spawnRangeX: {x: -20, y: 20}
   spawnY: 9
@@ -54,3 +54,8 @@ MonoBehaviour:
   - {fileID: 6848564162844033001, guid: cfa6cf211905dda4fab878accf4fd3be, type: 3}
   - {fileID: -4672529310800694854, guid: ab2fcba8aa48e33468312aa1d72fc544, type: 3}
   - {fileID: 1362734038867535891, guid: e1e0d9ec6f7af3645b37cfc15ed6708a, type: 3}
+  ability_sprites:
+  - {fileID: 21300000, guid: 8f8606e3f64117a448a46e77d44d9201, type: 3}
+  - {fileID: 21300000, guid: ff2fdcf237d5bdc4790e55f7bb589b18, type: 3}
+  - {fileID: 21300000, guid: 32c0a15864fcbf148a9c1e88beefc8e6, type: 3}
+  - {fileID: 21300000, guid: 48281b0022d996c40bfcb08b9d074a00, type: 3}
