@@ -11,6 +11,7 @@ public class FireballAbility : AbilityBinding
     [SerializeField] float positionOffset;
     [SerializeField] int maxShots = 1;
     [SerializeField] Vector2 launchForce;
+    [SerializeField] private Sprite noAbility;
 
     public GameObject Fireball;
     
@@ -31,7 +32,11 @@ public class FireballAbility : AbilityBinding
         else if (dir == AbilityDirection.WEST) activeFireball.GetComponent<Rigidbody2D>().AddForce(new Vector2(-launchForce.x, launchForce.y), ForceMode2D.Impulse);
 
         currentShots++;
-        if (currentShots >= maxShots) Destroy(gameObject); // set used to true to remove ability after max shots used
+        if (currentShots >= maxShots)
+        {
+            Destroy(gameObject);
+            pr.sockets[(int)dir].GetComponent<SpriteRenderer>().sprite = noAbility;
+        }
     }
 
 }
