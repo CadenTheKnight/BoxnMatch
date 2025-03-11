@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-4663859804154045025
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 639247ca83abc874e893eb93af2b5e44, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 0
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: MV_Face 2
+  m_Shader: {fileID: -6465566751694194690, guid: 9d2c5caaface2f1418502ca773e0fa3b, type: 3}
+  m_Parent: {fileID: 2100000, guid: 31a0d0fd7524cd24dbdf8acb2a4b377b, type: 2}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _Box:
+        m_Texture: {fileID: 2800000, guid: e85e26dbeb4e21e46bb9205f5a9b2d59, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Face:
+        m_Texture: {fileID: 2800000, guid: a2d04598b21ec1540b94f93e46455564, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _DistortionAmt: 0
+    m_Colors:
+    - _BoxColor: {r: 0.89433956, g: 0.72476697, b: 0, a: 1}
+    - _FaceColor: {r: 0, g: 0, b: 0, a: 1}
+    - _LineColor: {r: 0.4641509, g: 0.19059975, b: 0.10421497, a: 1}
+  m_BuildTextureStacks: []
