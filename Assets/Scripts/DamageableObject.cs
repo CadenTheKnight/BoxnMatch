@@ -13,13 +13,12 @@ public class DamageableObject : MonoBehaviour
     public float currentDamage = 0f;
 
     private Rigidbody2D rb;
-    private TMP_Text damageText;
+    [SerializeField] private TMP_Text damageText;
 
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        damageText = GetComponentInChildren<TMP_Text>();
     }
 
     // Update is called once per frame

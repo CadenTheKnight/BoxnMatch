@@ -14,7 +14,7 @@ public class AbilitySocket : MonoBehaviour
 
     public void FireAbility(PlayerRotator pr)
     {
-        GetComponent<SpriteRenderer>().color = Color.red;
+        //GetComponent<SpriteRenderer>().color = Color.red;
 
         if(ability != null)
         {
