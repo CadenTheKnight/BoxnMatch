@@ -461,6 +461,10 @@ PrefabInstance:
       propertyPath: GlobalObjectIdHash
       value: 2412117129
       objectReference: {fileID: 0}
+    - target: {fileID: 5927511202309974344, guid: 3b97bb70d28e3874d8b317113af1aedf, type: 3}
+      propertyPath: TOP_SPEED
+      value: 17
+      objectReference: {fileID: 0}
     - target: {fileID: 6378099650106281862, guid: 3b97bb70d28e3874d8b317113af1aedf, type: 3}
       propertyPath: m_LocalPosition.x
       value: -1.1643144
@@ -597,6 +601,7 @@ MonoBehaviour:
   JUMP_FORCE: 15
   groundCheckOffset: -0.5
   FALL_FORCE: -5
+  sideDrag: 2
   groundCheckSize: {x: 0.5, y: 0.1}
   groundLayer:
     serializedVersion: 2
