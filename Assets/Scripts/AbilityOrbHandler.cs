@@ -125,6 +125,7 @@ public class AbilityOrbHandler : MonoBehaviour
             {
                 Debug.Log("succes slot: " + slot);
                 player.GetComponent<PlayerRotator>().sockets[slot].GetComponent<AbilitySocket>().ability = Instantiate(ability);
+                player.GetComponent<PlayerRotator>().sockets[slot].GetComponent<SpriteRenderer>().sprite = GetComponent<SpriteRenderer>().sprite;
                 return true;
             }
         }

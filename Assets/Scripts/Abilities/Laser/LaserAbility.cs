@@ -10,6 +10,7 @@ public class LaserAbility : AbilityBinding
 
     [SerializeField] float positionOffset;
     [SerializeField] int maxShots = 1;
+    [SerializeField] private Sprite noAbility;
 
     public GameObject Laser;
     
@@ -26,7 +27,11 @@ public class LaserAbility : AbilityBinding
         activeLaser.GetComponent<Laser>().dir = dir;
 
         currentShots++;
-        if (currentShots >= maxShots) Destroy(gameObject); // set used to true to remove ability after max shots used
+        if (currentShots >= maxShots)
+        {
+            Destroy(gameObject);
+            pr.sockets[(int)dir].GetComponent<SpriteRenderer>().sprite = noAbility;
+        }
     }
 
 }
