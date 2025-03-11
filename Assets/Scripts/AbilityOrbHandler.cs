@@ -12,6 +12,7 @@ public class AbilityOrbHandler : MonoBehaviour
 
     private Vector3 startPos;
     private float time;
+    private float collsionTime; //ensures that the ability orb wont collide with both of the player's colliders
     private bool immediate = true;
 
     public SpriteRenderer r;
@@ -51,6 +52,9 @@ public class AbilityOrbHandler : MonoBehaviour
         
         if(collision.gameObject.tag == "Player")
         {
+            if ((time - collsionTime) < 0.5) return; // exit if collsions are happening to quickly (multiple colliders in player)
+            collsionTime = time;
+
             Debug.Log("Player collision");
             Vector2 playerPos = collision.gameObject.transform.position;
             Vector2 relativePos = (Vector2)transform.position - playerPos;
