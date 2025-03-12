@@ -1553,6 +1553,10 @@ PrefabInstance:
       propertyPath: spawnY
       value: 7
       objectReference: {fileID: 0}
+    - target: {fileID: 3391311882854758568, guid: 096fc797519de2b4dbac6cfc122c3a27, type: 3}
+      propertyPath: secBetweenSpawn
+      value: 4
+      objectReference: {fileID: 0}
     - target: {fileID: 5460704952463864590, guid: 096fc797519de2b4dbac6cfc122c3a27, type: 3}
       propertyPath: m_LocalScale.x
       value: 1
@@ -1670,6 +1674,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player-Couch-P2
       objectReference: {fileID: 0}
+    - target: {fileID: 4355047756674615735, guid: ab2a0747063d98349987691ec999c1f7, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1688,7 +1696,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1864694405886149648, guid: 9be8934d4ac444043a7e4388995ad65e, type: 3}
       propertyPath: m_Name
-      value: Player
+      value: Player-Couch-P1
       objectReference: {fileID: 0}
     - target: {fileID: 3364666638858602058, guid: 9be8934d4ac444043a7e4388995ad65e, type: 3}
       propertyPath: GlobalObjectIdHash

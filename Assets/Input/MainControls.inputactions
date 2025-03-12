@@ -686,7 +686,7 @@
                 {
                     "name": "negative",
                     "id": "3490edeb-d85a-4738-b67e-f25dc5adb479",
-                    "path": "<Keyboard>/a",
+                    "path": "<Keyboard>/l",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -697,7 +697,7 @@
                 {
                     "name": "positive",
                     "id": "f24041b1-fede-4f62-926b-03c1c94aca2d",
-                    "path": "<Keyboard>/d",
+                    "path": "<Keyboard>/quote",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -796,7 +796,7 @@
                 {
                     "name": "",
                     "id": "033668a3-2d18-4246-8775-a47d4db96fae",
-                    "path": "<Keyboard>/l",
+                    "path": "<Keyboard>/semicolon",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
