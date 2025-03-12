@@ -12,6 +12,7 @@ namespace Assets.Scripts.Game.Data
         private string playerName;
         private bool isReady;
         private int teamId;
+        private bool inGame;
 
         public string PlayerId => playerId;
         public string PlayerName => playerName;
@@ -21,10 +22,18 @@ namespace Assets.Scripts.Game.Data
             set => isReady = value;
         }
 
+        public bool InGame
+        {
+            get => inGame;
+            set => inGame = value;
+        }
+
         public void Initialize(string playerId, string playerName)
         {
             this.playerId = playerId;
             this.playerName = playerName;
+            isReady = false;
+            inGame = false;
         }
 
         public void Initialize(Dictionary<string, PlayerDataObject> playerData)
@@ -42,6 +51,8 @@ namespace Assets.Scripts.Game.Data
                 isReady = playerData["IsReady"].Value == "true";
             if (playerData.ContainsKey("TeamId"))
                 teamId = int.Parse(playerData["TeamId"].Value);
+            if (playerData.ContainsKey("InGame"))
+                inGame = playerData["InGame"].Value == "true";
         }
 
         public Dictionary<string, string> Serialize()
@@ -51,7 +62,8 @@ namespace Assets.Scripts.Game.Data
                 { "PlayerId", playerId },
                 { "PlayerName", playerName },
                 { "IsReady", isReady.ToString().ToLower() },
-                { "TeamId", teamId.ToString() }
+                { "TeamId", teamId.ToString() },
+                { "InGame", inGame.ToString().ToLower() }
             };
         }
     }

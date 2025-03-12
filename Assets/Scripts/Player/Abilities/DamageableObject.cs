@@ -1,27 +1,19 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class DamageableObject : MonoBehaviour
 {
-
     public float damageModifier = 1f;
     public float currentDamage = 0f;
 
     private Rigidbody2D rb;
     [SerializeField] private TMP_Text damageText;
 
-    // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
     }
 
-    // Update is called once per frame
     void Update()
     {
         damageText.text = currentDamage + "%";
@@ -29,33 +21,21 @@ public class DamageableObject : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        handleCollision(collision.gameObject);
+        HandleCollision(collision.gameObject);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        handleCollision(collision.gameObject);
+        HandleCollision(collision.gameObject);
     }
 
-    private void handleCollision(GameObject go)
+    private void HandleCollision(GameObject go)
     {
         if (go.CompareTag("DamageObject"))
         {
-            // Try to access the damage object (extra check in case something got miss labeled)
-            DamageObject d;
-            try
-            {
-                d = go.GetComponent<DamageObject>();
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-                Debug.Log("----------------------------\nError: No DamageObject Script is attatched\n----------------------------");
-                return;
-            }
+            DamageObject d = go.GetComponent<DamageObject>();
 
-            // get damage and knockback from script on object
-            Vector2 damageKnockback = d.getDamageKnockback();
+            Vector2 damageKnockback = d.GetDamageKnockback();
             float damage = damageKnockback[0];
             float knockback = damageKnockback[1];
 

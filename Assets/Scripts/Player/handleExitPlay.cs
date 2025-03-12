@@ -1,16 +1,13 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 
-public class handleExitPlay : MonoBehaviour
+public class HandleExitPlay : MonoBehaviour
 {
 
     [SerializeField] Vector3 respawnPoint;
 
     private void OnTriggerExit2D(Collider2D collision)
     {
-        if (collision.gameObject.tag == "Player") // handle player exiting
+        if (collision.gameObject.CompareTag("Player")) // handle player exiting
         {
             Debug.Log("exit");
             collision.gameObject.GetComponent<DamageableObject>().currentDamage = 0;
@@ -18,8 +15,6 @@ public class handleExitPlay : MonoBehaviour
             collision.gameObject.transform.position = respawnPoint;
         }
         else // Destroy everything that exits thats not a player
-        {
             Destroy(collision.gameObject);
-        }
     }
 }

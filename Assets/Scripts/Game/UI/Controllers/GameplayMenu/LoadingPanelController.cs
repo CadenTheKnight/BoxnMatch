@@ -2,8 +2,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Assets.Scripts.Game.UI.Components;
-using Assets.Scripts.Game.Managers;
-
 
 namespace Assets.Scripts.Game.UI.Controllers.GameplayMenu
 {
@@ -15,11 +13,11 @@ namespace Assets.Scripts.Game.UI.Controllers.GameplayMenu
         [SerializeField] private TextMeshProUGUI statusText;
         [SerializeField] private TextMeshProUGUI mapNameText;
 
-        public void StartLoading(Sprite thumbnail, string name, string status)
+        public void StartLoading(string mapName, Sprite mapThumbnail, string loadingStatus)
         {
-            mapThumbnailImage.sprite = thumbnail;
-            mapNameText.text = name;
-            statusText.text = status;
+            mapThumbnailImage.sprite = mapThumbnail;
+            mapNameText.text = mapName;
+            statusText.text = loadingStatus;
             loadingBar.StartLoading();
         }
 
@@ -34,7 +32,6 @@ namespace Assets.Scripts.Game.UI.Controllers.GameplayMenu
             mapNameText.text = "";
             statusText.text = "";
             loadingBar.StopLoading();
-            GameLobbyManager.Instance.LoadGameMap();
         }
     }
 }

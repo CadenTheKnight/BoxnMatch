@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5460704952463864590}
-  - component: {fileID: 3391311882854758568}
+  - component: {fileID: 7552921896964506035}
   m_Layer: 0
   m_Name: OrbManager
   m_TagString: Untagged
@@ -26,13 +26,13 @@ Transform:
   m_GameObject: {fileID: 5862949730485368779}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.7, y: -0.38, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &3391311882854758568
+--- !u!114 &7552921896964506035
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -41,21 +41,21 @@ MonoBehaviour:
   m_GameObject: {fileID: 5862949730485368779}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b4b6354fd5edbb648889c28fbc08e31c, type: 3}
+  m_Script: {fileID: 11500000, guid: 18db9f9f7448df448a1780640780c60b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   orb: {fileID: 1193362371953575053, guid: d1d2bc52a55e26a47820c7dfb4f984bd, type: 3}
-  secBetweenSpawn: 1
+  secBetweenSpawn: 5
   endGame: 0
-  spawnRangeX: {x: -20, y: 20}
-  spawnY: 9
+  spawnRangeX: {x: 0, y: 0}
+  spawnY: 0
   abilities:
-  - {fileID: 2680395258922555074, guid: 307955a21601d7349b0eee540c166f1b, type: 3}
-  - {fileID: 6848564162844033001, guid: cfa6cf211905dda4fab878accf4fd3be, type: 3}
-  - {fileID: -4672529310800694854, guid: ab2fcba8aa48e33468312aa1d72fc544, type: 3}
-  - {fileID: 1362734038867535891, guid: e1e0d9ec6f7af3645b37cfc15ed6708a, type: 3}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   ability_sprites:
   - {fileID: 21300000, guid: 8f8606e3f64117a448a46e77d44d9201, type: 3}
   - {fileID: 21300000, guid: ff2fdcf237d5bdc4790e55f7bb589b18, type: 3}
   - {fileID: 21300000, guid: 32c0a15864fcbf148a9c1e88beefc8e6, type: 3}
-  - {fileID: 21300000, guid: 48281b0022d996c40bfcb08b9d074a00, type: 3}
+  - {fileID: 21300000, guid: af7e4d858338f5c43acfa0ee1434266e, type: 3}

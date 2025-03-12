@@ -1,26 +1,23 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Data.SqlTypes;
-using Unity.Services.Lobbies.Models;
 using UnityEngine;
+using System.Collections;
 
 public class NewBehaviourScript : MonoBehaviour
 {
     private Collider2D _collider_;
     private bool _playerOnPlatform;
-    // Start is called before the first frame update
+
     void Start()
     {
         _collider_ = GetComponent<Collider2D>();
     }
-    // Update is called once per frame
+
     void Update()
     {
         Debug.Log("Input: " + Input.GetAxisRaw("Vertical"));
-        if(_playerOnPlatform && Input.GetAxisRaw("Vertical") < 0)
-        { 
+        if (_playerOnPlatform && Input.GetAxisRaw("Vertical") < 0)
+        {
             _collider_.enabled = false;
-            StartCoroutine(routine:EnableCollider());
+            StartCoroutine(routine: EnableCollider());
         }
     }
 
@@ -46,5 +43,5 @@ public class NewBehaviourScript : MonoBehaviour
         SetPlayerOnPlatform(other, false);
     }
 
-    
+
 }

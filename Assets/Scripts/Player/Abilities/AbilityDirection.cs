@@ -1,7 +1,7 @@
 using UnityEngine;
 
-public enum AbilityDirection 
-{ 
+public enum AbilityDirection
+{
     NORTH = 0,
     EAST = 1,
     SOUTH = 2,
@@ -25,33 +25,25 @@ public static class DirectionExtensions
 
     public static Vector3 GetUnitDirection(this AbilityDirection dir)
     {
-        switch (dir)
+        return dir switch
         {
-            case AbilityDirection.NORTH:
-                return Vector3.up;
-            case AbilityDirection.EAST:
-                return Vector3.right;
-            case AbilityDirection.SOUTH:
-                return Vector3.down;
-            case AbilityDirection.WEST:
-                return Vector3.left;
-        }
-        return Vector3.zero;
+            AbilityDirection.NORTH => Vector3.up,
+            AbilityDirection.EAST => Vector3.right,
+            AbilityDirection.SOUTH => Vector3.down,
+            AbilityDirection.WEST => Vector3.left,
+            _ => Vector3.zero,
+        };
     }
 
     public static float GetRotationZ(this AbilityDirection dir)
     {
-        switch (dir)
+        return dir switch
         {
-            case AbilityDirection.NORTH:
-                return 0;
-            case AbilityDirection.EAST:
-                return 270;
-            case AbilityDirection.SOUTH:
-                return 180;
-            case AbilityDirection.WEST:
-                return 90;
-        }
-        return 0;
+            AbilityDirection.NORTH => 0,
+            AbilityDirection.EAST => 270,
+            AbilityDirection.SOUTH => 180,
+            AbilityDirection.WEST => 90,
+            _ => (float)0,
+        };
     }
 }

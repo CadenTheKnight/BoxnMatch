@@ -1,260 +1,198 @@
-// using UnityEngine;
-// using DG.Tweening;
-// using Unity.Netcode;
-// using UnityEngine.InputSystem;
-// using Assets.Scripts.Game.Managers;
+using UnityEngine;
+using DG.Tweening;
+using Unity.Netcode;
+using UnityEngine.InputSystem;
 
-// public class PlayerRotator : NetworkBehaviour
-// {
-//     [Header("References")]
-//     [SerializeField] private PlayerInputManager input;
+public class PlayerRotator : NetworkBehaviour
+{
 
-//     [Header("Settings")]
-//     [SerializeField] private float rotationTime;
-//     [SerializeField] private bool overrideBufferedInputs;
+    [Header("Settings")]
+    //serializing makes it editable in inspector but not public to other classes
+    [SerializeField] private float rotationTime;
+    [SerializeField] private bool overrideBufferedInputs;
 
-//     [Header("Sockets")]
-//     [SerializeField] public AbilitySocket[] sockets;
-
-//     private AbilityDirection currDirection;
-//     private bool currentlyRotating;
-//     private int rotateInputBuffer;
-
-//     private NetworkVariable<int> networkCurrDirection = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
-//     private NetworkVariable<Quaternion> networkRotation = new(Quaternion.identity, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
-
-//     private bool inputsEnabled = false;
-//     private GameManager gameManager;
-
-//     public override void OnNetworkSpawn()
-//     {
-//         base.OnNetworkSpawn();
-
-//         if (!IsOwner)
-//         {
-//             currDirection = (AbilityDirection)networkCurrDirection.Value;
-//             transform.rotation = networkRotation.Value;
-//         }
-
-//         networkCurrDirection.OnValueChanged += OnNetworkDirectionChanged;
-//         networkRotation.OnValueChanged += OnNetworkRotationChanged;
-
-//         if (IsOwner)
-//         {
-//             gameManager = GameManager.Instance;
-//             gameManager.GameStateChanged += OnGameStateChanged;
-//             if (gameManager.CurrentGameState == GameManager.GameState.RoundInProgress)
-//                 EnablePlayerInput();
-//             else
-//                 DisablePlayerInput();
-//         }
-//     }
-
-//     public override void OnNetworkDespawn()
-//     {
-//         base.OnNetworkDespawn();
-
-//         networkCurrDirection.OnValueChanged -= OnNetworkDirectionChanged;
-//         networkRotation.OnValueChanged -= OnNetworkRotationChanged;
-
-//         if (IsOwner && gameManager != null)
-//             gameManager.GameStateChanged -= OnGameStateChanged;
-
-//         DisableInputs();
-//     }
-
-//     private void OnNetworkDirectionChanged(int previous, int current)
-//     {
-//         if (!IsOwner)
-//         {
-
-//             currDirection = (AbilityDirection)current;
-
-//             int diff = current - previous;
-//             if (diff != 0)
-//             {
-//                 if (diff > 2) diff -= 4;
-//                 if (diff < -2) diff += 4;
-
-//                 foreach (AbilitySocket socket in sockets)
-//                     socket.UpdateRotation(diff);
-//             }
-//         }
-//     }
-
-//     private void OnNetworkRotationChanged(Quaternion previous, Quaternion current)
-//     {
-//         if (!IsOwner)
-//             transform.rotation = current;
-//     }
-
-//     private void OnGameStateChanged(GameManager.GameState previousState, GameManager.GameState newState)
-//     {
-//         if (IsOwner)
-//         {
-//             if (newState == GameManager.GameState.RoundInProgress)
-//                 EnablePlayerInput();
-//             else
-//                 DisablePlayerInput();
-//         }
-//     }
-
-//     private void EnablePlayerInput()
-//     {
-//         inputsEnabled = true;
-//         EnableInputs();
-//     }
-
-//     private void DisablePlayerInput()
-//     {
-//         inputsEnabled = false;
-//         DisableInputs();
-//     }
-
-//     private void OnEnable()
-//     {
-//         if (IsOwner)
-//             EnableInputs();
-//     }
-
-//     private void OnDisable()
-//     {
-//         if (IsOwner)
-//             DisableInputs();
-//     }
-
-//     private void UseAbility(AbilityDirection abDirection)
-//     {
-//         if (!IsOwner || !inputsEnabled) return;
-
-//         int socketToFire = (int)abDirection - (int)currDirection;
-//         if (socketToFire < 0) socketToFire += 4;
-//         sockets[socketToFire % 4].FireAbility(this);
-
-//         UseAbilityClientRpc((int)abDirection);
-//     }
+    [Header("Sockets")]
+    [SerializeField] public AbilitySocket[] sockets;
 
 
-//     [ClientRpc]
-//     private void UseAbilityClientRpc(int direction)
-//     {
-//         if (IsOwner) return;
+    private PlayerInputManager input;
+    private AbilityDirection currDirection;
+    private bool currentlyRotating;
 
-//         AbilityDirection abDirection = (AbilityDirection)direction;
-//         int socketToFire = (int)abDirection - (int)currDirection;
-//         if (socketToFire < 0) socketToFire += 4;
+    //-1 means CCW input queued
+    //0 means nothing queued
+    //1 means CW input queued
+    private int rotateInputBuffer;
 
-//         sockets[socketToFire % 4].FireAbility(this);
-//     }
+    private void Start()
+    {
+        currDirection = AbilityDirection.NORTH;
+    }
 
-//     private void Rotate(int quarterCirclesCW)
-//     {
-//         if (!IsOwner || !inputsEnabled) return;
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
 
-//         if (currentlyRotating)
-//         {
-//             if (rotateInputBuffer != 0 && !overrideBufferedInputs)
-//                 return;
+        Debug.Log($"PlayerRotator spawned. IsOwner: {IsOwner}, IsServer: {IsServer}");
 
-//             rotateInputBuffer = quarterCirclesCW;
-//             return;
-//         }
+        if (IsOwner)
+        {
+            SetupInputManager();
+            EnableInputs();
+        }
+    }
 
-//         float rotation = -90f * quarterCirclesCW;
-//         transform.DORotate(new Vector3(0f, 0f, rotation), rotationTime, RotateMode.WorldAxisAdd)
-//             .SetEase(Ease.OutCubic).onComplete += FinishRotation;
+    private void SetupInputManager()
+    {
+        input = PlayerInputManager.Instance;
+    }
 
-//         currentlyRotating = true;
+    public override void OnNetworkDespawn()
+    {
+        base.OnNetworkDespawn();
 
-//         int newDirectionValue = ((int)currDirection + quarterCirclesCW) % 4;
-//         if (newDirectionValue < 0) newDirectionValue += 4;
-//         currDirection = (AbilityDirection)newDirectionValue;
+        if (IsOwner)
+            DisableInputs();
+    }
 
-//         foreach (AbilitySocket socket in sockets)
-//             socket.UpdateRotation(quarterCirclesCW);
+    private void OnDisable()
+    {
+        if (IsOwner)
+            DisableInputs();
+    }
 
-//         if (IsOwner)
-//         {
-//             networkCurrDirection.Value = (int)currDirection;
-//             networkRotation.Value = transform.rotation * Quaternion.Euler(0, 0, rotation);
-//         }
-//     }
 
-//     private void FinishRotation()
-//     {
-//         currentlyRotating = false;
+    //actually useful methods
 
-//         if (rotateInputBuffer != 0)
-//         {
-//             int buffer = rotateInputBuffer;
-//             rotateInputBuffer = 0;
-//             Rotate(buffer);
-//         }
-//     }
+    private void UseAbility(AbilityDirection ab)
+    {
+        /*access the socket that is at that direction, 
+         * by using its index in the socket array.
+         * relies on the ordering in the inspector to be
+         * N, E, S, W 
+         */
 
-//     //input methods
-//     public void UseAbility_N(InputAction.CallbackContext val)
-//     {
-//         if (!IsOwner || !inputsEnabled) return;
+        //so if my head is facing the West, if I use UP,
+        //2nd socket should fire (the East socket, currently north
+        //my dir: 3. Button pressed: 0. Should fire: 1
 
-//         if (val.performed) UseAbility(AbilityDirection.NORTH);
-//     }
-//     public void UseAbility_E(InputAction.CallbackContext val)
-//     {
-//         if (!IsOwner || !inputsEnabled) return;
+        int socketToFire = (int)ab - (int)currDirection;
+        if (socketToFire < 0) socketToFire += 4;
+        //Debug.Log(socketToFire);
 
-//         if (val.performed) UseAbility(AbilityDirection.EAST);
-//     }
-//     public void UseAbility_S(InputAction.CallbackContext val)
-//     {
-//         if (!IsOwner || !inputsEnabled) return;
+        sockets[socketToFire % 4].FireAbility(this);
+    }
 
-//         if (val.performed) UseAbility(AbilityDirection.SOUTH);
-//     }
-//     public void UseAbility_W(InputAction.CallbackContext val)
-//     {
-//         if (!IsOwner || !inputsEnabled) return;
+    private void Rotate(int quarterCirclesCW)
+    {
+        //buffer input
+        if (currentlyRotating)
+        {
+            //if already 1 input buffered, just ignore based on setting (?)
+            if (rotateInputBuffer != 0 && !overrideBufferedInputs)
+                return;
 
-//         if (val.performed) UseAbility(AbilityDirection.WEST);
-//     }
+            //set input queue flag
+            rotateInputBuffer = quarterCirclesCW;
 
-//     public void RotateCW(InputAction.CallbackContext val)
-//     {
-//         if (!IsOwner || !inputsEnabled) return;
+            //kick out. aka essentially a big if-else
+            return;
+        }
 
-//         if (val.performed) Rotate(1);
-//     }
+        //tween rotation
+        float rotation = -90f * quarterCirclesCW;
 
-//     public void RotateCCW(InputAction.CallbackContext val)
-//     {
-//         if (!IsOwner || !inputsEnabled) return;
+        //perform the actual rotation, set its tween, and add a delegate to handle end of rotation stuff
+        transform.DORotate(new Vector3(0f, 0f, rotation),
+            rotationTime, RotateMode.WorldAxisAdd).SetEase(Ease.OutCubic).onComplete += FinishRotation;
 
-//         if (val.performed) Rotate(-1);
-//     }
+        //set flag
+        currentlyRotating = true;
 
-//     private void EnableInputs()
-//     {
-//         input.abilityNorthInput += UseAbility_N;
-//         input.abilityEastInput += UseAbility_E;
-//         input.abilitySouthInput += UseAbility_S;
-//         input.abilityWestInput += UseAbility_W;
+        //update direction
+        currDirection.Rotate(quarterCirclesCW);
 
-//         input.rotateCWInput += RotateCW;
-//         input.rotateCounterCWInput += RotateCCW;
-//     }
+        //update sockets
+        foreach (AbilitySocket socket in sockets)
+            socket.UpdateRotation(quarterCirclesCW);
+    }
 
-//     private void DisableInputs()
-//     {
-//         input.abilityNorthInput -= UseAbility_N;
-//         input.abilityEastInput -= UseAbility_E;
-//         input.abilitySouthInput -= UseAbility_S;
-//         input.abilityWestInput -= UseAbility_W;
+    private void FinishRotation()
+    {
+        currentlyRotating = false;
+        if (rotateInputBuffer != 0)
+        {
+            int tmp = rotateInputBuffer;
+            rotateInputBuffer = 0;
+            Rotate(tmp);
+        }
+    }
 
-//         input.rotateCWInput -= RotateCW;
-//         input.rotateCounterCWInput -= RotateCCW;
+    public void UseAbility_N(InputAction.CallbackContext val)
+    {
+        if (!IsOwner) return;
 
-//         currentlyRotating = false;
-//         rotateInputBuffer = 0;
-//     }
+        if (val.performed) UseAbility(AbilityDirection.NORTH);
+    }
 
-// }
+    public void UseAbility_E(InputAction.CallbackContext val)
+    {
+        if (!IsOwner) return;
+
+        if (val.performed) UseAbility(AbilityDirection.EAST);
+    }
+
+    public void UseAbility_S(InputAction.CallbackContext val)
+    {
+        if (!IsOwner) return;
+
+        if (val.performed) UseAbility(AbilityDirection.SOUTH);
+    }
+
+    public void UseAbility_W(InputAction.CallbackContext val)
+    {
+        if (!IsOwner) return;
+
+        if (val.performed) UseAbility(AbilityDirection.WEST);
+    }
+
+    public void RotateCW(InputAction.CallbackContext val)
+    {
+        if (!IsOwner) return;
+
+        if (val.performed) Rotate(1);
+    }
+
+    public void RotateCCW(InputAction.CallbackContext val)
+    {
+        if (!IsOwner) return;
+
+        if (val.performed) Rotate(-1);
+    }
+
+    private void EnableInputs()
+    {
+        if (input == null) return;
+
+        DisableInputs();
+
+        input.AbilityNorthInput += UseAbility_N;
+        input.AbilityEastInput += UseAbility_E;
+        input.AbilitySouthInput += UseAbility_S;
+        input.AbilityWestInput += UseAbility_W;
+        input.RotateCWInput += RotateCW;
+        input.RotateCCWInput += RotateCCW;
+    }
+
+    private void DisableInputs()
+    {
+        if (input == null) return;
+
+        input.AbilityNorthInput -= UseAbility_N;
+        input.AbilityEastInput -= UseAbility_E;
+        input.AbilitySouthInput -= UseAbility_S;
+        input.AbilityWestInput -= UseAbility_W;
+        input.RotateCWInput -= RotateCW;
+        input.RotateCCWInput -= RotateCCW;
+    }
+}

@@ -44,7 +44,7 @@ Material:
     m_Floats:
     - _DistortionAmt: 0
     m_Colors:
-    - _BoxColor: {r: 1, g: 0, b: 0, a: 1}
+    - _BoxColor: {r: 0.11764706, g: 0.5647059, b: 1, a: 1}
     - _FaceColor: {r: 0, g: 1, b: 0, a: 1}
     - _LineColor: {r: 1, g: 0, b: 1, a: 1}
   m_BuildTextureStacks: []

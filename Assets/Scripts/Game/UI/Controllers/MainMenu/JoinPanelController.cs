@@ -54,6 +54,9 @@ namespace Assets.Scripts.Game.UI.Controllers.MainMenu
             LobbyEvents.OnLobbyListChanged -= UpdateLobbyList;
             Events.LobbyEvents.OnLobbySelected -= OnLobbySelected;
             Events.LobbyEvents.OnLobbyDoubleClicked -= OnLobbyDoubleClicked;
+
+            joinLoadingBar.StopLoading();
+            refreshLoadingBar.StopLoading();
         }
 
         private void OnLobbyCodeInputChanged(string code)
@@ -150,10 +153,11 @@ namespace Assets.Scripts.Game.UI.Controllers.MainMenu
 
             refreshLoadingBar.StartLoading();
             OperationResult result = await LobbyListManager.Instance.RefreshLobbyList();
+
+            await Task.Delay(1000);
+            NotificationManager.Instance.HandleResult(result);
             refreshLoadingBar.StopLoading();
 
-            NotificationManager.Instance.HandleResult(result);
-            await Task.Delay(1000);
             refreshButton.interactable = true;
         }
     }

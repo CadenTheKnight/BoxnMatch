@@ -10,6 +10,8 @@ using Assets.Scripts.Framework.Core;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Framework.Utilities;
 using Assets.Scripts.Game.UI.Controllers.GameplayMenu;
+using Unity.Netcode;
+using Unity.Netcode.Transports.UTP;
 
 namespace Assets.Scripts.Game.Managers
 {
@@ -25,7 +27,6 @@ namespace Assets.Scripts.Game.Managers
         private LobbyPlayerData localLobbyPlayerData;
         private List<LobbyPlayerData> lobbyPlayersData = new();
         private LoadingPanelController loadingPanelController;
-        [SerializeField] private MapSelectionData mapSelectionData;
 
         private bool inGame = false;
         public int RoundCount => lobbyData.RoundCount;
@@ -58,13 +59,20 @@ namespace Assets.Scripts.Game.Managers
         /// <returns>Operation result indicating success or failure</returns>
         public async Task<OperationResult> CreateLobby(string lobbyName, int maxPlayers, bool isPrivate, int roundCount)
         {
-            LobbyPlayerData playerData = new();
-            playerData.Initialize(AuthenticationManager.Instance.PlayerId, PlayerPrefs.GetString("PlayerName"));
+            try
+            {
+                LobbyPlayerData playerData = new();
+                playerData.Initialize(AuthenticationManager.Instance.PlayerId, PlayerPrefs.GetString("PlayerName"));
 
-            lobbyData = new();
-            lobbyData.Initialize(lobbyName, maxPlayers, isPrivate, roundCount);
+                lobbyData = new();
+                lobbyData.Initialize(lobbyName, maxPlayers, isPrivate, roundCount);
 
-            return await LobbyManager.Instance.CreateLobby(lobbyData.Serialize(), playerData.Serialize());
+                return await LobbyManager.Instance.CreateLobby(lobbyData.Serialize(), playerData.Serialize());
+            }
+            catch (System.Exception ex)
+            {
+                return OperationResult.FailureResult("CreateLobby", $"Failed to create lobby: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -74,9 +82,16 @@ namespace Assets.Scripts.Game.Managers
         /// <returns>Operation result indicating success or failure.</returns>
         public async Task<OperationResult> JoinLobbyByCode(string lobbyCode)
         {
-            LobbyPlayerData playerData = new();
-            playerData.Initialize(AuthenticationManager.Instance.PlayerId, PlayerPrefs.GetString("PlayerName"));
-            return await LobbyManager.Instance.JoinLobbyByCode(lobbyCode, playerData.Serialize());
+            try
+            {
+                LobbyPlayerData playerData = new();
+                playerData.Initialize(AuthenticationManager.Instance.PlayerId, PlayerPrefs.GetString("PlayerName"));
+                return await LobbyManager.Instance.JoinLobbyByCode(lobbyCode, playerData.Serialize());
+            }
+            catch (System.Exception ex)
+            {
+                return OperationResult.FailureResult("JoinLobby", $"Failed to join lobby: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -86,9 +101,16 @@ namespace Assets.Scripts.Game.Managers
         /// <returns>Operation result indicating success or failure.</returns>
         public async Task<OperationResult> JoinLobbyById(string lobbyId)
         {
-            LobbyPlayerData playerData = new();
-            playerData.Initialize(AuthenticationManager.Instance.PlayerId, PlayerPrefs.GetString("PlayerName"));
-            return await LobbyManager.Instance.JoinLobbyById(lobbyId, playerData.Serialize());
+            try
+            {
+                LobbyPlayerData playerData = new();
+                playerData.Initialize(AuthenticationManager.Instance.PlayerId, PlayerPrefs.GetString("PlayerName"));
+                return await LobbyManager.Instance.JoinLobbyById(lobbyId, playerData.Serialize());
+            }
+            catch (System.Exception ex)
+            {
+                return OperationResult.FailureResult("JoinLobby", $"Failed to join lobby: {ex.Message}");
+            }
         }
 
         #endregion
@@ -111,8 +133,15 @@ namespace Assets.Scripts.Game.Managers
         /// <returns>Operation result indicating success or failure.</returns>
         public async Task<OperationResult> TogglePlayerReady()
         {
-            localLobbyPlayerData.IsReady = !localLobbyPlayerData.IsReady;
-            return await LobbyManager.Instance.UpdatePlayerData(localLobbyPlayerData.PlayerId, localLobbyPlayerData.Serialize());
+            try
+            {
+                localLobbyPlayerData.IsReady = !localLobbyPlayerData.IsReady;
+                return await LobbyManager.Instance.UpdatePlayerData(localLobbyPlayerData.PlayerId, localLobbyPlayerData.Serialize());
+            }
+            catch (System.Exception ex)
+            {
+                return OperationResult.FailureResult("ToggleReady", $"Failed to toggle ready status: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -120,10 +149,17 @@ namespace Assets.Scripts.Game.Managers
         /// </summary>
         public async Task<OperationResult> SetAllPlayersUnready()
         {
-            foreach (LobbyPlayerData playerData in lobbyPlayersData)
-                playerData.IsReady = false;
+            try
+            {
+                foreach (LobbyPlayerData playerData in lobbyPlayersData)
+                    playerData.IsReady = false;
 
-            return await LobbyManager.Instance.UpdateAllPlayerData(lobbyPlayersData.Select(player => player.Serialize()).ToList());
+                return await LobbyManager.Instance.UpdateAllPlayerData(lobbyPlayersData.Select(player => player.Serialize()).ToList());
+            }
+            catch (System.Exception ex)
+            {
+                return OperationResult.FailureResult("SetAllUnready", $"Failed to set all players unready: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -145,7 +181,7 @@ namespace Assets.Scripts.Game.Managers
         /// <returns>Current map index.</returns>
         public int GetMapIndex()
         {
-            return lobbyData.MapIndex;
+            return lobbyData?.MapIndex ?? 0;
         }
 
         /// <summary>
@@ -155,9 +191,15 @@ namespace Assets.Scripts.Game.Managers
         /// <returns>Operation result</returns>
         public async Task<OperationResult> SetSelectedMap(int mapIndex)
         {
-            lobbyData.MapIndex = mapIndex;
-
-            return await LobbyManager.Instance.UpdateLobbyData(lobbyData.Serialize());
+            try
+            {
+                lobbyData.MapIndex = mapIndex;
+                return await LobbyManager.Instance.UpdateLobbyData(lobbyData.Serialize());
+            }
+            catch (System.Exception ex)
+            {
+                return OperationResult.FailureResult("SetSelectedMap", $"Failed to set selected map: {ex.Message}");
+            }
         }
 
         #endregion
@@ -165,80 +207,301 @@ namespace Assets.Scripts.Game.Managers
         #region Game Flow
 
         /// <summary>
+        /// Handles the entire loading process - transitions to loading scene, initializes the relay, and then loads the game map
+        /// </summary>
+        public async Task HandleGameLoading(string mapName, Sprite mapThumbnail, string mapSceneName)
+        {
+            try
+            {
+                // Step 1: Load the loading scene locally
+                Debug.Log($"Loading loading screen for {mapName}");
+                AsyncOperation loadOperation = SceneManager.LoadSceneAsync("Loading");
+                while (!loadOperation.isDone)
+                    await Task.Yield();
+
+                // Step 2: Set up the loading UI
+                loadingPanelController = FindObjectOfType<LoadingPanelController>();
+                if (loadingPanelController == null)
+                {
+                    Debug.LogError("LoadingPanelController not found in Loading scene!");
+                    return;
+                }
+
+                loadingPanelController.StartLoading(mapName, mapThumbnail,
+                    LobbyManager.Instance.IsLobbyHost ? "Setting up relay server..." : "Waiting for host...");
+
+                // Step 3: Host sets up relay and waits for clients to connect
+                if (LobbyManager.Instance.IsLobbyHost)
+                {
+                    // Create relay
+                    string relayJoinCode = await RelayManager.Instance.CreateRelay(LobbyManager.Instance.MaxPlayers);
+                    loadingPanelController.SetStatus("Created relay server...");
+
+                    // Update lobby data for clients to join
+                    lobbyData.InGame = true;
+                    lobbyData.GameStarted = false;
+                    lobbyData.RelayJoinCode = relayJoinCode;
+                    await LobbyManager.Instance.UpdateLobbyData(lobbyData.Serialize());
+
+                    // Update host's player data with connection info
+                    string allocationId = RelayManager.Instance.GetAllocationId();
+                    string connectionData = RelayManager.Instance.GetConnectionData();
+                    localLobbyPlayerData.InGame = true;
+                    await LobbyManager.Instance.UpdatePlayerData(
+                        localLobbyPlayerData.PlayerId,
+                        localLobbyPlayerData.Serialize(),
+                        allocationId,
+                        connectionData);
+
+                    // Initialize network BEFORE waiting for players
+                    SetupNetworking();
+                    await Task.Delay(1000); // Give network time to initialize
+
+                    // Wait for clients to connect to relay
+                    loadingPanelController.SetStatus("Waiting for players to join relay...");
+                    int connectedPlayersNeeded = LobbyManager.Instance.MaxPlayers;
+                    int waitAttempts = 0;
+                    int maxWaitAttempts = 40; // 20 seconds total wait time
+
+                    while (waitAttempts < maxWaitAttempts)
+                    {
+                        // Count players by tracking in-game flags in player data
+                        int connectedPlayers = lobbyPlayersData.Count(p => p.InGame);
+
+                        // Update UI
+                        loadingPanelController.SetStatus($"Waiting for players to join relay... ({connectedPlayers}/{connectedPlayersNeeded})");
+
+                        // Check if all expected players are connected
+                        if (connectedPlayers >= connectedPlayersNeeded)
+                        {
+                            Debug.Log($"All {connectedPlayers}/{connectedPlayersNeeded} players connected!");
+                            break;
+                        }
+
+                        await Task.Delay(500);
+                        waitAttempts++;
+                    }
+
+                    // Signal to clients that game is starting
+                    loadingPanelController.SetStatus("Starting game...");
+                    await Task.Delay(1000);
+
+                    lobbyData.GameStarted = true;
+                    await LobbyManager.Instance.UpdateLobbyData(lobbyData.Serialize());
+
+                    // Load game map with network scene manager
+                    LoadGameMap(mapSceneName);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Error in HandleGameLoading: {ex.Message}");
+                await ReturnToLobby($"Error loading game: {ex.Message}");
+            }
+        }
+        private void SetupNetworking()
+        {
+            try
+            {
+                if (NetworkManager.Singleton == null)
+                {
+                    Debug.LogError("NetworkManager.Singleton is null!");
+                    return;
+                }
+
+                if (NetworkManager.Singleton.IsListening)
+                {
+                    Debug.Log("NetworkManager is already listening, skipping setup");
+                    return;
+                }
+
+                // Configure NetworkManager
+                NetworkManager.Singleton.NetworkConfig.EnableSceneManagement = true;
+
+                if (RelayManager.Instance.IsHost)
+                {
+                    Debug.Log("Setting up host relay connection");
+                    (byte[] AllocationId, byte[] Key, byte[] ConnectionData, string dtlsAddress, int dtlsPort) =
+                        RelayManager.Instance.GetHostConnectionInfo();
+
+                    var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+                    transport.SetHostRelayData(
+                        dtlsAddress,
+                        (ushort)dtlsPort,
+                        AllocationId,
+                        Key,
+                        ConnectionData);
+
+                    bool success = NetworkManager.Singleton.StartHost();
+                    Debug.Log($"Started host: {success}");
+                }
+                else
+                {
+                    Debug.Log("Setting up client relay connection");
+                    (byte[] AllocationId, byte[] Key, byte[] ConnectionData, byte[] HostConnectionData, string dtlsAddress, int dtlsPort) =
+                        RelayManager.Instance.GetClientConnectionInfo();
+
+                    var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+                    transport.SetClientRelayData(
+                        dtlsAddress,
+                        (ushort)dtlsPort,
+                        AllocationId,
+                        Key,
+                        ConnectionData,
+                        HostConnectionData);
+
+                    bool success = NetworkManager.Singleton.StartClient();
+                    Debug.Log($"Started client: {success}");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Error setting up networking: {ex.Message}");
+            }
+        }
+
+        /// <summary>
         /// Starts the game.
         /// </summary>
-        public async Task StartGame()
+        /// <param name="mapName">Name of the map.</param>
+        /// <param name="mapThumbnail">Thumbnail of the map.</param>
+        /// <param name="mapSceneName">Scene name of the map.</param>
+        public async Task StartGame(string mapName, Sprite mapThumbnail, string mapSceneName)
         {
-            SceneManager.LoadSceneAsync("Loading");
-            InitializeLoadingScreen("Creating relay server...");
-
-            string relayJoinCode = await RelayManager.Instance.CreateRelay(LobbyManager.Instance.MaxPlayers);
-            inGame = true;
-            loadingPanelController.SetStatus("Created relay server...");
-
-            lobbyData.RelayJoinCode = relayJoinCode;
-            await LobbyManager.Instance.UpdateLobbyData(lobbyData.Serialize());
-
-            string allocationId = RelayManager.Instance.GetAllocationId();
-            string connectionData = RelayManager.Instance.GetConnectionData();
-            await LobbyManager.Instance.UpdatePlayerData(localLobbyPlayerData.PlayerId, localLobbyPlayerData.Serialize(), allocationId, connectionData);
-            loadingPanelController.SetStatus("Waiting for players...");
-
-            await Task.Delay(2000);
-            LoadGameMap();
+            try
+            {
+                Debug.Log($"Starting game with map: {mapName}, scene: {mapSceneName}");
+                inGame = true;
+                await HandleGameLoading(mapName, mapThumbnail, mapSceneName);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Error starting game: {ex.Message}");
+                inGame = false;
+            }
         }
 
         /// <summary>
         /// Joins an existing relay server.
         /// </summary>
-        /// <param name="relayJoinCode">Relay code to join.</param>
         private async Task JoinRelayServer(string relayJoinCode)
         {
-            SceneManager.LoadSceneAsync("Loading");
-            InitializeLoadingScreen("Joining relay server...");
+            try
+            {
+                Debug.Log($"Client joining relay server with code: {relayJoinCode}");
 
-            inGame = true;
-            await RelayManager.Instance.JoinRelay(relayJoinCode);
-            loadingPanelController.SetStatus("Joined game...");
+                // Load loading scene
+                AsyncOperation loadOperation = SceneManager.LoadSceneAsync("Loading");
+                while (!loadOperation.isDone)
+                    await Task.Yield();
 
-            string allocationId = RelayManager.Instance.GetAllocationId();
-            string connectionData = RelayManager.Instance.GetConnectionData();
-            await LobbyManager.Instance.UpdatePlayerData(localLobbyPlayerData.PlayerId, localLobbyPlayerData.Serialize(), allocationId, connectionData);
-            loadingPanelController.SetStatus("Waiting for players...");
-        }
+                loadingPanelController = FindObjectOfType<LoadingPanelController>();
+                if (loadingPanelController == null)
+                {
+                    Debug.LogError("LoadingPanelController not found!");
+                    return;
+                }
 
-        private void InitializeLoadingScreen(string startMessage)
-        {
-            MapInfo mapInfo = mapSelectionData.Maps[lobbyData.MapIndex];
-            loadingPanelController.StartLoading(mapInfo.MapThumbnail, mapInfo.MapName, startMessage);
+                MapInfo mapInfo = MapSelectionManager.Instance.GetMapInfo(lobbyData.MapIndex);
+
+                string mapName = mapInfo.MapName;
+                Sprite mapThumbnail = mapInfo.MapThumbnail;
+
+                loadingPanelController.StartLoading(mapName, mapThumbnail, "Joining relay server...");
+
+                // Set in-game state to prevent multiple join attempts
+                inGame = true;
+
+                // Initialize Unity Transport with relay info
+                await RelayManager.Instance.JoinRelay(relayJoinCode);
+                loadingPanelController.SetStatus("Connected to relay server...");
+
+                // Setup networking on client
+                SetupNetworking();
+
+                // Update player data with connection info
+                string allocationId = RelayManager.Instance.GetAllocationId();
+                string connectionData = RelayManager.Instance.GetConnectionData();
+                localLobbyPlayerData.InGame = true;
+                await LobbyManager.Instance.UpdatePlayerData(
+                    localLobbyPlayerData.PlayerId,
+                    localLobbyPlayerData.Serialize(),
+                    allocationId,
+                    connectionData);
+
+                loadingPanelController.SetStatus("Waiting for host to start game...");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Error joining relay server: {ex.Message}");
+                inGame = false;
+                await ReturnToLobby("Failed to join game");
+            }
         }
 
         /// <summary>
-        /// Transitions from loading screen to the actual game map.
+        /// Loads the game map using NetworkSceneManager.
         /// </summary>
-        public void LoadGameMap()
+        public void LoadGameMap(string mapSceneName)
         {
-            SceneManager.LoadSceneAsync(mapSelectionData.Maps[lobbyData.MapIndex].MapSceneName);
+            try
+            {
+                Debug.Log($"Loading game map: {mapSceneName}");
+
+                if (NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer)
+                {
+                    Debug.Log($"Host loading scene via NetworkSceneManager: {mapSceneName}");
+                    NetworkManager.Singleton.SceneManager.LoadScene(mapSceneName, LoadSceneMode.Single);
+                }
+                else
+                {
+                    Debug.Log("Client waiting for host to load scene via NetworkSceneManager");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Error loading game map: {ex.Message}");
+            }
         }
 
         /// <summary>
         /// Returns to the lobby after a game and sets all players to unready.
         /// </summary>
-        public async Task ReturnToLobby()
+        public async Task ReturnToLobby(string message = "Returning to lobby...")
         {
-            inGame = false;
+            try
+            {
+                inGame = false;
 
-            SceneManager.LoadSceneAsync("Loading");
-            InitializeLoadingScreen("Returning to lobby...");
+                AsyncOperation loadOperation = SceneManager.LoadSceneAsync("Loading");
+                while (!loadOperation.isDone)
+                    await Task.Yield();
 
-            lobbyData.RelayJoinCode = default;
-            await LobbyManager.Instance.UpdateLobbyData(lobbyData.Serialize());
+                loadingPanelController = FindObjectOfType<LoadingPanelController>();
 
-            await SetAllPlayersUnready();
+                if (LobbyManager.Instance.IsLobbyHost)
+                {
+                    if (lobbyData != null)
+                    {
+                        lobbyData.RelayJoinCode = default;
+                        lobbyData.GameStarted = false;
+                        await LobbyManager.Instance.UpdateLobbyData(lobbyData.Serialize());
+                    }
 
-            await Task.Delay(2000);
+                    await SetAllPlayersUnready();
+                }
 
-            SceneManager.LoadSceneAsync("Lobby");
+                await Task.Delay(1500);
+
+                SceneManager.LoadSceneAsync("Lobby");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Error returning to lobby: {ex.Message}");
+
+                await Task.Delay(1000);
+                SceneManager.LoadSceneAsync("Lobby");
+            }
         }
 
         #endregion
@@ -247,37 +510,59 @@ namespace Assets.Scripts.Game.Managers
 
         private async void OnLobbyUpdated(Lobby lobby)
         {
-            List<Dictionary<string, PlayerDataObject>> playersData = LobbyManager.Instance.GetPlayersData();
-            lobbyPlayersData.Clear();
-
-            int playersReady = 0;
-
-            foreach (Dictionary<string, PlayerDataObject> playerData in playersData)
+            try
             {
-                LobbyPlayerData lobbyPlayerData = new();
-                lobbyPlayerData.Initialize(playerData);
+                // Process player data
+                List<Dictionary<string, PlayerDataObject>> playersData = LobbyManager.Instance.GetPlayersData();
+                lobbyPlayersData.Clear();
 
-                if (lobbyPlayerData.IsReady)
-                    playersReady++;
+                int playersReady = 0;
 
-                if (lobbyPlayerData.PlayerId == AuthenticationManager.Instance.PlayerId)
-                    localLobbyPlayerData = lobbyPlayerData;
+                foreach (Dictionary<string, PlayerDataObject> playerData in playersData)
+                {
+                    LobbyPlayerData lobbyPlayerData = new();
+                    lobbyPlayerData.Initialize(playerData);
 
-                lobbyPlayersData.Add(lobbyPlayerData);
+                    if (lobbyPlayerData.IsReady)
+                        playersReady++;
+
+                    if (lobbyPlayerData.PlayerId == AuthenticationManager.Instance.PlayerId)
+                        localLobbyPlayerData = lobbyPlayerData;
+
+                    lobbyPlayersData.Add(lobbyPlayerData);
+                }
+
+                // Process lobby data
+                lobbyData = new();
+                lobbyData.Initialize(lobby.Data);
+
+                // Notify listeners
+                LobbyEvents.InvokeLobbyUpdated();
+
+                if (playersReady == LobbyManager.Instance.MaxPlayers)
+                    LobbyEvents.InvokeAllPlayersReady();
+                else
+                    LobbyEvents.InvokeNotAllPlayersReady(playersReady, LobbyManager.Instance.MaxPlayers);
+
+                // Handle relay join code - only if not already in game
+                if (!LobbyManager.Instance.IsLobbyHost && lobbyData.RelayJoinCode != default && !inGame)
+                {
+                    await JoinRelayServer(lobbyData.RelayJoinCode);
+                }
+
+                if (!LobbyManager.Instance.IsLobbyHost && inGame && lobbyData.GameStarted)
+                {
+                    if (loadingPanelController != null)
+                    {
+                        loadingPanelController.SetStatus("Game is starting...");
+                        Debug.Log("Client waiting for NetworkManager to load scene");
+                    }
+                }
             }
-
-            lobbyData = new();
-            lobbyData.Initialize(lobby.Data);
-
-            LobbyEvents.InvokeLobbyUpdated();
-
-            if (playersReady == LobbyManager.Instance.MaxPlayers)
-                LobbyEvents.InvokeAllPlayersReady();
-            else
-                LobbyEvents.InvokeNotAllPlayersReady(playersReady, LobbyManager.Instance.MaxPlayers);
-
-            if (lobbyData.RelayJoinCode != default && !inGame)
-                await JoinRelayServer(lobbyData.RelayJoinCode);
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Error in OnLobbyUpdated: {ex.Message}");
+            }
         }
 
         #endregion

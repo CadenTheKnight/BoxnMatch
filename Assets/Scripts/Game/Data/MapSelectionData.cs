@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Assets.Scripts.Game.Data
 {
-    [CreateAssetMenu(menuName = "Data/MapSelectionData", fileName = "MapSelectionData")]
+    [CreateAssetMenu(menuName = "Resources/Data/MapSelectionData", fileName = "MapSelectionData")]
     public class MapSelectionData : ScriptableObject
     {
         public List<MapInfo> Maps;

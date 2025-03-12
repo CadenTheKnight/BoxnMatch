@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem.Controls;
 
 public class Explosion : MonoBehaviour
 {
@@ -10,12 +7,10 @@ public class Explosion : MonoBehaviour
     private float time = 0;
 
     private void Update()
-    { 
+    {
         time += Time.deltaTime;
 
-        if(time > explosionDuration)
-        {
+        if (time > explosionDuration)
             Destroy(gameObject);
-        }
     }
 }

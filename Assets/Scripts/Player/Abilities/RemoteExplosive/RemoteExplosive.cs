@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class RemoteExplosive : MonoBehaviour
@@ -9,7 +7,7 @@ public class RemoteExplosive : MonoBehaviour
     [SerializeField] int explosionDamage;
     [SerializeField] int explosionKnockback;
 
-    public void explode()
+    public void Explode()
     {
         Explosion e = Instantiate(explosion, transform.position, transform.rotation);
         DamageObject d = e.GetComponent<DamageObject>();

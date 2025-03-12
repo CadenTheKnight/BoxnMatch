@@ -17,6 +17,7 @@ namespace Assets.Scripts.Game.Data
         public string gameMode;
         public string relayJoinCode;
         public bool inGame;
+        public bool gameStarted;
 
         public int RoundCount
         {
@@ -42,6 +43,12 @@ namespace Assets.Scripts.Game.Data
             set => inGame = value;
         }
 
+        public bool GameStarted
+        {
+            get => gameStarted;
+            set => gameStarted = value;
+        }
+
         public void Initialize(string lobbyName, int maxPlayers, bool isPrivate, int roundCount)
         {
             this.lobbyName = lobbyName;
@@ -51,6 +58,7 @@ namespace Assets.Scripts.Game.Data
             mapIndex = 0;
             gameMode = "Standard";
             inGame = false;
+            gameStarted = false;
         }
 
         public void Initialize(Dictionary<string, DataObject> lobbyData)
@@ -76,11 +84,13 @@ namespace Assets.Scripts.Game.Data
                 relayJoinCode = lobbyData["RelayJoinCode"].Value;
             if (lobbyData.ContainsKey("InGame"))
                 inGame = lobbyData["InGame"].Value == "true";
+            if (lobbyData.ContainsKey("GameStarted"))
+                gameStarted = lobbyData["GameStarted"].Value == "true";
         }
 
         public Dictionary<string, string> Serialize()
         {
-            return new Dictionary<string, string>
+            var data = new Dictionary<string, string>
             {
                 { "LobbyName", lobbyName },
                 { "MaxPlayers", maxPlayers.ToString() },
@@ -88,9 +98,14 @@ namespace Assets.Scripts.Game.Data
                 { "RoundCount", roundCount.ToString() },
                 { "MapIndex", mapIndex.ToString() },
                 { "GameMode", gameMode },
-                { "RelayJoinCode", relayJoinCode },
-                { "InGame", inGame ? "true" : "false" }
+                { "InGame", inGame ? "true" : "false" },
+                { "GameStarted", gameStarted ? "true" : "false" }
             };
+
+            if (RelayJoinCode != default)
+                data.Add("RelayJoinCode", RelayJoinCode);
+
+            return data;
         }
     }
 }

@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3135815757159216326}
   - component: {fileID: 5300669095295189330}
   - component: {fileID: 5639241972563033016}
-  - component: {fileID: 2758199054946993758}
+  - component: {fileID: 6502856655545931362}
   - component: {fileID: 881066148512496889}
   m_Layer: 0
   m_Name: DamageText
@@ -36,7 +36,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.5, y: 1.5}
+  m_AnchoredPosition: {x: -0.5, y: 0.7}
   m_SizeDelta: {x: 2, y: 1}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &5300669095295189330
@@ -173,7 +173,7 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_renderer: {fileID: 5300669095295189330}
   m_maskType: 0
---- !u!114 &2758199054946993758
+--- !u!114 &6502856655545931362
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -182,9 +182,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 187666582324239020}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4bbb06ca35c129747afa135c6a73e668, type: 3}
+  m_Script: {fileID: 11500000, guid: ca07aed14e9741047a0d9a33ef0a484e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  damage: 0
+  knockback: 0
 --- !u!1818360608 &881066148512496889
 PositionConstraint:
   m_ObjectHideFlags: 0

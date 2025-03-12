@@ -1,134 +1,122 @@
-// using UnityEngine;
-// using UnityEngine.UIElements;
+using UnityEngine;
 
-// public class AbilityOrbHandler : MonoBehaviour
-// {
-//     [SerializeField] float swingWidth = 1f;       // Width of the swing
-//     [SerializeField] float swingDepth = 0.1f;     // Depth of the swing
-//     [SerializeField] float movementSpeed = 1f;    // Speed of movement
-//     [SerializeField] float fallSpeed = 0.01f;     // How fast the object falls off the screen
+public class AbilityOrbHandler : MonoBehaviour
+{
+    [SerializeField] float swingWidth = 1f;       // Width of the swing
+    [SerializeField] float swingDepth = 0.1f;     // Depth of the swing
+    [SerializeField] float movementSpeed = 1f;    // Speed of movement
+    [SerializeField] float fallSpeed = 0.01f;     // How fast the object falls off the screen
 
-//     public AbilityBinding ability;
+    public AbilityBinding ability;
 
-//     private Vector3 startPos;
-//     private float time;
-//     private bool immediate = true;
+    private Vector3 startPos;
+    private float time;
+    private bool immediate = true;
 
-//     public SpriteRenderer r;
+    public SpriteRenderer r;
 
-//     private void Start()
-//     {
-//         r = GetComponent<SpriteRenderer>();
-//         time = 0;
-//         startPos = transform.position;
-//     }
+    private void Start()
+    {
+        r = GetComponent<SpriteRenderer>();
+        time = 0;
+        startPos = transform.position;
+    }
 
-//     void Update()
-//     {
-//         // Calculate delta time for smooth consistent movement
-//         time += Time.deltaTime * movementSpeed;
+    void Update()
+    {
+        time += Time.deltaTime * movementSpeed;
+        float x = Mathf.PingPong(time, swingWidth * 2) - swingWidth;
 
-//         // Convert time to x values in range of swing width (-swingWidth to swingWidth)
-//         float x = Mathf.PingPong(time, swingWidth*2) - swingWidth;
+        Vector3 currentPosition = new(x, Mathf.Pow(x, 2) / swingWidth * swingDepth, 0);
 
-//         // Back and forth swing along wide quadratic arc
-//         Vector3 currentPosition = new Vector3(x,Mathf.Pow(x,2)/swingWidth * swingDepth,0);
+        currentPosition.y -= fallSpeed * time;
 
-//         // Make the orb slowly fall off screen
-//         currentPosition.y -= fallSpeed * time;
+        if (!r.isVisible && !immediate) Destroy(gameObject);
+        else immediate = false;
 
-//         // Delete when off screen (immediate variable is to prevent immediate destroy call upon creation)
-//         if (!r.isVisible && !immediate) Destroy(gameObject);
-//         else immediate = false;
-
-//         // Update object position
-//         transform.position = currentPosition + startPos;
-//     }
+        transform.position = currentPosition + startPos;
+    }
 
 
-//     private void OnTriggerEnter2D(Collider2D collision)
-//     {
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
 
-//         if(collision.gameObject.tag == "Player")
-//         {
-//             Debug.Log("Player collision");
-//             Vector2 playerPos = collision.gameObject.transform.position;
-//             Vector2 relativePos = (Vector2)transform.position - playerPos;
-//             int[] bindingOrder = new int[4];
+        if (collision.gameObject.tag == "Player")
+        {
+            Debug.Log("Player collision");
+            Vector2 playerPos = collision.gameObject.transform.position;
+            Vector2 relativePos = (Vector2)transform.position - playerPos;
+            int[] bindingOrder = new int[4];
 
-//             // Set the order of the closest ability bindings to the collision spot
-//             if(Mathf.Abs(relativePos.x) >= Mathf.Abs(relativePos.y))
-//             {
-//                 if (relativePos.x >= 0)
-//                 {
-//                     bindingOrder[0] = 1;
-//                     bindingOrder[2] = 3;
-//                 }
-//                 else
-//                 {
-//                     bindingOrder[0] = 3;
-//                     bindingOrder[2] = 1;
-//                 }
+            if (Mathf.Abs(relativePos.x) >= Mathf.Abs(relativePos.y))
+            {
+                if (relativePos.x >= 0)
+                {
+                    bindingOrder[0] = 1;
+                    bindingOrder[2] = 3;
+                }
+                else
+                {
+                    bindingOrder[0] = 3;
+                    bindingOrder[2] = 1;
+                }
 
-//                 if (relativePos.y >= 0)
-//                 {
-//                     bindingOrder[1] = 0;
-//                     bindingOrder[3] = 2;
-//                 }
-//                 else
-//                 {
-//                     bindingOrder[1] = 2;
-//                     bindingOrder[3] = 0;
-//                 }
-//             }
+                if (relativePos.y >= 0)
+                {
+                    bindingOrder[1] = 0;
+                    bindingOrder[3] = 2;
+                }
+                else
+                {
+                    bindingOrder[1] = 2;
+                    bindingOrder[3] = 0;
+                }
+            }
 
-//             else
-//             {
-//                 if (relativePos.x >= 0)
-//                 {
-//                     bindingOrder[1] = 1;
-//                     bindingOrder[3] = 3;
-//                 }
-//                 else
-//                 {
-//                     bindingOrder[1] = 3;
-//                     bindingOrder[3] = 1;
-//                 }
+            else
+            {
+                if (relativePos.x >= 0)
+                {
+                    bindingOrder[1] = 1;
+                    bindingOrder[3] = 3;
+                }
+                else
+                {
+                    bindingOrder[1] = 3;
+                    bindingOrder[3] = 1;
+                }
 
-//                 if (relativePos.y >= 0)
-//                 {
-//                     bindingOrder[0] = 0;
-//                     bindingOrder[2] = 2;
-//                 }
-//                 else
-//                 {
-//                     bindingOrder[0] = 2;
-//                     bindingOrder[2] = 0;
-//                 }
-//             }
+                if (relativePos.y >= 0)
+                {
+                    bindingOrder[0] = 0;
+                    bindingOrder[2] = 2;
+                }
+                else
+                {
+                    bindingOrder[0] = 2;
+                    bindingOrder[2] = 0;
+                }
+            }
 
-//             // try to bind the abilty
-//             bool success = bindToAvailableInOrder(bindingOrder, collision.gameObject);
+            bool success = BindToAvailableInOrder(bindingOrder, collision.gameObject);
+            if (success) Destroy(gameObject);
 
-//             if (success) Destroy(gameObject);
+        }
+    }
 
-//         }
-//     }
+    private bool BindToAvailableInOrder(int[] bindingOrder, GameObject player)
+    {
+        foreach (int slot in bindingOrder)
+        {
+            Debug.Log("try slot: " + slot + " ability: " + player.GetComponent<PlayerRotator>().sockets[slot].GetComponent<AbilitySocket>().ability);
+            if (!player.GetComponent<PlayerRotator>().sockets[slot].GetComponent<AbilitySocket>().ability)
+            {
+                Debug.Log("succes slot: " + slot);
+                player.GetComponent<PlayerRotator>().sockets[slot].GetComponent<AbilitySocket>().ability = Instantiate(ability);
+                return true;
+            }
+        }
 
-//     private bool bindToAvailableInOrder(int[] bindingOrder, GameObject player)
-//     {
-//         //Debug.Log("try bind");
-//         foreach (int slot in bindingOrder)
-//         {
-//             Debug.Log("try slot: " + slot + " ability: " + player.GetComponent<PlayerRotator>().sockets[slot].GetComponent<AbilitySocket>().ability);
-//             if (!(player.GetComponent<PlayerRotator>().sockets[slot].GetComponent<AbilitySocket>().ability))
-//             {
-//                 Debug.Log("succes slot: " + slot);
-//                 player.GetComponent<PlayerRotator>().sockets[slot].GetComponent<AbilitySocket>().ability = Instantiate(ability);
-//                 return true;
-//             }
-//         }
-
-//         return false;
-//     }
-// }
+        return false;
+    }
+}

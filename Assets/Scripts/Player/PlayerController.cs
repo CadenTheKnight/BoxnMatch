@@ -1,161 +1,194 @@
-// using UnityEngine;
-// using Unity.Netcode;
-// using UnityEngine.InputSystem;
-// using Assets.Scripts.Game.Managers;
+using UnityEngine;
+using Unity.Netcode;
+using System.Collections;
+using UnityEngine.InputSystem;
 
-// public class PlayerController : NetworkBehaviour
-// {
-//     [Header("References")]
-//     [SerializeField] private Rigidbody2D rb;
-//     [SerializeField] private GameManager gameManager;
-//     [SerializeField] private PlayerInputManager input;
+public class PlayerController : NetworkBehaviour
+{
+    [Header("Movement")]
+    [SerializeField] private float BASE_SPEED = 5;
+    [SerializeField] private float TOP_SPEED = 20;
+
+    private PlayerInputManager input;
+    private Rigidbody2D rb;
+    float currentSpeed;
+
+    //NEW
+    [SerializeField] private float JUMP_FORCE = 5f;
+    [SerializeField] private float groundCheckOffset = -0.5f;
+    [SerializeField] private float FALL_FORCE = -5f;
+    [SerializeField] private float sideDrag = 2f;
+    public Vector2 groundCheckSize = new(0.5f, 0.1f);
+    public LayerMask groundLayer;
+    public int jumpCount = 0;
+    public int maxJumps = 2;
+    bool isGrounded = false;
+    public float forceAmount = 10f;
+    private bool isFalling = false;
+
+    //gathering input
+    private float horizontalInput;
+    private bool jumpInput;
+    private bool crouchInput;
 
 
-//     [Header("Movement")]
-//     [SerializeField] private int MAX_JUMPS = 2;
-//     [SerializeField] private float BASE_SPEED = 5;
-//     [SerializeField] private float TOP_SPEED = 20;
-//     [SerializeField] private float JUMP_FORCE = 5f;
-//     [SerializeField] private float FALL_FORCE = 5f;
-//     [SerializeField] private float groundCheckOffset = -0.5f;
+    // Start is called before the first frame update
+    void Start()
+    {
+        rb = GetComponent<Rigidbody2D>();
+        currentSpeed = BASE_SPEED;
+    }
 
-//     public Vector2 groundCheckSize = new(0.5f, 0.1f);
-//     public LayerMask groundLayer;
-//     public int jumpCount = 0;
-//     public int maxJumps = 2;
-//     bool isGrounded = false;
-//     public float forceAmount = 10f;
-//     private float horizontalInput;
-//     private bool jumpInput;
-//     private bool crouchInput;
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
 
-//     private NetworkVariable<Vector3> networkPosition = new(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
-//     // private NetworkVariable<bool> isJumping = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+        Debug.Log($"Player {OwnerClientId} spawned. IsOwner: {IsOwner}, IsServer: {IsServer}");
 
-//     private bool inputsEnabled = false;
+        if (IsOwner)
+            SubscribeToInputEvents();
+    }
 
-//     public override void OnNetworkSpawn()
-//     {
-//         Debug.Log($"Player spawned - IsOwner: {IsOwner}, NetworkObjectId: {NetworkObjectId}");
+    private void SubscribeToInputEvents()
+    {
+        if (input == null)
+            input = PlayerInputManager.Instance;
 
-//         if (IsOwner) gameManager.GameStateChanged += OnGameStateChanged;
-//     }
+        UnsubscribeFromInputEvents();
 
-//     public override void OnNetworkDespawn()
-//     {
-//         if (IsOwner) gameManager.GameStateChanged -= OnGameStateChanged;
-//     }
+        input.HorizontalInput += TryHorizontalMovement;
+        input.JumpInput += TryJump;
+        input.CrouchInput += TryGoDown;
+    }
 
-//     private void OnGameStateChanged(GameManager.GameState previousState, GameManager.GameState newState)
-//     {
-//         if (IsOwner)
-//         {
-//             Debug.Log($"Game state changed from {previousState} to {newState}");
+    private void UnsubscribeFromInputEvents()
+    {
+        if (input != null)
+        {
+            input.HorizontalInput -= TryHorizontalMovement;
+            input.JumpInput -= TryJump;
+            input.CrouchInput -= TryGoDown;
+        }
+    }
 
-//             if (newState == GameManager.GameState.RoundInProgress)
-//                 EnablePlayerInput();
-//             else
-//                 DisablePlayerInput();
-//         }
-//     }
+    private void OnDisable()
+    {
+        if (IsOwner)
+            UnsubscribeFromInputEvents();
+    }
 
-//     private void EnablePlayerInput()
-//     {
-//         Debug.Log("Enabling player input");
+    public override void OnNetworkDespawn()
+    {
+        base.OnNetworkDespawn();
 
-//         inputsEnabled = true;
-//         if (IsOwner) EnableInputs();
-//     }
+        if (IsOwner)
+            UnsubscribeFromInputEvents();
+    }
 
-//     private void DisablePlayerInput()
-//     {
-//         Debug.Log("Disabling player input");
+    public IEnumerator SpeedChange(float newSpeed, float timeInSecs)
+    {
+        currentSpeed = newSpeed;
+        yield return new WaitForSeconds(timeInSecs);
+        currentSpeed = BASE_SPEED;
+    }
 
-//         inputsEnabled = false;
-//         if (IsOwner) DisableInputs();
-//     }
+    // Update is called once per frame
+    private void Update()
+    {
+        if (!IsOwner) return;
 
-//     private void Update()
-//     {
-//         if (!IsOwner || !inputsEnabled) return;
+        Vector3 dir = new(horizontalInput, 0, 0);
 
-//         Vector3 checkPosition = new(transform.position.x, transform.position.y + groundCheckOffset);
-//         isGrounded = Physics2D.OverlapBox(checkPosition, groundCheckSize, 0f, groundLayer);
+        //switched it over to use a universal offset, because rotation
+        //makes the groundCheckTransform unusable
+        Vector3 checkPosition = new(transform.position.x, transform.position.y + groundCheckOffset);
 
-//         if (isGrounded)
-//             jumpCount = 0;
+        isGrounded = Physics2D.OverlapBox(checkPosition, groundCheckSize, 0f, groundLayer);
 
-//         transform.position = Vector3.Lerp(transform.position, networkPosition.Value, Time.deltaTime * 10f);
-//     }
+        if (isGrounded)
+        {
+            jumpCount = 0;
+        }
+        if (Input.GetKey(KeyCode.LeftControl) && !isFalling)
+        {
+            rb.AddForce(new Vector2(0, FALL_FORCE), ForceMode2D.Impulse);
+            isFalling = true;
+        }
+        if (Input.GetKeyUp(KeyCode.LeftControl))
+        {
+            isFalling = false;
+        }
+        //Debug.Log("isGrounded: " + isGrounded);
+    }
 
-//     private void FixedUpdate()
-//     {
-//         if (!IsOwner || !inputsEnabled) return;
 
-//         Vector2 force = new(horizontalInput * forceAmount, 0);
-//         rb.AddForce(force, ForceMode2D.Impulse);
+    //physics based things in fixedupdate
+    private void FixedUpdate()
+    {
+        if (!IsOwner) return;
 
-//         if (Mathf.Abs(rb.velocity.x) > TOP_SPEED)
-//             rb.velocity = new Vector2(Mathf.Sign(rb.velocity.x) * TOP_SPEED, rb.velocity.y);
+        Vector2 force = new(horizontalInput * forceAmount, 0);
+        rb.AddForce(force, ForceMode2D.Impulse);
 
-//         if (jumpInput && jumpCount < maxJumps)
-//         {
-//             rb.velocity = new Vector2(rb.velocity.x, 0);
-//             rb.AddForce(Vector2.up * JUMP_FORCE, ForceMode2D.Impulse);
-//             jumpCount++;
-//         }
 
-//         jumpInput = false;
+        if (Mathf.Abs(rb.velocity.x) > TOP_SPEED)
+        {
+            // Limit speed while keeping direction
+            rb.velocity = new Vector2(Mathf.Sign(rb.velocity.x) * TOP_SPEED, rb.velocity.y);
 
-//         if (crouchInput)
-//         {
-//             rb.AddForce(new Vector2(0, -FALL_FORCE), ForceMode2D.Impulse);
-//             crouchInput = false;
-//         }
+            Vector2 current_velocity = rb.velocity;
+            current_velocity.x *= 1f - (sideDrag * Time.fixedDeltaTime);
 
-//         networkPosition.Value = transform.position;
-//     }
+            rb.velocity = current_velocity;
+        }
+        //Debug.Log("Velocity: " + rb.velocity.magnitude);
 
-//     private void TryJump(InputAction.CallbackContext val)
-//     {
-//         if (!IsOwner || !inputsEnabled) return;
+        //Debug.Log("jumpInput: " + jumpInput);
+        if (jumpInput && jumpCount < maxJumps)
+        {
+            rb.velocity = new Vector2(rb.velocity.x, 0);
+            rb.AddForce(Vector2.up * JUMP_FORCE, ForceMode2D.Impulse);
+            jumpCount++;
+        }
 
-//         jumpInput = true;
-//     }
+        /*flush the jumpInput so it doesnt buffer in air.
+            we could potentially delay this by input flush by a small timer (like 0.2 sec)
+            to add a friendly jump buffer (?)
+        */
+        jumpInput = false;
 
-//     private void TryGoDown(InputAction.CallbackContext val)
-//     {
-//         if (!IsOwner || !inputsEnabled) return;
+        /*if (crouchInput)
+        {
+            rb.AddForce(new Vector2(0, FALL_FORCE), ForceMode2D.Impulse);
 
-//         crouchInput = true;
-//     }
+            crouchInput = false;
+        }*/
+    }
 
-//     private void TryHorizontalMovement(InputAction.CallbackContext val)
-//     {
-//         if (!IsOwner || !inputsEnabled) return;
+    private void TryHorizontalMovement(InputAction.CallbackContext val)
+    {
+        if (!IsOwner) return;
 
-//         horizontalInput = val.ReadValue<float>();
-//     }
+        float moveValue = val.ReadValue<float>();
+        horizontalInput = moveValue;
 
-//     private void EnableInputs()
-//     {
-//         if (!IsOwner || input == null) return;
+        if (rb != null && val.performed)
+        {
+            rb.AddForce(new Vector2(moveValue * forceAmount, 0), ForceMode2D.Impulse);
+        }
+    }
 
-//         input.jumpInput += TryJump;
-//         input.crouchInput += TyGoDown;
-//         input.x_movementInput += TryHorizontalMovement;
-//     }
+    private void TryJump(InputAction.CallbackContext val)
+    {
+        if (!IsOwner) return;
 
-//     private void DisableInputs()
-//     {
-//         if (!IsOwner || input == null) return;
+        if (val.performed) jumpInput = true;
+    }
 
-//         input.jumpInput -= TryJump;
-//         input.crouchInput -= TryGoDown;
-//         input.x_movementInput -= TryHorizontalMovement;
+    private void TryGoDown(InputAction.CallbackContext val)
+    {
+        if (!IsOwner) return;
 
-//         horizontalInput = 0;
-//         jumpInput = false;
-//         crouchInput = false;
-//     }
-// }
+        if (val.performed) crouchInput = true;
+    }
+}

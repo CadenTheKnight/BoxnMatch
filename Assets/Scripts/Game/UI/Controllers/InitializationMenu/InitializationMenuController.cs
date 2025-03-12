@@ -25,7 +25,7 @@ namespace Assets.Scripts.Game.UI.Controllers.InitializationMenu
         {
             initializeLoadingBar.StartLoading();
             statusText.text = "Initializing...";
-            await Tests.LoadingTest(2000);
+            await Tests.LoadingTest(1000);
             OperationResult result = await AuthenticationManager.Instance.InitializeAsync();
             initializeLoadingBar.StopLoading();
 

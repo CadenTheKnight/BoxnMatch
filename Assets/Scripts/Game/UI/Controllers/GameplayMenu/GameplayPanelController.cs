@@ -12,7 +12,6 @@ namespace Assets.Scripts.Game.UI.Controllers.GameplayMenu
         [SerializeField] private GameObject gameEndScreen;
         [SerializeField] private GameObject roundStartingScreen;
         [SerializeField] private GameObject returnToLobbyScreen;
-        [SerializeField] private GameObject waitingForPlayersScreen;
 
 
         [Header("UI Elements")]
@@ -37,18 +36,11 @@ namespace Assets.Scripts.Game.UI.Controllers.GameplayMenu
 
         public void HideAllScreens()
         {
-            waitingForPlayersScreen.SetActive(false);
             roundStartingScreen.SetActive(false);
             gameplayScreen.SetActive(false);
             roundEndScreen.SetActive(false);
             gameEndScreen.SetActive(false);
             returnToLobbyScreen.SetActive(false);
-        }
-
-        public void ShowWaitingScreen()
-        {
-            HideAllScreens();
-            waitingForPlayersScreen.SetActive(true);
         }
 
         public void ShowRoundStartingScreen(int currentRound, int maxRounds)

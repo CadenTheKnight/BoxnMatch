@@ -79,6 +79,9 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
 
             Events.LobbyEvents.OnAllPlayersReady -= OnLobbyReady;
             Events.LobbyEvents.OnNotAllPlayersReady -= OnLobbyNotReady;
+
+            leaveLoadingBar.StopLoading();
+            readyUnreadyLoadingBar.StopLoading();
         }
 
         private void OnPlayerJoined(Player player)
@@ -196,10 +199,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
         {
             startButton.interactable = false;
 
-            await GameLobbyManager.Instance.StartGame();
-
-            await Task.Delay(2000);
-            startButton.interactable = true;
+            await GameLobbyManager.Instance.StartGame(mapSelectionData.Maps[currentMapIndex].MapName, mapSelectionData.Maps[currentMapIndex].MapThumbnail, mapSelectionData.Maps[currentMapIndex].MapSceneName);
         }
 
         #endregion
