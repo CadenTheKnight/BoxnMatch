@@ -9,31 +9,32 @@ namespace Assets.Scripts.Framework.Core
     {
         private static T _instance;
 
-        /// <summary>
-        /// The singleton instance of this class.
-        /// </summary>
+        protected virtual void Awake()
+        {
+            if (_instance == null)
+            {
+                _instance = this as T;
+                DontDestroyOnLoad(gameObject);
+            }
+            else if (_instance != this)
+                Destroy(gameObject);
+        }
+
+
         public static T Instance
         {
             get
             {
                 if (_instance == null)
                 {
-                    T[] instances = FindObjectsOfType<T>();
-                    if (instances.Length > 0)
+                    _instance = FindObjectOfType<T>();
+                    if (_instance == null)
                     {
-                        T instance = instances[0];
-                        _instance = instance;
-                    }
-                    else
-                    {
-                        GameObject obj = new()
-                        {
-                            name = typeof(T).Name
-                        };
+                        GameObject obj = new(typeof(T).Name);
                         _instance = obj.AddComponent<T>();
-                        DontDestroyOnLoad(obj);
                     }
                 }
+
                 return _instance;
             }
         }

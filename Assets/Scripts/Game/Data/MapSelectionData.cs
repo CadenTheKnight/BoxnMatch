@@ -2,7 +2,6 @@ using System;
 using UnityEngine;
 using System.Collections.Generic;
 
-
 namespace Assets.Scripts.Game.Data
 {
     [CreateAssetMenu(menuName = "Data/MapSelectionData", fileName = "MapSelectionData")]
@@ -15,7 +14,7 @@ namespace Assets.Scripts.Game.Data
 [Serializable]
 public struct MapInfo
 {
-    public Color MapThumbnail;
+    public Sprite MapThumbnail;
     public string MapName;
     public string MapSceneName;
 }

@@ -1,7 +1,6 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using Assets.Scripts.Testing;
 using Assets.Scripts.Game.Managers;
 using System.Text.RegularExpressions;
 using Assets.Scripts.Game.UI.Components;
@@ -15,20 +14,17 @@ namespace Assets.Scripts.Game.UI.Controllers.MainMenu
     /// </summary>
     public class CreatePanelController : BasePanel
     {
-        [Header("Lobby Settings")]
+        [Header("Options Components")]
         [SerializeField] private TMP_InputField lobbyNameInput;
         [SerializeField] private Button twoPlayerButton;
         [SerializeField] private Button fourPlayerButton;
         [SerializeField] private Button privateButton;
         [SerializeField] private Button publicButton;
-        // [SerializeField] private TMP_Dropdown gameModeDropdown;
-        // [SerializeField] private TMP_Dropdown mapDropdown;
-        // [SerializeField] private TMP_InputField roundCountInput;
+        [SerializeField] private NumberSelector roundCountSelector;
 
-        [Header("Completion Components")]
-        [SerializeField] private LoadingBar loadingBar;
+        [Header("Footer Components")]
         [SerializeField] private Button createLobbyButton;
-        [SerializeField] private ResultHandler resultHandler;
+        [SerializeField] private LoadingBar createLoadingBar;
 
         private int maxPlayers = 0;
         private int isPrivate = 0;
@@ -55,14 +51,13 @@ namespace Assets.Scripts.Game.UI.Controllers.MainMenu
         protected override void OnDisable()
         {
             base.OnDisable();
+
             createLobbyButton.onClick.RemoveListener(OnCreateClicked);
             lobbyNameInput.onValueChanged.RemoveListener(CheckForCompletion);
             twoPlayerButton.onClick.RemoveListener(OnTwoPlayersClicked);
             fourPlayerButton.onClick.RemoveListener(OnFourPlayersClicked);
             privateButton.onClick.RemoveListener(OnPrivateClicked);
             publicButton.onClick.RemoveListener(OnPublicClicked);
-
-            loadingBar.StopLoading();
         }
 
         protected override void Update()
@@ -121,15 +116,12 @@ namespace Assets.Scripts.Game.UI.Controllers.MainMenu
         {
             createLobbyButton.interactable = false;
 
-            loadingBar.StartLoading();
-            await Tests.TestDelay(1000);
-            OperationResult result = await GameLobbyManager.Instance.CreateLobby(lobbyNameInput.text.Trim(), maxPlayers, isPrivate == 1);
-            loadingBar.StopLoading();
+            createLoadingBar.StartLoading();
+            OperationResult result = await GameLobbyManager.Instance.CreateLobby(lobbyNameInput.text.Trim(), maxPlayers, isPrivate == 1, roundCountSelector.Value);
+            createLoadingBar.StopLoading();
 
-            if (result.Status == ResultStatus.Success)
-                SceneTransitionManager.Instance.SetPendingNotification(result, NotificationType.Success);
-            else
-                resultHandler.HandleResult(result);
+            if (result.Status == ResultStatus.Failure)
+                NotificationManager.Instance.HandleResult(result);
 
             createLobbyButton.interactable = true;
         }

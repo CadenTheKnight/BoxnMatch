@@ -23,4 +23,28 @@ public class DynamicButton : Button
         text.color = colors.highlightedColor;
         base.OnPointerExit(eventData);
     }
+
+    public override void OnPointerDown(PointerEventData eventData)
+    {
+        text.color = colors.normalColor;
+        base.OnPointerDown(eventData);
+    }
+
+    public override void OnPointerUp(PointerEventData eventData)
+    {
+        text.color = colors.normalColor;
+        base.OnPointerUp(eventData);
+    }
+
+    public override void OnSelect(BaseEventData eventData)
+    {
+        text.color = colors.normalColor;
+        base.OnSelect(eventData);
+    }
+
+    public override void OnDeselect(BaseEventData eventData)
+    {
+        text.color = colors.highlightedColor;
+        base.OnDeselect(eventData);
+    }
 }

@@ -9,9 +9,10 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
     public class LobbyListEntry : MonoBehaviour
     {
         [SerializeField] private Button joinButton;
-        [SerializeField] private TextMeshProUGUI lobbyNameText;
-        [SerializeField] private TextMeshProUGUI playerCountText;
         [SerializeField] private TextMeshProUGUI gameModeText;
+        [SerializeField] private TextMeshProUGUI lobbyNameText;
+        [SerializeField] private TextMeshProUGUI lobbyStatusText;
+        [SerializeField] private TextMeshProUGUI playerCountText;
 
         private Lobby lobby;
         public bool isSelected;
@@ -50,8 +51,8 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
             lobbyNameText.text = lobby.Name;
             playerCountText.text = $"{lobby.Players.Count}/{lobby.MaxPlayers}";
-            Debug.Log($"GameMode: {lobby.Data["GameMode"].Value}");
             gameModeText.text = lobby.Data["GameMode"].Value;
+            lobbyStatusText.text = lobby.Data["InGame"].Value == "true" ? "In Game" : "In Lobby";
         }
     }
 }

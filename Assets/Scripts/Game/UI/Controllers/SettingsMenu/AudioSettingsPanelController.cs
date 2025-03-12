@@ -7,7 +7,7 @@ namespace Assets.Scripts.Game.UI.Controllers.SettingsMenu
 {
     public class AudioSettingsPanelController : BaseSettingsPanel
     {
-        // [Header("UI References")]
+        // [Header("Options")]
         // [SerializeField] private Slider masterVolumeSlider;
         // [SerializeField] private Slider musicVolumeSlider;
         // [SerializeField] private Slider sfxVolumeSlider;

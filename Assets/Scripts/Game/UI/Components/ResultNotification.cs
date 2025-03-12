@@ -19,8 +19,8 @@ namespace Assets.Scripts.Game.UI.Components
     /// </summary>
     public class ResultNotification : MonoBehaviour
     {
-        [Header("UI References")]
-        [SerializeField] private Button closeButton;
+        [Header("Components")]
+        [SerializeField] private Button notification;
         [SerializeField] private TextMeshProUGUI notificationText;
 
         private Coroutine autoHideCoroutine;
@@ -28,12 +28,12 @@ namespace Assets.Scripts.Game.UI.Components
 
         private void OnEnable()
         {
-            closeButton.onClick.AddListener(OnCloseClicked);
+            notification.onClick.AddListener(OnCloseClicked);
         }
 
         private void OnDisable()
         {
-            closeButton.onClick.RemoveListener(OnCloseClicked);
+            notification.onClick.RemoveListener(OnCloseClicked);
             CancelAutoHide();
         }
 
@@ -45,6 +45,7 @@ namespace Assets.Scripts.Game.UI.Components
         public void ShowNotification(OperationResult operationResult, NotificationType type)
         {
             notificationText.text = operationResult.Message;
+
             ApplyTheme(type);
             gameObject.SetActive(true);
             StartAutoHide();
@@ -56,7 +57,7 @@ namespace Assets.Scripts.Game.UI.Components
         /// <param name="type">The type of notification.</param>
         private void ApplyTheme(NotificationType type)
         {
-            ColorBlock colors = closeButton.colors;
+            ColorBlock colors = notification.colors;
 
             switch (type)
             {
@@ -84,7 +85,7 @@ namespace Assets.Scripts.Game.UI.Components
             }
 
             colors.disabledColor = UIColors.primaryDisabledColor;
-            closeButton.colors = colors;
+            notification.colors = colors;
         }
 
         private void OnCloseClicked()

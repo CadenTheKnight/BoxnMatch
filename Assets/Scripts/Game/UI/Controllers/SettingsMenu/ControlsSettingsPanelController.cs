@@ -8,7 +8,7 @@ namespace Assets.Scripts.Game.UI.Controllers.SettingsMenu
 {
     public class ControlsSettingsPanelController : BaseSettingsPanel
     {
-        // [Header("UI References")]
+        // [Header("Options")]
 
 
         private void OnEnable()

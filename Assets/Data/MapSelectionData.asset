@@ -13,12 +13,6 @@ MonoBehaviour:
   m_Name: MapSelectionData
   m_EditorClassIdentifier: 
   Maps:
-  - MapThumbnail: {r: 1, g: 0.2784314, b: 0.34117648, a: 1}
+  - MapThumbnail: {fileID: 21300000, guid: cfcffaed590c35b4180358286d438c51, type: 3}
     MapName: Red Map
-    MapSceneName: RedScene
-  - MapThumbnail: {r: 0.18039216, g: 0.8352941, b: 0.4509804, a: 1}
-    MapName: Green Map
-    MapSceneName: GreenScene
-  - MapThumbnail: {r: 0.4392157, g: 0.6313726, b: 1, a: 1}
-    MapName: Blue Map
-    MapSceneName: BlueScene
+    MapSceneName: RedMap

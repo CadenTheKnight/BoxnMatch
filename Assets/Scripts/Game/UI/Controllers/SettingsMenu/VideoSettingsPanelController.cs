@@ -9,7 +9,7 @@ namespace Assets.Scripts.Game.UI.Controllers.SettingsMenu
 {
     public class VideoSettingsPanelController : BaseSettingsPanel
     {
-        [Header("UI References")]
+        [Header("Options")]
         [SerializeField] private Toggle fullscreenToggle;
         // [SerializeField] private TMP_Dropdown resolutionDropdown;
         // [SerializeField] private TMP_Dropdown qualityDropdown;
@@ -75,7 +75,7 @@ namespace Assets.Scripts.Game.UI.Controllers.SettingsMenu
 
         public override void LoadSettings()
         {
-            _originalFullscreen = PlayerPrefs.GetInt("Fullscreen", 1) == 1;
+            _originalFullscreen = PlayerPrefs.GetInt("Fullscreen") == 1;
             fullscreenToggle.SetIsOnWithoutNotify(_originalFullscreen);
 
             // int currentWidth = Screen.width;
@@ -123,20 +123,15 @@ namespace Assets.Scripts.Game.UI.Controllers.SettingsMenu
 
         public override bool HasChanges()
         {
-            return _hasChanges ||
-                   fullscreenToggle.isOn != _originalFullscreen;
+            return fullscreenToggle.isOn != _originalFullscreen;
             //    resolutionDropdown.value != _originalResolutionIndex ||
             //    qualityDropdown.value != _originalQualityIndex;
         }
 
         private void CheckForChanges()
         {
-            bool hasChanges = HasChanges();
-            if (hasChanges != _hasChanges)
-            {
-                _hasChanges = hasChanges;
+            if (HasChanges())
                 NotifySettingsChanged();
-            }
         }
 
         private void OnFullscreenChanged(bool isFullscreen)
@@ -144,15 +139,15 @@ namespace Assets.Scripts.Game.UI.Controllers.SettingsMenu
             CheckForChanges();
         }
 
-        private void OnResolutionChanged(int index)
-        {
-            CheckForChanges();
-        }
+        // private void OnResolutionChanged(int index)
+        // {
+        //     CheckForChanges();
+        // }
 
-        private void OnQualityChanged(int index)
-        {
-            CheckForChanges();
-        }
+        // private void OnQualityChanged(int index)
+        // {
+        //     CheckForChanges();
+        // }
 
 
         public override void ApplyChanges()

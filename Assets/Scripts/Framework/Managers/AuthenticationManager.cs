@@ -16,12 +16,16 @@ namespace Assets.Scripts.Framework.Managers
     /// </summary>
     public class AuthenticationManager : Singleton<AuthenticationManager>
     {
-        public string PlayerId => AuthenticationService.Instance.PlayerId;
-
         /// <summary>
         /// Event that is invoked when the player is authenticated.
         /// </summary>
-        public static event System.Action OnAuthenticated;
+        public delegate void AuthenticatedHandler();
+        public static event AuthenticatedHandler OnAuthenticated;
+
+        /// <summary>
+        /// The player's ID.
+        /// </summary>
+        public string PlayerId => AuthenticationService.Instance.PlayerId;
 
         /// <summary>
         /// Generates a random player name and saves it to PlayerPrefs.
@@ -56,7 +60,6 @@ namespace Assets.Scripts.Framework.Managers
             }
             catch (System.Exception authEx)
             {
-
                 return OperationResult.FailureResult("AuthenticationError", authEx.Message);
             }
         }

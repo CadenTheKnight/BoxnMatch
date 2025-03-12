@@ -8,7 +8,7 @@ namespace Assets.Scripts.Game.UI.Controllers.SettingsMenu
 {
     public class GameSettingsPanelController : BaseSettingsPanel
     {
-        [Header("UI References")]
+        [Header("Options")]
         [SerializeField] private Button deletePlayerDataButton;
 
         private void OnEnable()

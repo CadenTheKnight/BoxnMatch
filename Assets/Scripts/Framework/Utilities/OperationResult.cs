@@ -9,9 +9,9 @@ namespace Assets.Scripts.Framework.Utilities
 
     public class OperationResult
     {
-        public ResultStatus Status { get; }
         public string Code { get; }
         public string Message { get; }
+        public ResultStatus Status { get; }
 
         /// <summary>
         /// Creates a new OperationResult with the provided success status, code, and message.

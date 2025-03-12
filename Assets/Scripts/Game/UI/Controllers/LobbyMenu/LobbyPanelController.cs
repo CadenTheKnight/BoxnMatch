@@ -2,6 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Threading.Tasks;
+using Assets.Scripts.Game.Data;
 using Assets.Scripts.Game.Managers;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Events;
@@ -9,7 +10,6 @@ using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Game.UI.Components;
 using Assets.Scripts.Framework.Utilities;
 using Assets.Scripts.Game.UI.Components.Colors;
-using Assets.Scripts.Game.Data;
 
 namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
 {
@@ -25,9 +25,9 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
         [SerializeField] private GameObject playerListEntry;
 
         [Header("Map Display")]
-        [SerializeField] private Image mapImage;
         [SerializeField] private Button leftButton;
         [SerializeField] private Button rightButton;
+        [SerializeField] private Image mapThumbnailImage;
         [SerializeField] private TextMeshProUGUI mapName;
         [SerializeField] private MapSelectionData mapSelectionData;
 
@@ -41,7 +41,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
         [SerializeField] private TextMeshProUGUI readyUnreadyButtonText;
 
         private int currentMapIndex = 0;
-        [SerializeField] private ResultHandler resultHandler;
+        // [SerializeField] private ResultHandler resultHandler;
 
         private void OnEnable()
         {
@@ -100,8 +100,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
                 rightButton.gameObject.SetActive(false);
             }
             else
-                await GameLobbyManager.Instance.SetSelectedMap(currentMapIndex, mapSelectionData.Maps[currentMapIndex].MapSceneName);
-
+                await GameLobbyManager.Instance.SetSelectedMap(currentMapIndex);
             UpdateReadyButton(false);
         }
 
@@ -113,10 +112,8 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
             OperationResult result = await LobbyManager.Instance.LeaveLobby();
             leaveLoadingBar.StopLoading();
 
-            if (result.Status == ResultStatus.Success)
-                SceneTransitionManager.Instance.SetPendingNotification(result, NotificationType.Success);
-            else
-                resultHandler.HandleResult(result);
+            if (result.Status == ResultStatus.Failure)
+                NotificationManager.Instance.HandleResult(result);
 
             leaveButton.interactable = true;
         }
@@ -133,7 +130,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
         private void OnLobbyCodeClicked()
         {
             GUIUtility.systemCopyBuffer = LobbyManager.Instance.LobbyCode;
-            resultHandler.HandleResult(OperationResult.SuccessResult("LobbyCode", $"Lobby code: {LobbyManager.Instance.LobbyCode} copied to clipboard"));
+            NotificationManager.Instance.HandleResult(OperationResult.SuccessResult("LobbyCode", $"Lobby code: {LobbyManager.Instance.LobbyCode} copied to clipboard"));
         }
 
         #region Ready Status Management
@@ -218,7 +215,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
                 currentMapIndex = mapSelectionData.Maps.Count - 1;
 
             UpdateMap();
-            await GameLobbyManager.Instance.SetSelectedMap(currentMapIndex, mapSelectionData.Maps[currentMapIndex].MapSceneName);
+            await GameLobbyManager.Instance.SetSelectedMap(currentMapIndex);
 
             await Task.Delay(1200);
             leftButton.interactable = true;
@@ -233,7 +230,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
                 currentMapIndex = 0;
 
             UpdateMap();
-            await GameLobbyManager.Instance.SetSelectedMap(currentMapIndex, mapSelectionData.Maps[currentMapIndex].MapSceneName);
+            await GameLobbyManager.Instance.SetSelectedMap(currentMapIndex);
 
             await Task.Delay(1200);
             rightButton.interactable = true;
@@ -242,9 +239,8 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
         private void UpdateMap()
         {
             // send system chat message
-
-            mapImage.color = mapSelectionData.Maps[currentMapIndex].MapThumbnail;
             mapName.text = mapSelectionData.Maps[currentMapIndex].MapName;
+            mapThumbnailImage.sprite = mapSelectionData.Maps[currentMapIndex].MapThumbnail;
         }
 
         #endregion

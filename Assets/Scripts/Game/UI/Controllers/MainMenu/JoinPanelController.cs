@@ -1,7 +1,6 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using Assets.Scripts.Testing;
 using System.Collections.Generic;
 using Assets.Scripts.Game.Managers;
 using Unity.Services.Lobbies.Models;
@@ -9,6 +8,7 @@ using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Game.UI.Components;
 using Assets.Scripts.Framework.Utilities;
 using Assets.Scripts.Game.UI.Components.ListEntries;
+using System.Threading.Tasks;
 
 namespace Assets.Scripts.Game.UI.Controllers.MainMenu
 {
@@ -17,15 +17,17 @@ namespace Assets.Scripts.Game.UI.Controllers.MainMenu
     /// </summary>
     public class JoinPanelController : BasePanel
     {
+        [Header("List Components")]
+        [SerializeField] private GameObject lobbyItemPrefab;
+        [SerializeField] private Transform lobbyListContainer;
+
+
+        [Header("Footer Components")]
         [SerializeField] private Button joinButton;
         [SerializeField] private Button refreshButton;
         [SerializeField] private LoadingBar joinLoadingBar;
-        [SerializeField] private GameObject lobbyItemPrefab;
-        [SerializeField] private ResultHandler resultHandler;
-        [SerializeField] private Transform lobbyListContainer;
         [SerializeField] private LoadingBar refreshLoadingBar;
         [SerializeField] private TMP_InputField lobbyCodeInput;
-
 
         protected override void OnEnable()
         {
@@ -77,20 +79,15 @@ namespace Assets.Scripts.Game.UI.Controllers.MainMenu
             joinButton.interactable = false;
 
             joinLoadingBar.StartLoading();
-            await Tests.TestDelay(1000);
-
             OperationResult result;
             if (!string.IsNullOrEmpty(lobbyCodeInput.text) && lobbyCodeInput.text.Length == 6)
                 result = await GameLobbyManager.Instance.JoinLobbyByCode(lobbyCodeInput.text);
             else
                 result = await GameLobbyManager.Instance.JoinLobbyById(LobbyListManager.Instance.SelectedLobby.Id);
-
             joinLoadingBar.StopLoading();
 
-            if (result.Status == ResultStatus.Success)
-                SceneTransitionManager.Instance.SetPendingNotification(result, NotificationType.Success);
-            else
-                resultHandler.HandleResult(result);
+            if (result.Status == ResultStatus.Failure)
+                NotificationManager.Instance.HandleResult(result);
 
             joinButton.interactable = true;
         }
@@ -135,14 +132,11 @@ namespace Assets.Scripts.Game.UI.Controllers.MainMenu
             LobbyListManager.Instance.SelectLobby(lobby);
 
             joinLoadingBar.StartLoading();
-            await Tests.TestDelay(1000);
             var result = await GameLobbyManager.Instance.JoinLobbyById(LobbyListManager.Instance.SelectedLobby.Id);
             joinLoadingBar.StopLoading();
 
-            if (result.Status == ResultStatus.Success)
-                SceneTransitionManager.Instance.SetPendingNotification(result, NotificationType.Success);
-            else
-                resultHandler.HandleResult(result);
+            if (result.Status == ResultStatus.Failure)
+                NotificationManager.Instance.HandleResult(result);
 
             joinButton.interactable = true;
         }
@@ -155,11 +149,11 @@ namespace Assets.Scripts.Game.UI.Controllers.MainMenu
             refreshButton.interactable = false;
 
             refreshLoadingBar.StartLoading();
-            await Tests.TestDelay(1000);
-            var result = await LobbyListManager.Instance.RefreshLobbyList();
+            OperationResult result = await LobbyListManager.Instance.RefreshLobbyList();
             refreshLoadingBar.StopLoading();
 
-            resultHandler.HandleResult(result);
+            NotificationManager.Instance.HandleResult(result);
+            await Task.Delay(1000);
             refreshButton.interactable = true;
         }
     }
