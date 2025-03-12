@@ -28,7 +28,7 @@ public class playerControllerTest : MonoBehaviour
     public int maxJumps = 2;
     bool isGrounded = false;
     public float forceAmount = 10f;
-
+    private bool isFalling = false;
 
     //gathering input
     private float horizontalInput;
@@ -75,6 +75,15 @@ public class playerControllerTest : MonoBehaviour
         {
             jumpCount = 0;
         }
+        if (Input.GetKey(KeyCode.LeftControl) && !isFalling)
+        {
+            rb.AddForce(new Vector2(0, FALL_FORCE), ForceMode2D.Impulse);
+            isFalling = true;
+        }
+        if (Input.GetKeyUp(KeyCode.LeftControl))
+        {
+            isFalling = false;
+        }
         //Debug.Log("isGrounded: " + isGrounded);
     }
 
@@ -113,12 +122,12 @@ public class playerControllerTest : MonoBehaviour
         */
         jumpInput = false;
 
-        if (crouchInput)
+        /*if (crouchInput)
         {
             rb.AddForce(new Vector2(0, FALL_FORCE), ForceMode2D.Impulse);
 
             crouchInput = false;
-        }
+        }*/
     }
 
     private void TryJump(InputAction.CallbackContext val)
