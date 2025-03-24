@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Assets.Scripts.Game.Data;
 using Assets.Scripts.Game.Managers;
 using Unity.Services.Lobbies.Models;
+using Assets.Scripts.Framework.Types;
 using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Game.UI.Components;
@@ -15,52 +16,44 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
 {
     public class LobbyPanelController : MonoBehaviour
     {
-        [Header("Header")]
+        [Header("Header Components")]
         [SerializeField] private Button lobbyCodeButton;
         [SerializeField] private TextMeshProUGUI lobbyNameText;
         [SerializeField] private TextMeshProUGUI lobbyCodeText;
 
-        [Header("Player List")]
+        [Header("Player List Components")]
         [SerializeField] private Transform playerList;
         [SerializeField] private GameObject playerListEntry;
 
-        [Header("Map Display")]
+        [Header("Map Display Components")]
         [SerializeField] private Button leftButton;
         [SerializeField] private Button rightButton;
         [SerializeField] private Image mapThumbnailImage;
         [SerializeField] private TextMeshProUGUI mapName;
         [SerializeField] private MapSelectionData mapSelectionData;
 
-        [Header("Footer")]
+        [Header("Footer Components")]
         [SerializeField] private Button startButton;
         [SerializeField] private Button leaveButton;
         [SerializeField] private Button readyUnreadyButton;
-        [SerializeField] private LoadingBar leaveLoadingBar;
         [SerializeField] private TextMeshProUGUI startButtonText;
+        [SerializeField] private LoadingBar leaveButtonLoadingBar;
+        [SerializeField] private LoadingBar startButtonLoadingBar;
         [SerializeField] private LoadingBar readyUnreadyLoadingBar;
+        [SerializeField] private TextMeshProUGUI lobbyGameModeText;
+        [SerializeField] private TextMeshProUGUI lobbyRoundCountText;
         [SerializeField] private TextMeshProUGUI readyUnreadyButtonText;
 
         private int currentMapIndex = 0;
-        // [SerializeField] private ResultHandler resultHandler;
 
         private void OnEnable()
         {
-            leftButton.onClick.AddListener(OnLeftClicked);
-            rightButton.onClick.AddListener(OnRightClicked);
-            startButton.onClick.AddListener(OnStartClicked);
-            leaveButton.onClick.AddListener(OnLeaveClicked);
-            lobbyCodeButton.onClick.AddListener(OnLobbyCodeClicked);
-            readyUnreadyButton.onClick.AddListener(OnReadyUnreadyClicked);
+            ConfigureUIBasedOnHostStatus();
 
             LobbyEvents.OnLobbyUpdated += OnLobbyUpdated;
-            // LobbyEvents.OnPlayerJoined += OnPlayerJoined;
-            // LobbyEvents.OnPlayerLeft += OnPlayerLeft;
-            // LobbyEvents.OnPlayerDataChanged += OnPlayerDataChanged;
-
+            LobbyEvents.OnHostMigrated += OnHostMigrated;
             Events.LobbyEvents.OnAllPlayersReady += OnLobbyReady;
             Events.LobbyEvents.OnNotAllPlayersReady += OnLobbyNotReady;
-
-            startButton.interactable = false;
         }
 
         private void OnDisable()
@@ -73,60 +66,101 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
             readyUnreadyButton.onClick.RemoveListener(OnReadyUnreadyClicked);
 
             LobbyEvents.OnLobbyUpdated -= OnLobbyUpdated;
-            // LobbyEvents.OnPlayerJoined -= OnPlayerJoined;
-            // LobbyEvents.OnPlayerLeft -= OnPlayerLeft;
-            // LobbyEvents.OnPlayerDataChanged -= OnPlayerDataChanged;
-
+            LobbyEvents.OnHostMigrated -= OnHostMigrated;
             Events.LobbyEvents.OnAllPlayersReady -= OnLobbyReady;
             Events.LobbyEvents.OnNotAllPlayersReady -= OnLobbyNotReady;
 
-            leaveLoadingBar.StopLoading();
+            startButtonLoadingBar.StopLoading();
+            leaveButtonLoadingBar.StopLoading();
             readyUnreadyLoadingBar.StopLoading();
-        }
-
-        private void OnPlayerJoined(Player player)
-        {
-        }
-
-        private void OnPlayerLeft(Player player)
-        {
         }
 
         async void Start()
         {
-            lobbyNameText.text = $"{LobbyManager.Instance.LobbyName}" + (LobbyManager.Instance.IsPrivate ? " (Private)" : "");
-            lobbyCodeText.text = $"Code: {LobbyManager.Instance.LobbyCode}";
+            OnLobbyUpdated(LobbyManager.Instance.lobby);
 
-            if (!LobbyManager.Instance.IsLobbyHost)
+            if (LobbyManager.Instance.IsLobbyHost)
+                await GameLobbyManager.Instance.SetSelectedMap(currentMapIndex);
+        }
+
+        private void OnHostMigrated(string newHostId)
+        {
+            Debug.Log($"Host migrated to: {newHostId}. Local player ID: {AuthenticationManager.Instance.PlayerId}");
+
+            bool isNowHost = newHostId == AuthenticationManager.Instance.PlayerId;
+            ConfigureUIBasedOnHostStatus();
+
+            if (isNowHost)
+                NotificationManager.Instance.HandleResult(OperationResult.SuccessResult("HostMigration", "You are now the lobby host"));
+            else
+                NotificationManager.Instance.HandleResult(OperationResult.WarningResult("HostMigration", "The lobby has a new host"));
+        }
+
+        private void ConfigureUIBasedOnHostStatus()
+        {
+            leftButton.onClick.RemoveListener(OnLeftClicked);
+            rightButton.onClick.RemoveListener(OnRightClicked);
+            startButton.onClick.RemoveListener(OnStartClicked);
+            readyUnreadyButton.onClick.RemoveListener(OnReadyUnreadyClicked);
+
+            leaveButton.onClick.AddListener(OnLeaveClicked);
+            lobbyCodeButton.onClick.AddListener(OnLobbyCodeClicked);
+
+            bool isHost = LobbyManager.Instance.IsLobbyHost;
+            Debug.Log($"Configuring UI. Is Host: {isHost}");
+
+            if (isHost)
+            {
+                leftButton.gameObject.SetActive(true);
+                rightButton.gameObject.SetActive(true);
+                startButton.gameObject.SetActive(true);
+                readyUnreadyButton.gameObject.SetActive(false);
+
+                leftButton.onClick.AddListener(OnLeftClicked);
+                rightButton.onClick.AddListener(OnRightClicked);
+                startButton.onClick.AddListener(OnStartClicked);
+
+                startButton.interactable = false;
+            }
+            else
             {
                 leftButton.gameObject.SetActive(false);
                 rightButton.gameObject.SetActive(false);
+                startButton.gameObject.SetActive(false);
+                readyUnreadyButton.gameObject.SetActive(true);
+
+                readyUnreadyButton.onClick.AddListener(OnReadyUnreadyClicked);
+
+                bool isReady = GameLobbyManager.Instance.IsPlayerReady(AuthenticationManager.Instance.PlayerId);
+                UpdateReadyButton(isReady);
             }
-            else
-                await GameLobbyManager.Instance.SetSelectedMap(currentMapIndex);
-            UpdateReadyButton(false);
+
+            leaveButton.gameObject.SetActive(true);
+            lobbyCodeButton.gameObject.SetActive(true);
         }
 
         private async void OnLeaveClicked()
         {
             leaveButton.interactable = false;
 
-            leaveLoadingBar.StartLoading();
+            leaveButtonLoadingBar.StartLoading();
             OperationResult result = await LobbyManager.Instance.LeaveLobby();
-            leaveLoadingBar.StopLoading();
+            leaveButtonLoadingBar.StopLoading();
 
-            if (result.Status == ResultStatus.Failure)
+            if (result.Status == ResultStatus.Error)
                 NotificationManager.Instance.HandleResult(result);
 
             leaveButton.interactable = true;
         }
+
         private void OnLobbyUpdated(Lobby lobby)
         {
-            lobbyNameText.text = $"{LobbyManager.Instance.LobbyName}" + (LobbyManager.Instance.IsPrivate ? " (Private)" : "");
-            lobbyCodeText.text = $"Code: {LobbyManager.Instance.LobbyCode}";
+            lobbyNameText.text = $"{LobbyManager.Instance.LobbyName}" + (LobbyManager.Instance.IsPrivate ? " (PRIVATE)" : "");
+            lobbyCodeText.text = $"CODE: {LobbyManager.Instance.LobbyCode}";
+            lobbyRoundCountText.text = $"{LobbyManager.Instance.RoundCount}" + (LobbyManager.Instance.RoundCount > 1 ? " ROUNDS" : " ROUND");
+            lobbyGameModeText.text = $"{LobbyManager.Instance.GameMode} MODE";
 
             currentMapIndex = GameLobbyManager.Instance.GetMapIndex();
-
             UpdateMap();
         }
 
@@ -136,8 +170,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
             NotificationManager.Instance.HandleResult(OperationResult.SuccessResult("LobbyCode", $"Lobby code: {LobbyManager.Instance.LobbyCode} copied to clipboard"));
         }
 
-        #region Ready Status Management
-
+        #region Ready Status
         private async void OnReadyUnreadyClicked()
         {
             readyUnreadyButton.interactable = false;
@@ -189,7 +222,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
         {
             // send system chat message
 
-            startButtonText.text = $"{playersReady}/{maxPlayerCount} READY";
+            startButtonText.text = $"{playersReady + 1}/{maxPlayerCount} READY";
 
             if (LobbyManager.Instance.IsLobbyHost)
                 startButton.interactable = false;
@@ -199,13 +232,17 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
         {
             startButton.interactable = false;
 
-            await GameLobbyManager.Instance.StartGame(mapSelectionData.Maps[currentMapIndex].MapName, mapSelectionData.Maps[currentMapIndex].MapThumbnail, mapSelectionData.Maps[currentMapIndex].MapSceneName);
-        }
+            startButtonLoadingBar.StartLoading();
+            Debug.Log("Starting...");
+            await Task.Delay(2000);
+            startButtonLoadingBar.StopLoading();
 
+            await GameLobbyManager.Instance.SetAllPlayersUnready();
+            // await GameLobbyManager.Instance.StartGame(mapSelectionData.Maps[currentMapIndex].MapName, mapSelectionData.Maps[currentMapIndex].MapThumbnail, mapSelectionData.Maps[currentMapIndex].MapSceneName);
+        }
         #endregion
 
         #region Map Selection
-
         private async void OnLeftClicked()
         {
             leftButton.interactable = false;
@@ -239,10 +276,9 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
         private void UpdateMap()
         {
             // send system chat message
-            mapName.text = mapSelectionData.Maps[currentMapIndex].MapName;
-            mapThumbnailImage.sprite = mapSelectionData.Maps[currentMapIndex].MapThumbnail;
+            mapName.text = mapSelectionData.Maps[currentMapIndex].Name;
+            mapThumbnailImage.sprite = mapSelectionData.Maps[currentMapIndex].Thumbnail;
         }
-
         #endregion
     }
 }

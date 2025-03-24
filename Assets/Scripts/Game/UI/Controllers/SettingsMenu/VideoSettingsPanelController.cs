@@ -173,6 +173,8 @@ namespace Assets.Scripts.Game.UI.Controllers.SettingsMenu
 
             PlayerPrefs.Save();
 
+            _originalFullscreen = fullscreenToggle.isOn;
+
             ResetChangeTracking();
         }
     }

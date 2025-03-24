@@ -1,5 +1,7 @@
 using TMPro;
 using UnityEngine;
+using Assets.Scripts.Game.Managers;
+using Assets.Scripts.Framework.Types;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Game.UI.Components;
 using Assets.Scripts.Framework.Utilities;
@@ -11,9 +13,8 @@ namespace Assets.Scripts.Game.UI.Controllers.InitializationMenu
     /// </summary>
     public class InitializationPanelController : MonoBehaviour
     {
-        [Header("Components")]
-        [SerializeField] private TextMeshProUGUI statusText;
-        [SerializeField] private LoadingBar initializeLoadingBar;
+        [Header("UI Components")]
+        [SerializeField] private LoadingStatus loadingStatus;
 
 
         /// <summary>
@@ -23,15 +24,17 @@ namespace Assets.Scripts.Game.UI.Controllers.InitializationMenu
         /// </summary>
         public async void Start()
         {
-            initializeLoadingBar.StartLoading();
-            statusText.text = "Initializing...";
-            await Tests.LoadingTest(1000);
-            OperationResult result = await AuthenticationManager.Instance.InitializeAsync();
-            initializeLoadingBar.StopLoading();
+            loadingStatus.UpdateStatus("Initializing...");
+            loadingStatus.StartLoading();
 
-            if (result.Status == ResultStatus.Failure)
+            await Tests.LoadingTest(1000);
+
+            OperationResult result = await AuthenticationManager.Instance.InitializeAsync();
+
+            if (result.Status == ResultStatus.Error)
             {
-                statusText.text = "Initialization failed.";
+                loadingStatus.StopLoading();
+                loadingStatus.UpdateStatus("Initialization failed");
                 NotificationManager.Instance.HandleResult(result, () => Start());
             }
 

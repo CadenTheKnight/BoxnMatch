@@ -1,13 +1,12 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.Events;
 
 namespace Assets.Scripts.Game.UI.Components
 {
     public class NumberSelector : MonoBehaviour
     {
-        [Header("Components")]
+        [Header("UI Components")]
         [SerializeField] private Button decrementButton;
         [SerializeField] private Button incrementButton;
         [SerializeField] private TextMeshProUGUI valueText;
@@ -17,9 +16,6 @@ namespace Assets.Scripts.Game.UI.Components
         [SerializeField] private int maxValue = 99;
         [SerializeField] private int startValue = 1;
         [SerializeField] private int stepSize = 2;
-
-        // public delegate void ValueChangedHandler(int newValue);
-        // public static event ValueChangedHandler OnValueChanged;
 
         public int Value { get; private set; }
 
@@ -47,7 +43,6 @@ namespace Assets.Scripts.Game.UI.Components
             {
                 Value -= stepSize;
                 UpdateUI();
-                // OnValueChanged.Invoke(Value);
             }
         }
 
@@ -57,14 +52,12 @@ namespace Assets.Scripts.Game.UI.Components
             {
                 Value += stepSize;
                 UpdateUI();
-                // OnValueChanged.Invoke(Value);
             }
         }
 
         private void UpdateUI()
         {
             valueText.text = Value.ToString();
-
             decrementButton.interactable = Value > minValue;
             incrementButton.interactable = Value < maxValue;
         }
@@ -77,7 +70,6 @@ namespace Assets.Scripts.Game.UI.Components
             {
                 Value = newValue;
                 UpdateUI();
-                // OnValueChanged.Invoke(Value);
             }
         }
     }

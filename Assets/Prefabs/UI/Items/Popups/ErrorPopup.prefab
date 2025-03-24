@@ -1340,6 +1340,10 @@ PrefabInstance:
       value: RetryButton
       objectReference: {fileID: 0}
     - target: {fileID: 7398740324191925062, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
+      propertyPath: m_text
+      value: RETRY
+      objectReference: {fileID: 0}
+    - target: {fileID: 7398740324191925062, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       propertyPath: m_fontSize
       value: 34.1
       objectReference: {fileID: 0}

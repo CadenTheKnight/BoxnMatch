@@ -3,11 +3,10 @@ using Unity.Services.Core;
 using System.Threading.Tasks;
 using Assets.Scripts.Framework.Core;
 using Unity.Services.Authentication;
+using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Utilities;
 
-// Todo
-// 1. Steam integration
-// 2. ?
+// Still need to add steam integration
 
 namespace Assets.Scripts.Framework.Managers
 {
@@ -16,12 +15,6 @@ namespace Assets.Scripts.Framework.Managers
     /// </summary>
     public class AuthenticationManager : Singleton<AuthenticationManager>
     {
-        /// <summary>
-        /// Event that is invoked when the player is authenticated.
-        /// </summary>
-        public delegate void AuthenticatedHandler();
-        public static event AuthenticatedHandler OnAuthenticated;
-
         /// <summary>
         /// The player's ID.
         /// </summary>
@@ -46,21 +39,22 @@ namespace Assets.Scripts.Framework.Managers
         /// <summary>
         /// Initializes Unity Services and signs in the player anonymously.
         /// </summary>
-        /// <returns>An OperationResult indicating success or failure.</returns>
+        /// <returns>OperationResult indicating success or failure.</returns>
         public async Task<OperationResult> InitializeAsync()
         {
             try
             {
                 await UnityServices.InitializeAsync();
                 await AuthenticationService.Instance.SignInAnonymouslyAsync();
+
                 if (string.IsNullOrEmpty(PlayerPrefs.GetString("PlayerName"))) GenerateAndSaveRandomPlayerName();
 
-                OnAuthenticated?.Invoke();
+                AuthenticationEvents.InvokeOnAuthenticated(PlayerPrefs.GetString("PlayerName"));
                 return OperationResult.SuccessResult("Authenticated", $"Signed in as: {PlayerPrefs.GetString("PlayerName")}");
             }
             catch (System.Exception authEx)
             {
-                return OperationResult.FailureResult("AuthenticationError", authEx.Message);
+                return OperationResult.ErrorResult("AuthenticationError", authEx.Message);
             }
         }
     }

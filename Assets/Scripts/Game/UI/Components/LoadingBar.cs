@@ -1,9 +1,5 @@
 using UnityEngine;
 
-// Todo
-// 1. Check functionality on different screen sizes
-// 2. ?
-
 namespace Assets.Scripts.Game.UI.Components
 {
     /// <summary>

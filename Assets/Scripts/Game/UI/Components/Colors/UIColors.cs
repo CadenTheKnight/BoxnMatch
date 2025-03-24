@@ -13,6 +13,9 @@ namespace Assets.Scripts.Game.UI.Components.Colors
         [SerializeField] public static Color primaryPressedColor = new(0.455f, 0.490f, 0.549f); // 747D8C
         [SerializeField] public static Color primaryDisabledColor = new(0.34f, 0.38f, 0.44f); // 57606F
 
+        [Header("Secondary Colors")]
+        [SerializeField] public static Color secondaryDisabledColor = new(0.87f, 0.89f, 0.92f); // DFE4EA
+
         [Header("Green Colors")]
         [SerializeField] public static Color greenDefaultColor = new(0.18f, 0.84f, 0.45f); // 2ED573
         [SerializeField] public static Color greenHoverColor = new(0.48f, 0.93f, 0.62f);   // 7BED9F
@@ -24,5 +27,6 @@ namespace Assets.Scripts.Game.UI.Components.Colors
         [Header("Red Colors")]
         [SerializeField] public static Color redDefaultColor = new(0.91f, 0.3f, 0.24f); // E74C3C
         [SerializeField] public static Color redHoverColor = new(0.95f, 0.45f, 0.35f);   // F16F5A
+
     }
 }

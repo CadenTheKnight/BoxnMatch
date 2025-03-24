@@ -29,7 +29,7 @@ public class PlayerController : NetworkBehaviour
     //gathering input
     private float horizontalInput;
     private bool jumpInput;
-    private bool crouchInput;
+    // private bool crouchInput;
 
 
     // Start is called before the first frame update
@@ -189,6 +189,6 @@ public class PlayerController : NetworkBehaviour
     {
         if (!IsOwner) return;
 
-        if (val.performed) crouchInput = true;
+        // if (val.performed) crouchInput = true;
     }
 }

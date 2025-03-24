@@ -8,26 +8,25 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 {
     public class LobbyListEntry : MonoBehaviour
     {
-        [SerializeField] private Button joinButton;
+        [Header("UI Components")]
+        [SerializeField] private Button lobbyButton;
         [SerializeField] private TextMeshProUGUI gameModeText;
         [SerializeField] private TextMeshProUGUI lobbyNameText;
         [SerializeField] private TextMeshProUGUI lobbyStatusText;
         [SerializeField] private TextMeshProUGUI playerCountText;
 
-        private Lobby lobby;
-        public bool isSelected;
+        private string lobbyId;
         private float lastClickTime;
         private const float doubleClickTimeThreshold = 0.3f;
 
         private void OnEnable()
         {
-            joinButton.onClick.AddListener(HandleClick);
-            isSelected = false;
+            lobbyButton.onClick.AddListener(HandleClick);
         }
 
         private void OnDestroy()
         {
-            joinButton.onClick.RemoveListener(HandleClick);
+            lobbyButton.onClick.RemoveListener(HandleClick);
         }
 
         private void HandleClick()
@@ -35,20 +34,16 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             float timeSinceLastClick = Time.time - lastClickTime;
 
             if (timeSinceLastClick <= doubleClickTimeThreshold)
-                LobbyEvents.InvokeLobbyDoubleClicked(lobby);
+                LobbyEvents.InvokeLobbyDoubleClicked(lobbyId);
             else
-            {
-                isSelected = true;
-                LobbyEvents.InvokeLobbySelected(lobby, this);
-            }
+                LobbyEvents.InvokeLobbySelected(lobbyId, this);
 
             lastClickTime = Time.time;
         }
 
         public void SetLobby(Lobby lobby)
         {
-            this.lobby = lobby;
-
+            lobbyId = lobby.Id;
             lobbyNameText.text = lobby.Name;
             playerCountText.text = $"{lobby.Players.Count}/{lobby.MaxPlayers}";
             gameModeText.text = lobby.Data["GameMode"].Value;

@@ -1,54 +1,40 @@
-using System;
+using UnityEngine;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Core;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Framework.Utilities;
-using Assets.Scripts.Game.Data;
-using Unity.Services.Lobbies;
+using Assets.Scripts.Game.UI.Components.ListEntries;
 
 namespace Assets.Scripts.Game.Managers
 {
     /// <summary>
     /// Manages the list of available lobbies and handles joining operations.
     /// </summary>
-    public class LobbyListManager : Singleton<LobbyListManager>
+    public class LobbyListManager : MonoBehaviour
     {
-        public event Action<Lobby> OnLobbySelected;
-        public event Action OnLobbySelectionCleared;
+        [Header("List Components")]
+        [SerializeField] private GameObject lobbyItemPrefab;
+        [SerializeField] private Transform lobbyListContainer;
 
-        private Lobby _selectedLobby;
-
-        /// <summary>
-        /// Gets the currently selected lobby.
-        /// </summary>
-        public Lobby SelectedLobby => _selectedLobby;
-
-        private List<Lobby> _availableLobbies = new();
-
-        /// <summary>
-        /// Gets the list of available lobbies.
-        /// </summary>
-        public List<Lobby> AvailableLobbies => _availableLobbies;
+        private string _selectedLobbyId;
+        public string SelectedLobbyId => _selectedLobbyId;
 
         /// <summary>
         /// Sets the selected lobby.
         /// </summary>
-        /// <param name="lobby">The lobby to select.</param>
-        public void SelectLobby(Lobby lobby)
+        /// <param name="lobbyId">The ID of the selected lobby.</param>
+        public void SelectLobby(string lobbyId)
         {
-            _selectedLobby = lobby;
-            OnLobbySelected?.Invoke(lobby);
+            _selectedLobbyId = lobbyId;
         }
-
         /// <summary>
         /// Clears the selected lobby.
         /// </summary>
         public void ClearSelection()
         {
-            _selectedLobby = null;
-            OnLobbySelectionCleared?.Invoke();
+            _selectedLobbyId = null;
         }
 
         /// <summary>
@@ -60,6 +46,22 @@ namespace Assets.Scripts.Game.Managers
             ClearSelection();
 
             return await LobbyManager.Instance.GetLobbies();
+        }
+
+        /// <summary>
+        /// Updates the lobby list with the provided lobbies.
+        /// </summary>
+        /// <param name="lobbies">The list of lobbies to display.</param>
+        public void UpdateLobbyList(List<Lobby> lobbies)
+        {
+            foreach (LobbyListEntry entry in lobbyListContainer)
+                Destroy(entry.gameObject);
+
+            foreach (Lobby lobby in lobbies)
+            {
+                LobbyListEntry lobbyItem = Instantiate(lobbyItemPrefab, lobbyListContainer).GetComponent<LobbyListEntry>();
+                lobbyItem.SetLobby(lobby);
+            }
         }
     }
 }

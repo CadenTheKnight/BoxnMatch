@@ -1,8 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
+using Assets.Scripts.Game.Managers;
 using Assets.Scripts.Game.UI.Components;
 using Assets.Scripts.Framework.Utilities;
-using Assets.Scripts.Game.UI.Components.Colors;
 
 namespace Assets.Scripts.Game.UI.Controllers.SettingsMenu
 {

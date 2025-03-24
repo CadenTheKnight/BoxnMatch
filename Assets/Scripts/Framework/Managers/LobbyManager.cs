@@ -9,7 +9,6 @@ using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Utilities;
 
-
 namespace Assets.Scripts.Framework.Managers
 {
     /// <summary>
@@ -18,7 +17,6 @@ namespace Assets.Scripts.Framework.Managers
     public class LobbyManager : Singleton<LobbyManager>
     {
         #region Public Properties
-
         public Lobby lobby;
         public string LobbyName => lobby.Name;
         public bool IsPrivate => lobby.IsPrivate;
@@ -28,16 +26,15 @@ namespace Assets.Scripts.Framework.Managers
         public bool IsHostId(string playerId) => lobby.HostId == playerId;
         public bool IsLobbyHost => lobby.HostId == AuthenticationService.Instance.PlayerId;
         public int PlayerCount => lobby.Players.Count;
-        public int MaxPlayers => lobby.MaxPlayers;
+        public int MaxPlayers => int.Parse(lobby.Data["MaxPlayers"].Value);
+        public int RoundCount => int.Parse(lobby.Data["RoundCount"].Value);
         public string GameMode => lobby.Data["GameMode"].Value;
         public bool IsGameInProgress => lobby.Data["GameInProgress"].Value == "true";
-        public string RelayJoinCode => lobby.Data["JoinCode"].Value ?? string.Empty;
+        public string RelayJoinCode => lobby.Data["JoinCode"].Value ?? default;
         public IReadOnlyList<Player> Players => IsInLobby ? lobby.Players : new List<Player>();
-
         #endregion
 
         #region Lifecycle Methods
-
         private Coroutine heartbeatCoroutine;
         private Coroutine refreshCoroutine;
 
@@ -71,19 +68,13 @@ namespace Assets.Scripts.Framework.Managers
 
                 lobby = task.Result;
                 LobbyEvents.InvokeLobbyUpdated(lobby);
+
                 yield return new WaitForSecondsRealtime(refreshIntervalSeconds);
             }
         }
-
         #endregion
 
         #region Lobby Management
-
-        // void Start()
-        // {
-        //     Application.wantsToQuit += OnApplicationQuit;
-        // }
-
         /// <summary>
         /// Creates a new lobby with the specified parameters.
         /// </summary>
@@ -105,20 +96,18 @@ namespace Assets.Scripts.Framework.Managers
             try
             {
                 lobby = await LobbyService.Instance.CreateLobbyAsync(serializedLobbyData["LobbyName"].Value, int.Parse(serializedLobbyData["MaxPlayers"].Value), createLobbyOptions);
-
-                LobbyEvents.InvokeLobbyCreated(lobby);
                 heartbeatCoroutine = StartCoroutine(HeartbeatCoroutine(lobby.Id, 6f));
                 refreshCoroutine = StartCoroutine(RefreshCoroutine(lobby.Id, 1f));
+
+                LobbyEvents.InvokeLobbyCreated(lobby);
 
                 return OperationResult.SuccessResult("LobbyCreated", $"Lobby: {lobby.Name} created");
             }
             catch (LobbyServiceException e)
             {
-                return OperationResult.FailureResult(e.ErrorCode.ToString(), e.Message);
+                return OperationResult.ErrorResult(e.ErrorCode.ToString(), e.Message);
             }
         }
-
-
 
         /// <summary>
         /// Joins a lobby using its code.
@@ -136,16 +125,16 @@ namespace Assets.Scripts.Framework.Managers
             try
             {
                 lobby = await LobbyService.Instance.JoinLobbyByCodeAsync(lobbyCode, joinLobbyByCodeOptions);
-
                 refreshCoroutine = StartCoroutine(RefreshCoroutine(lobby.Id, 1f));
 
                 LobbyEvents.InvokeLobbyJoined(lobby);
+                LobbyEvents.InvokePlayerJoined(playerData["PlayerName"]);
 
-                return OperationResult.SuccessResult("LobbyJoined", $"Joined lobby by code: {lobbyCode}");
+                return OperationResult.SuccessResult("LobbyJoined", $"Joined lobby: {lobby.Name} by code: {lobbyCode}");
             }
             catch (LobbyServiceException e)
             {
-                return OperationResult.FailureResult(e.ErrorCode.ToString(), e.Message);
+                return OperationResult.ErrorResult(e.ErrorCode.ToString(), e.Message);
             }
         }
 
@@ -165,16 +154,16 @@ namespace Assets.Scripts.Framework.Managers
             try
             {
                 lobby = await LobbyService.Instance.JoinLobbyByIdAsync(lobbyId, joinLobbyByIdOptions);
-
                 refreshCoroutine = StartCoroutine(RefreshCoroutine(lobby.Id, 1f));
 
                 LobbyEvents.InvokeLobbyJoined(lobby);
+                LobbyEvents.InvokePlayerJoined(playerData["PlayerName"]);
 
-                return OperationResult.SuccessResult("LobbyJoined", $"Joined lobby by Id: {lobbyId}");
+                return OperationResult.SuccessResult("LobbyJoined", $"Joined lobby: {lobby.Name} by Id: {lobbyId}");
             }
             catch (LobbyServiceException e)
             {
-                return OperationResult.FailureResult(e.ErrorCode.ToString(), e.Message);
+                return OperationResult.ErrorResult(e.ErrorCode.ToString(), e.Message);
             }
         }
 
@@ -190,13 +179,14 @@ namespace Assets.Scripts.Framework.Managers
 
                 StopAllCoroutines();
 
-                LobbyEvents.InvokeLobbyLeft();
+                LobbyEvents.InvokeLobbyLeft(lobby);
+                LobbyEvents.InvokePlayerLeft(PlayerPrefs.GetString("PlayerName"));
 
-                return OperationResult.SuccessResult("LeaveLobby", "Left lobby successfully");
+                return OperationResult.SuccessResult("LeaveLobby", $"Left lobby: {lobby.Name}");
             }
             catch (LobbyServiceException e)
             {
-                return OperationResult.FailureResult(e.ErrorCode.ToString(), e.Message);
+                return OperationResult.ErrorResult(e.ErrorCode.ToString(), e.Message);
             }
         }
 
@@ -209,48 +199,37 @@ namespace Assets.Scripts.Framework.Managers
         {
             try
             {
-                await LobbyService.Instance.RemovePlayerAsync(lobby.Id,
-                    lobby?.Players.Find(player => player.Id == playerId)?.Id ?? playerId);
+                await LobbyService.Instance.RemovePlayerAsync(lobby.Id, playerId);
 
                 if (AuthenticationService.Instance.PlayerId == playerId)
+                {
                     StopAllCoroutines();
 
-                LobbyEvents.InvokeLobbyKicked();
+                    LobbyEvents.InvokeLobbyKicked(lobby);
 
-                return OperationResult.SuccessResult("KickPlayer", $"Player {playerId} kicked from lobby");
+                    return OperationResult.SuccessResult("KickPlayer", $"Kicked from lobby: {lobby.Name}");
+                }
+                else
+                {
+                    LobbyEvents.InvokePlayerKicked(playerId);
+
+                    return OperationResult.SuccessResult("KickPlayer", $"Player {playerId} kicked from lobby");
+                }
             }
             catch (LobbyServiceException e)
             {
-                return OperationResult.FailureResult(e.ErrorCode.ToString(), e.Message);
+                return OperationResult.ErrorResult(e.ErrorCode.ToString(), e.Message);
             }
         }
-        // public bool OnApplicationQuit()
-        // {
-        //     if (IsInLobby)
-        //     {
-        //         StartCoroutine(LeaveBeforeQuit());
-        //         return false;
-        //     }
-        //     else
-        //         return true;
-        // }
-
-        // private IEnumerator LeaveBeforeQuit()
-        // {
-        //     var task = LobbyService.Instance.RemovePlayerAsync(lobby.Id, AuthenticationService.Instance.PlayerId);
-
-        //     yield return new WaitUntil(() => task.IsCompleted);
-        //     yield return new WaitUntil(() => lobby == null);
-
-        //     Application.Quit();
-        // }
-
         #endregion
 
         /// <summary>
         /// Retrieves a list of active lobbies.
         /// </summary>
         /// <returns>Operation result indicating success or failure.</returns>
+        /// <remarks>
+        /// Can add additional options to filter the list of lobbies.
+        /// </remarks>
         public async Task<OperationResult> GetLobbies()
         {
             QueryLobbiesOptions queryLobbiesOptions = new()
@@ -262,18 +241,17 @@ namespace Assets.Scripts.Framework.Managers
             {
                 QueryResponse queryResponse = await LobbyService.Instance.QueryLobbiesAsync(queryLobbiesOptions);
 
-                LobbyEvents.InvokeLobbyListChanged(queryResponse.Results);
+                LobbyEvents.InvokeLobbyListUpdated(queryResponse.Results);
 
                 return OperationResult.SuccessResult("GetLobbies", $"Retrieved {queryResponse.Results.Count} lobbies");
             }
             catch (LobbyServiceException e)
             {
-                return OperationResult.FailureResult(e.ErrorCode.ToString(), e.Message);
+                return OperationResult.ErrorResult(e.ErrorCode.ToString(), e.Message);
             }
         }
 
         #region Data Management
-
         public List<Dictionary<string, PlayerDataObject>> GetPlayersData()
         {
             List<Dictionary<string, PlayerDataObject>> playersData = new();
@@ -303,7 +281,7 @@ namespace Assets.Scripts.Framework.Managers
             }
             catch (LobbyServiceException e)
             {
-                return OperationResult.FailureResult(e.ErrorCode.ToString(), e.Message);
+                return OperationResult.ErrorResult(e.ErrorCode.ToString(), e.Message);
             }
         }
 
@@ -324,7 +302,7 @@ namespace Assets.Scripts.Framework.Managers
                 }
                 catch (LobbyServiceException e)
                 {
-                    return OperationResult.FailureResult(e.ErrorCode.ToString(), e.Message);
+                    return OperationResult.ErrorResult(e.ErrorCode.ToString(), e.Message);
                 }
             }
 
@@ -338,9 +316,13 @@ namespace Assets.Scripts.Framework.Managers
                 Data = SerializeLobbyData(lobbyData)
             };
 
+            string oldHostId = lobby.HostId;
+
             try
             {
                 lobby = await LobbyService.Instance.UpdateLobbyAsync(lobby.Id, updateLobbyOptions);
+                if (oldHostId != lobby.HostId)
+                    LobbyEvents.InvokeHostMigrated(lobby.HostId);
 
                 LobbyEvents.InvokeLobbyUpdated(lobby);
 
@@ -348,7 +330,7 @@ namespace Assets.Scripts.Framework.Managers
             }
             catch (LobbyServiceException e)
             {
-                return OperationResult.FailureResult(e.ErrorCode.ToString(), e.Message);
+                return OperationResult.ErrorResult(e.ErrorCode.ToString(), e.Message);
             }
         }
 

@@ -2,6 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Assets.Scripts.Game.Managers;
+using Assets.Scripts.Framework.Types;
 using System.Text.RegularExpressions;
 using Assets.Scripts.Game.UI.Components;
 using Assets.Scripts.Framework.Utilities;
@@ -120,7 +121,7 @@ namespace Assets.Scripts.Game.UI.Controllers.MainMenu
             OperationResult result = await GameLobbyManager.Instance.CreateLobby(lobbyNameInput.text.Trim(), maxPlayers, isPrivate == 1, roundCountSelector.Value);
             createLoadingBar.StopLoading();
 
-            if (result.Status == ResultStatus.Failure)
+            if (result.Status == ResultStatus.Error)
                 NotificationManager.Instance.HandleResult(result);
 
             createLobbyButton.interactable = true;

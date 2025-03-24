@@ -1,6 +1,7 @@
+using System;
 using System.Collections.Generic;
+using Assets.Scripts.Game.Events;
 using Unity.Services.Lobbies.Models;
-using UnityEngine.XR;
 
 namespace Assets.Scripts.Game.Data
 {
@@ -9,56 +10,91 @@ namespace Assets.Scripts.Game.Data
     /// </summary>
     public class LobbyData
     {
-        private string lobbyName;
-        private int maxPlayers;
-        private bool isPrivate;
-        private int roundCount;
-        private int mapIndex;
-        public string gameMode;
-        public string relayJoinCode;
-        public bool inGame;
-        public bool gameStarted;
+        private string _lobbyName;
+        private int _maxPlayers;
+        private bool _isPrivate;
+        private int _roundCount;
+        private int _mapIndex;
+        private string _gameMode;
+        private string _relayJoinCode;
+        private bool _inGame;
+        private bool _gameStarted;
+
+        public string LobbyName
+        {
+            get => _lobbyName;
+            set => SetValue(ref _lobbyName, value, nameof(LobbyName));
+        }
+
+        public int MaxPlayers
+        {
+            get => _maxPlayers;
+            set => SetValue(ref _maxPlayers, value, nameof(MaxPlayers));
+        }
+
+        public bool IsPrivate
+        {
+            get => _isPrivate;
+            set => SetValue(ref _isPrivate, value, nameof(IsPrivate));
+        }
 
         public int RoundCount
         {
-            get => roundCount;
-            set => roundCount = value;
+            get => _roundCount;
+            set => SetValue(ref _roundCount, value, nameof(RoundCount));
         }
 
         public int MapIndex
         {
-            get => mapIndex;
-            set => mapIndex = value;
+            get => _mapIndex;
+            set => SetValue(ref _mapIndex, value, nameof(MapIndex));
+        }
+
+        public string GameMode
+        {
+            get => _gameMode;
+            set => SetValue(ref _gameMode, value, nameof(GameMode));
         }
 
         public string RelayJoinCode
         {
-            get => relayJoinCode;
-            set => relayJoinCode = value;
+            get => _relayJoinCode;
+            set => SetValue(ref _relayJoinCode, value, nameof(RelayJoinCode));
         }
 
         public bool InGame
         {
-            get => inGame;
-            set => inGame = value;
+            get => _inGame;
+            set => SetValue(ref _inGame, value, nameof(InGame));
         }
 
         public bool GameStarted
         {
-            get => gameStarted;
-            set => gameStarted = value;
+            get => _gameStarted;
+            set => SetValue(ref _gameStarted, value, nameof(GameStarted));
+        }
+
+        private void SetValue<T>(ref T field, T value, string propertyName)
+        {
+            if (!EqualityComparer<T>.Default.Equals(field, value))
+            {
+                string oldValue = field?.ToString();
+                field = value;
+                string newValue = value?.ToString();
+                LobbyEvents.InvokeLobbyDataChanged(propertyName, oldValue, newValue);
+            }
         }
 
         public void Initialize(string lobbyName, int maxPlayers, bool isPrivate, int roundCount)
         {
-            this.lobbyName = lobbyName;
-            this.maxPlayers = maxPlayers;
-            this.isPrivate = isPrivate;
-            this.roundCount = roundCount;
-            mapIndex = 0;
-            gameMode = "Standard";
-            inGame = false;
-            gameStarted = false;
+            LobbyName = lobbyName;
+            MaxPlayers = maxPlayers;
+            IsPrivate = isPrivate;
+            RoundCount = roundCount;
+            MapIndex = 0;
+            GameMode = "Standard";
+            InGame = false;
+            GameStarted = false;
         }
 
         public void Initialize(Dictionary<string, DataObject> lobbyData)
@@ -68,38 +104,49 @@ namespace Assets.Scripts.Game.Data
 
         public void UpdateState(Dictionary<string, DataObject> lobbyData)
         {
-            if (lobbyData.ContainsKey("LobbyName"))
-                lobbyName = lobbyData["LobbyName"].Value;
-            if (lobbyData.ContainsKey("MaxPlayers"))
-                maxPlayers = int.Parse(lobbyData["MaxPlayers"].Value);
-            if (lobbyData.ContainsKey("IsPrivate"))
-                isPrivate = lobbyData["IsPrivate"].Value == "true";
-            if (lobbyData.ContainsKey("RoundCount"))
-                roundCount = int.Parse(lobbyData["RoundCount"].Value);
-            if (lobbyData.ContainsKey("MapIndex"))
-                mapIndex = int.Parse(lobbyData["MapIndex"].Value);
-            if (lobbyData.ContainsKey("GameMode"))
-                gameMode = lobbyData["GameMode"].Value;
-            if (lobbyData.ContainsKey("RelayJoinCode"))
-                relayJoinCode = lobbyData["RelayJoinCode"].Value;
-            if (lobbyData.ContainsKey("InGame"))
-                inGame = lobbyData["InGame"].Value == "true";
-            if (lobbyData.ContainsKey("GameStarted"))
-                gameStarted = lobbyData["GameStarted"].Value == "true";
+            if (lobbyData.TryGetValue("LobbyName", out DataObject lobbyNameObj))
+                LobbyName = lobbyNameObj.Value;
+
+            if (lobbyData.TryGetValue("MaxPlayers", out DataObject maxPlayersObj) &&
+                int.TryParse(maxPlayersObj.Value, out int maxPlayers))
+                MaxPlayers = maxPlayers;
+
+            if (lobbyData.TryGetValue("IsPrivate", out DataObject isPrivateObj))
+                IsPrivate = isPrivateObj.Value == "true";
+
+            if (lobbyData.TryGetValue("RoundCount", out DataObject roundCountObj) &&
+                int.TryParse(roundCountObj.Value, out int roundCount))
+                RoundCount = roundCount;
+
+            if (lobbyData.TryGetValue("MapIndex", out DataObject mapIndexObj) &&
+                int.TryParse(mapIndexObj.Value, out int mapIndex))
+                MapIndex = mapIndex;
+
+            if (lobbyData.TryGetValue("GameMode", out DataObject gameModeObj))
+                GameMode = gameModeObj.Value;
+
+            if (lobbyData.TryGetValue("RelayJoinCode", out DataObject relayJoinCodeObj))
+                RelayJoinCode = relayJoinCodeObj.Value;
+
+            if (lobbyData.TryGetValue("InGame", out DataObject inGameObj))
+                InGame = inGameObj.Value == "true";
+
+            if (lobbyData.TryGetValue("GameStarted", out DataObject gameStartedObj))
+                GameStarted = gameStartedObj.Value == "true";
         }
 
         public Dictionary<string, string> Serialize()
         {
             var data = new Dictionary<string, string>
             {
-                { "LobbyName", lobbyName },
-                { "MaxPlayers", maxPlayers.ToString() },
-                { "IsPrivate", isPrivate.ToString().ToLower() },
-                { "RoundCount", roundCount.ToString() },
-                { "MapIndex", mapIndex.ToString() },
-                { "GameMode", gameMode },
-                { "InGame", inGame ? "true" : "false" },
-                { "GameStarted", gameStarted ? "true" : "false" }
+                { "LobbyName", _lobbyName },
+                { "MaxPlayers", _maxPlayers.ToString() },
+                { "IsPrivate", _isPrivate.ToString().ToLower() },
+                { "RoundCount", _roundCount.ToString() },
+                { "MapIndex", _mapIndex.ToString() },
+                { "GameMode", _gameMode },
+                { "InGame", _inGame ? "true" : "false" },
+                { "GameStarted", _gameStarted ? "true" : "false" }
             };
 
             if (RelayJoinCode != default)

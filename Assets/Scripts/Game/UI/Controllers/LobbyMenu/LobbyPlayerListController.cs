@@ -31,7 +31,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
         {
             List<LobbyPlayerData> playersData = GameLobbyManager.Instance.GetPlayers();
 
-            for (int i = 0; i < LobbyManager.Instance.MaxPlayers; i++)
+            for (int i = 0; i < 4; i++)
             {
                 _playerListEntries[i].gameObject.SetActive(false);
                 emptySpotPrefab[i].SetActive(false);
