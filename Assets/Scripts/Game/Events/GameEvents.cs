@@ -1,4 +1,4 @@
-using Assets.Scripts.Game.Types;
+using Assets.Scripts.Game.Enums;
 
 namespace Assets.Scripts.Game.Events
 {

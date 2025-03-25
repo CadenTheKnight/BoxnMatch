@@ -5,6 +5,7 @@ using Assets.Scripts.Game.Data;
 using System.Collections.Generic;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Core;
+using Assets.Scripts.Framework.Enums;
 using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Framework.Utilities;
@@ -28,6 +29,16 @@ namespace Assets.Scripts.Game.Managers
         private void OnDestroy()
         {
             LobbyEvents.OnLobbyUpdated -= OnLobbyUpdated;
+        }
+
+        private void OnApplicationQuit()
+        {
+            UpdateConnectionStatus(false);
+        }
+
+        public async Task<bool> HasActiveLobbies()
+        {
+            return await LobbyManager.Instance.HasActiveLobbies();
         }
 
         #region Lobby Creation and Joining
@@ -94,6 +105,20 @@ namespace Assets.Scripts.Game.Managers
                 return OperationResult.ErrorResult("JoinLobby", $"Failed to join lobby: {ex.Message}");
             }
         }
+
+        /// <summary>
+        /// Rejoins the lobby using the lobby ID.
+        /// </summary>
+        /// <returns>Operation result indicating success or failure.</returns>
+        public async Task<OperationResult> RejoinLobby()
+        {
+            OperationResult result = await LobbyManager.Instance.RejoinLobby();
+
+            if (result.Status == ResultStatus.Success)
+                UpdateConnectionStatus(true);
+
+            return result;
+        }
         #endregion
 
         #region Player Management
@@ -148,6 +173,23 @@ namespace Assets.Scripts.Game.Managers
             catch (System.Exception ex)
             {
                 return OperationResult.ErrorResult("SetAllUnready", $"Failed to set all players unready: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Updates the connection status of the local player.
+        /// </summary>
+        /// <param name="isConnected">True if the player is connected, false otherwise.</param>
+        private async void UpdateConnectionStatus(bool isConnected)
+        {
+            try
+            {
+                localLobbyPlayerData.IsConnected = isConnected;
+                await LobbyManager.Instance.UpdatePlayerData(localLobbyPlayerData.PlayerId, localLobbyPlayerData.Serialize());
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Error updating connection status: {ex.Message}");
             }
         }
         #endregion

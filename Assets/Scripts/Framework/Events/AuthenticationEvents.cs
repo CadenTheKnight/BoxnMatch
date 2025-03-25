@@ -1,5 +1,5 @@
-using System.Collections.Generic;
-using Unity.Services.Lobbies.Models;
+using System.Threading.Tasks;
+using Assets.Scripts.Framework.Utilities;
 
 namespace Assets.Scripts.Framework.Events
 {
@@ -10,15 +10,25 @@ namespace Assets.Scripts.Framework.Events
     {
         #region Events
         /// <summary>
-        /// Triggered when the player is authenticated.
+        /// Triggered when the player is authenticated (for core functionality that returns a result).
         /// </summary>
-        /// <param name="playerName">The name of the authenticated player.</param>
-        public delegate void AuthenticatedHandler(string playerName);
+        public delegate Task<OperationResult> AuthenticatedHandler(string playerName);
         public static event AuthenticatedHandler OnAuthenticated;
+
+        /// <summary>
+        /// Triggered when the player is authenticated (for notification and UI updates).
+        /// </summary>
+        public delegate void AuthenticatedNotificationHandler(string playerName);
+        public static event AuthenticatedNotificationHandler OnAuthenticatedNotification;
         #endregion
 
         #region Invocations
-        public static void InvokeOnAuthenticated(string playerName) => OnAuthenticated?.Invoke(playerName);
+        public static async Task<OperationResult> InvokeOnAuthenticated(string playerName)
+        {
+            var result = await OnAuthenticated?.Invoke(playerName);
+            OnAuthenticatedNotification?.Invoke(playerName);
+            return result;
+        }
         #endregion
     }
 }

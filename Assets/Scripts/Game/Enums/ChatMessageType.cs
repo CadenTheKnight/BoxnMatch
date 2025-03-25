@@ -1,4 +1,4 @@
-namespace Assets.Scripts.Game.Types
+namespace Assets.Scripts.Game.Enums
 {
     /// <summary>
     /// Defines the possible types of a chat message.

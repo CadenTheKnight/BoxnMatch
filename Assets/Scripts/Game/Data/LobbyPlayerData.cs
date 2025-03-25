@@ -12,7 +12,7 @@ namespace Assets.Scripts.Game.Data
         private string _playerId;
         private string _playerName;
         private bool _isReady;
-        private int _teamId;
+        private bool _isConnected;
         private bool _inGame;
 
         public string PlayerId
@@ -33,10 +33,10 @@ namespace Assets.Scripts.Game.Data
             set => SetValue(ref _isReady, value, nameof(IsReady));
         }
 
-        public int TeamId
+        public bool IsConnected
         {
-            get => _teamId;
-            set => SetValue(ref _teamId, value, nameof(TeamId));
+            get => _isConnected;
+            set => SetValue(ref _isConnected, value, nameof(IsConnected));
         }
 
         public bool InGame
@@ -61,7 +61,7 @@ namespace Assets.Scripts.Game.Data
             _playerId = playerId;
             _playerName = playerName;
             _isReady = false;
-            _teamId = 0;
+            _isConnected = true;
             _inGame = false;
         }
 
@@ -81,9 +81,8 @@ namespace Assets.Scripts.Game.Data
             if (playerData.TryGetValue("IsReady", out PlayerDataObject isReadyObj))
                 IsReady = isReadyObj.Value == "true";
 
-            if (playerData.TryGetValue("TeamId", out PlayerDataObject teamIdObj) &&
-                int.TryParse(teamIdObj.Value, out int teamId))
-                TeamId = teamId;
+            if (playerData.TryGetValue("IsConnected", out PlayerDataObject isConnectedObj))
+                IsConnected = isConnectedObj.Value == "true";
 
             if (playerData.TryGetValue("InGame", out PlayerDataObject inGameObj))
                 InGame = inGameObj.Value == "true";
@@ -96,7 +95,7 @@ namespace Assets.Scripts.Game.Data
                 { "PlayerId", _playerId },
                 { "PlayerName", _playerName },
                 { "IsReady", _isReady.ToString().ToLower() },
-                { "TeamId", _teamId.ToString() },
+                { "IsConnected", _isConnected.ToString().ToLower() },
                 { "InGame", _inGame.ToString().ToLower() }
             };
         }

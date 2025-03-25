@@ -1,20 +1,18 @@
 using UnityEngine;
 using Assets.Scripts.Game.Data;
+using Assets.Scripts.Game.Enums;
 using Assets.Scripts.Game.Events;
 using System.Collections.Generic;
-using Assets.Scripts.Game.Managers;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Game.UI.Components.ListEntries;
 
-
-namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
+namespace Assets.Scripts.Game.Managers
 {
     /// <summary>
     /// Handles the player list in the lobby.
     /// </summary>
-    public class LobbyPlayerListController : MonoBehaviour
+    public class LobbyPlayerListManager : MonoBehaviour
     {
-        [SerializeField] private List<GameObject> emptySpotPrefab;
         [SerializeField] private List<PlayerListEntry> _playerListEntries = new();
 
         private void OnEnable()
@@ -31,21 +29,19 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
         {
             List<LobbyPlayerData> playersData = GameLobbyManager.Instance.GetPlayers();
 
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < _playerListEntries.Count; i++)
             {
-                _playerListEntries[i].gameObject.SetActive(false);
-                emptySpotPrefab[i].SetActive(false);
-            }
-
-            for (int i = 0; i < playersData.Count; i++)
-            {
-                LobbyPlayerData playerData = playersData[i];
                 _playerListEntries[i].gameObject.SetActive(true);
-                _playerListEntries[i].SetData(playerData);
+                if (i < playersData.Count)
+                {
+                    bool isConnected = playersData[i].IsConnected;
+                    _playerListEntries[i].SetData(playersData[i], isConnected ? LobbyPlayerSpotState.Active : LobbyPlayerSpotState.Disconnected);
+                }
+                else if (i < LobbyManager.Instance.MaxPlayers)
+                    _playerListEntries[i].SetState(LobbyPlayerSpotState.Empty);
+                else
+                    _playerListEntries[i].gameObject.SetActive(false);
             }
-
-            for (int i = playersData.Count; i < LobbyManager.Instance.MaxPlayers; i++)
-                emptySpotPrefab[i].SetActive(true);
         }
     }
 }

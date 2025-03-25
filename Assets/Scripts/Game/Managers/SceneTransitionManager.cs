@@ -1,16 +1,11 @@
-using UnityEngine;
-using Unity.Services.Lobbies;
+using System.Threading.Tasks;
 using UnityEngine.SceneManagement;
 using Assets.Scripts.Framework.Core;
 using Unity.Services.Lobbies.Models;
+using Assets.Scripts.Framework.Enums;
 using Assets.Scripts.Framework.Events;
-using System.Linq;
-using Assets.Scripts.Framework.Managers;
-using System.Collections.Generic;
-using Assets.Scripts.Framework.Utilities;
-using Assets.Scripts.Framework.Types;
-using System.Threading.Tasks;
 using Assets.Scripts.Game.UI.Components;
+using Assets.Scripts.Framework.Utilities;
 
 namespace Assets.Scripts.Game.Managers
 {
@@ -39,7 +34,12 @@ namespace Assets.Scripts.Game.Managers
             LobbyEvents.OnLobbyKicked -= OnLobbyKicked;
         }
 
-        private async void OnAuthenticated(string playerName)
+        /// <summary>
+        /// Attempts to rejoin the player to a lobby they were previously in.
+        /// If the player is in multiple lobbies, they will be removed from all but the most recent lobby.
+        /// </summary>
+        /// <param name="playerName">The name of the player.</param>
+        private async Task<OperationResult> OnAuthenticated(string playerName)
         {
             LoadingStatus loadingStatus = FindObjectOfType<LoadingStatus>();
             if (loadingStatus != null)
@@ -50,103 +50,41 @@ namespace Assets.Scripts.Game.Managers
 
             try
             {
-                await Task.Delay(1500);
-
-                var lobbyIds = await LobbyService.Instance.GetJoinedLobbiesAsync();
-
-                if (lobbyIds.Count == 0)
+                // await Task.Delay(1500);
+                bool hasActiveLobbies = await GameLobbyManager.Instance.HasActiveLobbies();
+                if (!hasActiveLobbies)
                 {
+                    loadingStatus.UpdateStatus("No joined lobbies found");
                     loadingStatus.StopLoading();
                     SceneManager.LoadSceneAsync("Main");
-                    return;
+                    return OperationResult.SuccessResult("SignedIn", $"Signed in as {playerName}");
                 }
 
-                Debug.Log($"Found {lobbyIds.Count} joined" + (lobbyIds.Count > 1 ? " lobbies" : " lobby") + $"{string.Join(", ", lobbyIds)}");
-                loadingStatus.UpdateStatus("Found joined lobby");
+                // await Task.Delay(1500);
+                loadingStatus.UpdateStatus("Rejoining lobby...");
+                OperationResult result = await GameLobbyManager.Instance.RejoinLobby();
 
-                if (lobbyIds.Count > 1)
+                if (result.Status == ResultStatus.Success)
                 {
-                    Debug.LogWarning($"Player is in multiple lobbies. Cleaning up old lobbies...");
-                    loadingStatus.UpdateStatus("Cleaning up old lobbies...");
-
-                    var mostRecentLobby = lobbyIds[0];
-                    var oldLobbies = lobbyIds.Skip(1).ToList();
-
-                    foreach (var oldLobbyId in oldLobbies)
-                    {
-                        try
-                        {
-                            Debug.Log($"Leaving old lobby: {oldLobbyId}");
-                            loadingStatus.UpdateStatus($"Leaving old lobby: {oldLobbyId}");
-                            await Task.Delay(1500);
-
-                            await LobbyService.Instance.RemovePlayerAsync(oldLobbyId, AuthenticationManager.Instance.PlayerId);
-                        }
-                        catch (System.Exception ex)
-                        {
-                            loadingStatus.UpdateStatus("Error leaving old lobby");
-                            Debug.LogError($"Error leaving old lobby {oldLobbyId}: {ex.Message}");
-                        }
-                    }
-
-                    lobbyIds = new List<string> { mostRecentLobby };
-                }
-
-                if (lobbyIds.Count > 0)
-                {
-                    string lobbyId = lobbyIds[0];
-
-                    loadingStatus.UpdateStatus("Attempting to rejoin lobby...");
-                    Debug.Log($"Attempting to rejoin lobby: {lobbyId}");
-
-                    try
-                    {
-                        await Task.Delay(1500);
-
-                        var lobby = await LobbyService.Instance.GetLobbyAsync(lobbyId);
-
-                        loadingStatus.UpdateStatus($"Successfully found lobby {lobby.Name} with {lobby.Players.Count} players");
-                        Debug.Log($"Successfully found lobby {lobby.Name} with {lobby.Players.Count} players");
-
-                        await Task.Delay(1500);
-
-                        OperationResult result = await GameLobbyManager.Instance.JoinLobbyById(lobbyId);
-                        if (result.Status == ResultStatus.Success)
-                        {
-                            loadingStatus.UpdateStatus($"Rejoining lobby: {lobbyId}");
-                            loadingStatus.StopLoading();
-                            Debug.Log($"Rejoining lobby: {lobbyId}");
-                            SceneManager.LoadSceneAsync("Lobby");
-                        }
-                        else
-                        {
-                            loadingStatus.UpdateStatus($"Failed to rejoin lobby: {result.Message}");
-                            loadingStatus.StopLoading();
-                            Debug.LogError($"Failed to rejoin lobby: {result.Message}");
-                            SceneManager.LoadSceneAsync("Main");
-                        }
-                    }
-                    catch (LobbyServiceException ex)
-                    {
-                        loadingStatus.UpdateStatus($"Error getting lobby details: {ex.Message}. Code: {ex.ErrorCode}");
-                        loadingStatus.StopLoading();
-                        Debug.LogError($"Error getting lobby details: {ex.Message}. Code: {ex.ErrorCode}");
-                        SceneManager.LoadSceneAsync("Main");
-                    }
+                    loadingStatus.UpdateStatus("Rejoined lobby");
+                    loadingStatus.StopLoading();
+                    SceneManager.LoadSceneAsync("Lobby");
+                    return OperationResult.SuccessResult("RejoinedLobby", "Rejoined lobby");
                 }
                 else
                 {
-                    loadingStatus.UpdateStatus("No lobbies found");
+                    loadingStatus.UpdateStatus("Error rejoining lobby");
                     loadingStatus.StopLoading();
                     SceneManager.LoadSceneAsync("Main");
+                    return OperationResult.ErrorResult("RejoinError", "Error rejoining lobby");
                 }
             }
             catch (System.Exception ex)
             {
                 loadingStatus.UpdateStatus("Error in OnAuthenticated");
                 loadingStatus.StopLoading();
-                Debug.LogError($"Error in OnAuthenticated: {ex.Message}");
                 SceneManager.LoadSceneAsync("Main");
+                return OperationResult.ErrorResult("OnAuthenticatedError", ex.Message);
             }
         }
 

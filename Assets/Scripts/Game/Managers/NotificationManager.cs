@@ -1,7 +1,7 @@
 using UnityEngine;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Core;
-using Assets.Scripts.Framework.Types;
+using Assets.Scripts.Framework.Enums;
 using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Game.UI.Components;
 using Assets.Scripts.Framework.Utilities;
@@ -16,7 +16,7 @@ namespace Assets.Scripts.Game.Managers
 
         private void Start()
         {
-            AuthenticationEvents.OnAuthenticated += HandleAuthenticated;
+            AuthenticationEvents.OnAuthenticatedNotification += HandleAuthenticated;
 
             LobbyEvents.OnLobbyCreated += HandleLobbyCreated;
             LobbyEvents.OnLobbyJoined += HandleLobbyJoined;
@@ -26,7 +26,7 @@ namespace Assets.Scripts.Game.Managers
 
         private void OnDestroy()
         {
-            AuthenticationEvents.OnAuthenticated -= HandleAuthenticated;
+            AuthenticationEvents.OnAuthenticatedNotification -= HandleAuthenticated;
 
             LobbyEvents.OnLobbyCreated -= HandleLobbyCreated;
             LobbyEvents.OnLobbyJoined -= HandleLobbyJoined;
@@ -54,7 +54,7 @@ namespace Assets.Scripts.Game.Managers
             else
             {
                 Debug.LogError($"{operationResult.Code} - {operationResult.Message}");
-                if (operationResult.Code == "AuthenticationError")
+                if (operationResult.Category == "Authentication")
                     errorPopup.ShowError(operationResult.Code, operationResult.Message, retryAction);
                 else
                     resultNotification.ShowNotification(operationResult, ResultStatus.Error);
@@ -63,7 +63,7 @@ namespace Assets.Scripts.Game.Managers
 
         private void HandleAuthenticated(string playerName)
         {
-            HandleResult(OperationResult.SuccessResult("Authenticated", $"Signed in as: {playerName}"));
+            HandleResult(OperationResult.SuccessResult("Authenticated", $"Signed in as {playerName}"));
         }
 
         private void HandleLobbyCreated(Lobby lobby)

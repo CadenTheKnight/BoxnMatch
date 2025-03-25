@@ -1,4 +1,4 @@
-namespace Assets.Scripts.Framework.Types
+namespace Assets.Scripts.Framework.Enums
 {
     /// <summary>
     /// Represents the status of an operation.

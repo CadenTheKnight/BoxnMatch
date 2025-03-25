@@ -2,7 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Assets.Scripts.Game.Managers;
-using Assets.Scripts.Framework.Types;
+using Assets.Scripts.Framework.Enums;
 using System.Text.RegularExpressions;
 using Assets.Scripts.Game.UI.Components;
 using Assets.Scripts.Framework.Utilities;

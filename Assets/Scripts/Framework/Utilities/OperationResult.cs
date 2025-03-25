@@ -1,4 +1,4 @@
-using Assets.Scripts.Framework.Types;
+using Assets.Scripts.Framework.Enums;
 
 namespace Assets.Scripts.Framework.Utilities
 {
@@ -10,15 +10,17 @@ namespace Assets.Scripts.Framework.Utilities
         public string Code { get; }
         public string Message { get; }
         public ResultStatus Status { get; }
+        public string Category { get; }
 
         /// <summary>
         /// Creates a new OperationResult with the provided success status, code, and message.
         /// </summary>
-        public OperationResult(ResultStatus status, string code, string message)
+        public OperationResult(ResultStatus status, string code, string message, string category = null)
         {
             Status = status;
             Code = code;
             Message = message;
+            Category = category;
         }
 
         /// <summary>
@@ -36,7 +38,7 @@ namespace Assets.Scripts.Framework.Utilities
         /// <summary>
         /// Creates a error OperationResult with the provided code and message.
         /// </summary>
-        public static OperationResult ErrorResult(string errorCode, string errorMessage)
-            => new(ResultStatus.Error, errorCode, errorMessage);
+        public static OperationResult ErrorResult(string errorCode, string errorMessage, string category = null)
+            => new(ResultStatus.Error, errorCode, errorMessage, category);
     }
 }

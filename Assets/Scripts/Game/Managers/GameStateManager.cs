@@ -1,6 +1,6 @@
 using UnityEngine;
 using Unity.Netcode;
-using Assets.Scripts.Game.Types;
+using Assets.Scripts.Game.Enums;
 using Assets.Scripts.Game.Events;
 using Assets.Scripts.Framework.Managers;
 

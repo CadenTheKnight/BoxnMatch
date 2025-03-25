@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
 using Assets.Scripts.Game.Managers;
-using Assets.Scripts.Framework.Types;
+using Assets.Scripts.Framework.Enums;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Game.UI.Components;
 using Assets.Scripts.Framework.Utilities;
@@ -16,7 +16,6 @@ namespace Assets.Scripts.Game.UI.Controllers.InitializationMenu
         [Header("UI Components")]
         [SerializeField] private LoadingStatus loadingStatus;
 
-
         /// <summary>
         /// Calls AuthenticationManager.InitializeAsync when the game starts.
         /// On success, transitions to the main menu. 
@@ -28,7 +27,6 @@ namespace Assets.Scripts.Game.UI.Controllers.InitializationMenu
             loadingStatus.StartLoading();
 
             await Tests.LoadingTest(1000);
-
             OperationResult result = await AuthenticationManager.Instance.InitializeAsync();
 
             if (result.Status == ResultStatus.Error)

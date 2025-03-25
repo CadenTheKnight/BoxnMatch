@@ -5863,6 +5863,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   logDebugInfo: 0
+  simulateFailureAttempt: 1
+  simulateNetworkFailure: 0
 --- !u!114 &1540783958
 MonoBehaviour:
   m_ObjectHideFlags: 0

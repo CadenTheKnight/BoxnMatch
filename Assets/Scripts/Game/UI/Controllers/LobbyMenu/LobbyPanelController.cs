@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Assets.Scripts.Game.Data;
 using Assets.Scripts.Game.Managers;
 using Unity.Services.Lobbies.Models;
-using Assets.Scripts.Framework.Types;
+using Assets.Scripts.Framework.Enums;
 using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Game.UI.Components;
@@ -77,7 +77,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
 
         async void Start()
         {
-            OnLobbyUpdated(LobbyManager.Instance.lobby);
+            OnLobbyUpdated(LobbyManager.Instance.Lobby);
 
             if (LobbyManager.Instance.IsLobbyHost)
                 await GameLobbyManager.Instance.SetSelectedMap(currentMapIndex);
@@ -107,8 +107,6 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
             lobbyCodeButton.onClick.AddListener(OnLobbyCodeClicked);
 
             bool isHost = LobbyManager.Instance.IsLobbyHost;
-            Debug.Log($"Configuring UI. Is Host: {isHost}");
-
             if (isHost)
             {
                 leftButton.gameObject.SetActive(true);
