@@ -9,6 +9,7 @@ public class AbilityOrbHandler : MonoBehaviour
     [SerializeField] float fallSpeed = 0.01f;     // How fast the object falls off the screen
 
     public AbilityBinding ability;
+    public bool freeze = false;
 
     private Vector3 startPos;
     private float time;
@@ -43,7 +44,7 @@ public class AbilityOrbHandler : MonoBehaviour
         else immediate = false;
 
         // Update object position
-        transform.position = currentPosition + startPos;
+        if (!freeze) transform.position = currentPosition + startPos;
     }
 
 

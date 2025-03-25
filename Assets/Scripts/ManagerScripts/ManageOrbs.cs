@@ -37,4 +37,14 @@ public class ManageOrbs : MonoBehaviour
             Debug.Log("ability is : " + randomAbilityIndex);
         }
     }
+
+    public GameObject spawnOrb(Vector3 location, Quaternion rotation, int abilityIndex)
+    {
+        GameObject temp = Instantiate(orb, location, rotation);
+        temp.GetComponent<AbilityOrbHandler>().ability = abilities[abilityIndex];
+        temp.GetComponent<SpriteRenderer>().sprite = ability_sprites[abilityIndex];
+        Debug.Log("ability is : " + abilityIndex);
+
+        return temp;
+    }
 }

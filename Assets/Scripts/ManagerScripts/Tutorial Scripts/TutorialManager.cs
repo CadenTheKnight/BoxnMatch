@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks.Sources;
@@ -9,6 +10,8 @@ public class TutorialManager : MonoBehaviour
     private bool taskComplete = false;
     [SerializeField] GameObject[] titleText;
     [SerializeField] GameObject[] tasks;
+    [SerializeField] GameObject dummy;
+    [SerializeField] GameObject orbManager;
 
     // Start is called before the first frame update
     void Start()
@@ -57,5 +60,27 @@ public class TutorialManager : MonoBehaviour
         yield return new WaitUntil(() => taskComplete);
 
         tasks[2].SetActive(false);
+        StartCoroutine(AbilityPickup());
     }
+
+    private IEnumerator AbilityPickup()
+    {
+        setTaskComplete(false);
+        tasks[3].SetActive(true);
+
+        yield return new WaitUntil(() => taskComplete);
+
+        tasks[3].SetActive(false);
+        UseAbility();
+    }
+
+    private void UseAbility()
+    {
+        setTaskComplete(false);
+        titleText[0].SetActive(false);
+        tasks[4].SetActive(true);
+        dummy.SetActive(true);
+        orbManager.GetComponent<ManageOrbs>().enabled = true;
+    }
+
 }
