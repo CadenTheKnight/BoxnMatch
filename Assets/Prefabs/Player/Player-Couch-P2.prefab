@@ -14,7 +14,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: ae723f97669167644b09c6b0bd2bf79f, type: 2}
     - target: {fileID: 5035996666606614147, guid: 3b97bb70d28e3874d8b317113af1aedf, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 3799043138
+      value: 1771376142
       objectReference: {fileID: 0}
     - target: {fileID: 6203915750487138583, guid: 3b97bb70d28e3874d8b317113af1aedf, type: 3}
       propertyPath: m_IsActive
@@ -598,7 +598,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8264808577834005721, guid: 3b97bb70d28e3874d8b317113af1aedf, type: 3}
       propertyPath: m_Name
-      value: Player-Couch-P2 Variant
+      value: Player-Couch-P2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

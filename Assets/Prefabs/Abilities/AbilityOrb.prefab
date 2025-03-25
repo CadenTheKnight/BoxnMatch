@@ -138,7 +138,7 @@ Rigidbody2D:
   m_Mass: 0.1
   m_LinearDrag: 1
   m_AngularDrag: 0.05
-  m_GravityScale: 0.01
+  m_GravityScale: 0
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -167,6 +167,7 @@ MonoBehaviour:
   movementSpeed: 5
   fallSpeed: 0.1
   ability: {fileID: 0}
+  freeze: 0
   r: {fileID: 0}
 --- !u!1 &3056311529881102755
 GameObject:
