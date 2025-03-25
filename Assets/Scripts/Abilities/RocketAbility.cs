@@ -10,7 +10,6 @@ public class RocketlAbility : AbilityBinding
     [SerializeField] float acceleration = 60;
     [SerializeField] float positionOffset = 0.5f;
     [SerializeField] float abilityDuration = 5f;
-    [SerializeField] private Sprite noAbility;
 
     private Rigidbody2D rb;
     private bool isActive = false;
@@ -53,7 +52,9 @@ public class RocketlAbility : AbilityBinding
             temp.transform.Rotate(0, 0, dir.GetRotationZ() + 180);
             direction = dir;
             isActive = true;
-            pr.sockets[(int)dir].GetComponent<SpriteRenderer>().sprite = noAbility;
+            int socketToFire = ((int)dir - (int)pr.currDirection);
+            if (socketToFire < 0) socketToFire += 4;
+            pr.sockets[socketToFire].GetComponent<SpriteRenderer>().sprite = null;
         }
         else // if pressed a second time it will cancel the ability so that players can prevent flying to much
         {

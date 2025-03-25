@@ -7,7 +7,6 @@ public class RemoteExplosiveAbility : AbilityBinding
 
     [SerializeField] RemoteExplosive explosivePrefab;
     [SerializeField] float positionOffset;
-    [SerializeField] private Sprite noAbility;
 
     private RemoteExplosive explosive;
     private bool deployed = false;
@@ -21,7 +20,9 @@ public class RemoteExplosiveAbility : AbilityBinding
         else // Second activation detonates the charge then destroys the ability
         {
             DetonateExplosive();
-            pr.sockets[(int)dir].GetComponent<SpriteRenderer>().sprite = noAbility;
+            int socketToFire = ((int)dir - (int)pr.currDirection);
+            if (socketToFire < 0) socketToFire += 4;
+            pr.sockets[socketToFire].GetComponent<SpriteRenderer>().sprite = null;
             Destroy(gameObject);
         }
     }
