@@ -17,7 +17,7 @@ public class PlayerRotator : MonoBehaviour
     [Header("Sockets")]
     [SerializeField] public AbilitySocket[] sockets;
 
-    private AbilityDirection currDirection;
+    public AbilityDirection currDirection;
     private bool currentlyRotating;
 
     //-1 means CCW input queued
