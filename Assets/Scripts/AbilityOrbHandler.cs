@@ -125,7 +125,7 @@ public class AbilityOrbHandler : MonoBehaviour
         //Debug.Log("try bind");
         foreach (int slot in bindingOrder)
         {
-            Debug.Log("try slot: " + slot + " ability: " + player.GetComponent<PlayerRotator>().sockets[slot].GetComponent<AbilitySocket>().ability);
+            //Debug.Log("try slot: " + slot + " ability: " + player.GetComponent<PlayerRotator>().sockets[slot].GetComponent<AbilitySocket>().ability);
             if (!(player.GetComponent<PlayerRotator>().sockets[slot].GetComponent<AbilitySocket>().ability))
             {
                 Debug.Log("succes slot: " + slot);

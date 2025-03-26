@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.Rendering.DebugUI;
 
 public class HammerAbility : AbilityBinding
 {
@@ -30,7 +31,7 @@ public class HammerAbility : AbilityBinding
             Vector3 spawnPos = pr.transform.position;
             spawnPos += dir.GetUnitDirection() * positionOffset;
             tmp = Instantiate(hammer, spawnPos, pr.transform.rotation, pr.transform);
-            tmp.transform.Rotate(0, 0, dir.GetRotationZ());
+            tmp.transform.Rotate(0, 0, pr.currDirection.GetRotationZ());
 
             // Remove Sprite from socket
             int socketToFire = ((int)dir - (int)pr.currDirection);

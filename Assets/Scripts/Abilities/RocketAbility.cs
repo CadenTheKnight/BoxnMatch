@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using static Unity.Burst.Intrinsics.X86.Avx;
+using static UnityEngine.Rendering.DebugUI;
 
 public class RocketlAbility : AbilityBinding
 {
@@ -45,12 +47,12 @@ public class RocketlAbility : AbilityBinding
         if (!isActive)
         {
             // Spawns rocket in the direction used
-            Vector3 spawnPosition = pr.transform.position;
-            spawnPosition += dir.GetUnitDirection() * positionOffset;
+            Vector3 spawnPos = pr.transform.position;
+            spawnPos += dir.GetUnitDirection() * positionOffset;
+            temp = Instantiate(rocket, spawnPos, pr.transform.rotation, pr.transform);
+            temp.transform.Rotate(0, 0, pr.currDirection.GetRotationZ());
 
             rb = pr.GetComponent<Rigidbody2D>();
-
-            temp = Instantiate(rocket, spawnPosition, pr.transform.rotation, pr.transform);
             
             isActive = true;
             int socketToFire = ((int)dir - (int)pr.currDirection);

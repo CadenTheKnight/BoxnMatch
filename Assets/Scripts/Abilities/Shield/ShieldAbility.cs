@@ -36,6 +36,7 @@ public class ShieldAbility : AbilityBinding
             Vector3 spawnPos = pr.transform.position;
             spawnPos += dir.GetUnitDirection() * positionOffset;
             tmp = Instantiate(shield, spawnPos, pr.transform.rotation, pr.transform);
+            tmp.transform.Rotate(0, 0, pr.currDirection.GetRotationZ());
 
             // Remove socket sprite
             int socketToFire = ((int)dir - (int)pr.currDirection);
