@@ -27,15 +27,17 @@ public class HammerAbility : AbilityBinding
 
         if (!active) // Activate on first fire
         {
+            // conversion to get actual socket position for any rotation
+            int socketToFire = ((int)dir - (int)pr.currDirection);
+            if (socketToFire < 0) socketToFire += 4;
+
             // Spawn hammer
             Vector3 spawnPos = pr.transform.position;
             spawnPos += dir.GetUnitDirection() * positionOffset;
             tmp = Instantiate(hammer, spawnPos, pr.transform.rotation, pr.transform);
-            tmp.transform.Rotate(0, 0, pr.currDirection.GetRotationZ());
+            tmp.transform.Rotate(0, 0, ((AbilityDirection)socketToFire).GetRotationZ());
 
             // Remove Sprite from socket
-            int socketToFire = ((int)dir - (int)pr.currDirection);
-            if (socketToFire < 0) socketToFire += 4;
             pr.sockets[socketToFire].GetComponent<SpriteRenderer>().sprite = null;
 
             active = true;
