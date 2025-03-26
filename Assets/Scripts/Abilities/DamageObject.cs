@@ -13,4 +13,10 @@ public class DamageObject : MonoBehaviour
         return new Vector2(damage, knockback);
     }
 
+    public void setDamageKnockback(Vector2 newDK)
+    {
+        damage = newDK.x; 
+        knockback = newDK.y;
+    }
+
 }

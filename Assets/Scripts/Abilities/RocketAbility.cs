@@ -40,6 +40,8 @@ public class RocketlAbility : AbilityBinding
 
     public override void Fire(AbilityDirection dir, PlayerRotator pr)
     {
+        direction = dir;
+
         if (!isActive)
         {
             // Spawns rocket in the direction used
@@ -49,8 +51,7 @@ public class RocketlAbility : AbilityBinding
             rb = pr.GetComponent<Rigidbody2D>();
 
             temp = Instantiate(rocket, spawnPosition, pr.transform.rotation, pr.transform);
-            temp.transform.Rotate(0, 0, dir.GetRotationZ() + 180);
-            direction = dir;
+            
             isActive = true;
             int socketToFire = ((int)dir - (int)pr.currDirection);
             if (socketToFire < 0) socketToFire += 4;
