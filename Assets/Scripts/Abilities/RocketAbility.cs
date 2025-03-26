@@ -46,17 +46,19 @@ public class RocketlAbility : AbilityBinding
 
         if (!isActive)
         {
+            // conversion to get actual socket position for any rotation
+            int socketToFire = ((int)dir - (int)pr.currDirection);
+            if (socketToFire < 0) socketToFire += 4;
+
             // Spawns rocket in the direction used
             Vector3 spawnPos = pr.transform.position;
             spawnPos += dir.GetUnitDirection() * positionOffset;
             temp = Instantiate(rocket, spawnPos, pr.transform.rotation, pr.transform);
-            temp.transform.Rotate(0, 0, pr.currDirection.GetRotationZ());
+            temp.transform.Rotate(0, 0, ((AbilityDirection)socketToFire).GetRotationZ() + 180);
 
             rb = pr.GetComponent<Rigidbody2D>();
             
             isActive = true;
-            int socketToFire = ((int)dir - (int)pr.currDirection);
-            if (socketToFire < 0) socketToFire += 4;
             pr.sockets[socketToFire].GetComponent<SpriteRenderer>().sprite = null;
         }
         else // if pressed a second time it will cancel the ability so that players can prevent flying to much
