@@ -78,7 +78,8 @@ namespace Assets.Scripts.Framework.Managers
                 if (string.IsNullOrEmpty(PlayerPrefs.GetString("PlayerName")))
                     GenerateAndSaveRandomPlayerName();
 
-                return await AuthenticationEvents.InvokeOnAuthenticated(PlayerPrefs.GetString("PlayerName"));
+                AuthenticationEvents.InvokeOnAuthenticated(PlayerPrefs.GetString("PlayerName"));
+                return OperationResult.SuccessResult("Initialization", "Initialization successful");
             }
             catch (RequestFailedException authEx)
             {

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Assets.Scripts.Game.Events;
 using Unity.Services.Lobbies.Models;
@@ -11,8 +10,8 @@ namespace Assets.Scripts.Game.Data
     public class LobbyData
     {
         private string _lobbyName;
-        private int _maxPlayers;
         private bool _isPrivate;
+        private int _maxPlayers;
         private int _roundCount;
         private int _mapIndex;
         private string _gameMode;
@@ -26,16 +25,16 @@ namespace Assets.Scripts.Game.Data
             set => SetValue(ref _lobbyName, value, nameof(LobbyName));
         }
 
-        public int MaxPlayers
-        {
-            get => _maxPlayers;
-            set => SetValue(ref _maxPlayers, value, nameof(MaxPlayers));
-        }
-
         public bool IsPrivate
         {
             get => _isPrivate;
             set => SetValue(ref _isPrivate, value, nameof(IsPrivate));
+        }
+
+        public int MaxPlayers
+        {
+            get => _maxPlayers;
+            set => SetValue(ref _maxPlayers, value, nameof(MaxPlayers));
         }
 
         public int RoundCount
@@ -85,12 +84,12 @@ namespace Assets.Scripts.Game.Data
             }
         }
 
-        public void Initialize(string lobbyName, int maxPlayers, bool isPrivate, int roundCount)
+        public void Initialize(string lobbyName, bool isPrivate, int maxPlayers)
         {
             LobbyName = lobbyName;
-            MaxPlayers = maxPlayers;
             IsPrivate = isPrivate;
-            RoundCount = roundCount;
+            MaxPlayers = maxPlayers;
+            RoundCount = 3;
             MapIndex = 0;
             GameMode = "Standard";
             InGame = false;
@@ -107,12 +106,12 @@ namespace Assets.Scripts.Game.Data
             if (lobbyData.TryGetValue("LobbyName", out DataObject lobbyNameObj))
                 LobbyName = lobbyNameObj.Value;
 
+            if (lobbyData.TryGetValue("IsPrivate", out DataObject isPrivateObj))
+                IsPrivate = isPrivateObj.Value == "true";
+
             if (lobbyData.TryGetValue("MaxPlayers", out DataObject maxPlayersObj) &&
                 int.TryParse(maxPlayersObj.Value, out int maxPlayers))
                 MaxPlayers = maxPlayers;
-
-            if (lobbyData.TryGetValue("IsPrivate", out DataObject isPrivateObj))
-                IsPrivate = isPrivateObj.Value == "true";
 
             if (lobbyData.TryGetValue("RoundCount", out DataObject roundCountObj) &&
                 int.TryParse(roundCountObj.Value, out int roundCount))
@@ -140,8 +139,8 @@ namespace Assets.Scripts.Game.Data
             var data = new Dictionary<string, string>
             {
                 { "LobbyName", _lobbyName },
-                { "MaxPlayers", _maxPlayers.ToString() },
                 { "IsPrivate", _isPrivate.ToString().ToLower() },
+                { "MaxPlayers", _maxPlayers.ToString() },
                 { "RoundCount", _roundCount.ToString() },
                 { "MapIndex", _mapIndex.ToString() },
                 { "GameMode", _gameMode },

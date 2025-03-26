@@ -11,7 +11,7 @@ namespace Assets.Scripts.Game.UI.Components.ToggleSwitch
         [Header("Toggle Options")]
         [SerializeField] private bool allCanBeToggledOff;
 
-        private List<ToggleSwitch> _toggleSwitches = new();
+        private readonly List<ToggleSwitch> _toggleSwitches = new();
 
         private void Awake()
         {

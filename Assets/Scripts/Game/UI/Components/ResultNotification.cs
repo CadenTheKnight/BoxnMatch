@@ -2,9 +2,9 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using Assets.Scripts.Game.UI.Colors;
 using Assets.Scripts.Framework.Enums;
 using Assets.Scripts.Framework.Utilities;
-using Assets.Scripts.Game.UI.Components.Colors;
 
 namespace Assets.Scripts.Game.UI.Components
 {

@@ -4,13 +4,13 @@ using UnityEngine.UI;
 using System.Threading.Tasks;
 using Assets.Scripts.Game.Data;
 using Assets.Scripts.Game.Managers;
+using Assets.Scripts.Game.UI.Colors;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Enums;
 using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Game.UI.Components;
 using Assets.Scripts.Framework.Utilities;
-using Assets.Scripts.Game.UI.Components.Colors;
 
 namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
 {
@@ -25,23 +25,23 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
         [SerializeField] private Transform playerList;
         [SerializeField] private GameObject playerListEntry;
 
-        [Header("Map Display Components")]
+        [Header("Game Settings Components")]
         [SerializeField] private Button leftButton;
         [SerializeField] private Button rightButton;
         [SerializeField] private Image mapThumbnailImage;
         [SerializeField] private TextMeshProUGUI mapName;
         [SerializeField] private MapSelectionData mapSelectionData;
+        [SerializeField] private Incrementer roundCountIncrementer;
+        [SerializeField] private TextMeshProUGUI roundCountText;
+        // [SerializeField] private Dropdown gameModeDropdown;
+
+        [Header("Lobby Settings Components")]
 
         [Header("Footer Components")]
         [SerializeField] private Button startButton;
         [SerializeField] private Button leaveButton;
         [SerializeField] private Button readyUnreadyButton;
         [SerializeField] private TextMeshProUGUI startButtonText;
-        [SerializeField] private LoadingBar leaveButtonLoadingBar;
-        [SerializeField] private LoadingBar startButtonLoadingBar;
-        [SerializeField] private LoadingBar readyUnreadyLoadingBar;
-        [SerializeField] private TextMeshProUGUI lobbyGameModeText;
-        [SerializeField] private TextMeshProUGUI lobbyRoundCountText;
         [SerializeField] private TextMeshProUGUI readyUnreadyButtonText;
 
         private int currentMapIndex = 0;
@@ -69,10 +69,6 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
             LobbyEvents.OnHostMigrated -= OnHostMigrated;
             Events.LobbyEvents.OnAllPlayersReady -= OnLobbyReady;
             Events.LobbyEvents.OnNotAllPlayersReady -= OnLobbyNotReady;
-
-            startButtonLoadingBar.StopLoading();
-            leaveButtonLoadingBar.StopLoading();
-            readyUnreadyLoadingBar.StopLoading();
         }
 
         async void Start()
@@ -102,6 +98,8 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
             rightButton.onClick.RemoveListener(OnRightClicked);
             startButton.onClick.RemoveListener(OnStartClicked);
             readyUnreadyButton.onClick.RemoveListener(OnReadyUnreadyClicked);
+            roundCountIncrementer.incrementButton.onClick.RemoveListener(OnRoundCountChanged);
+            roundCountIncrementer.decrementButton.onClick.RemoveListener(OnRoundCountChanged);
 
             leaveButton.onClick.AddListener(OnLeaveClicked);
             lobbyCodeButton.onClick.AddListener(OnLobbyCodeClicked);
@@ -113,12 +111,14 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
                 rightButton.gameObject.SetActive(true);
                 startButton.gameObject.SetActive(true);
                 readyUnreadyButton.gameObject.SetActive(false);
+                roundCountIncrementer.incrementButton.interactable = true;
+                roundCountIncrementer.decrementButton.interactable = true;
 
                 leftButton.onClick.AddListener(OnLeftClicked);
                 rightButton.onClick.AddListener(OnRightClicked);
                 startButton.onClick.AddListener(OnStartClicked);
-
-                startButton.interactable = false;
+                roundCountIncrementer.incrementButton.onClick.AddListener(OnRoundCountChanged);
+                roundCountIncrementer.decrementButton.onClick.AddListener(OnRoundCountChanged);
             }
             else
             {
@@ -126,8 +126,9 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
                 rightButton.gameObject.SetActive(false);
                 startButton.gameObject.SetActive(false);
                 readyUnreadyButton.gameObject.SetActive(true);
-
                 readyUnreadyButton.onClick.AddListener(OnReadyUnreadyClicked);
+                roundCountIncrementer.incrementButton.interactable = false;
+                roundCountIncrementer.decrementButton.interactable = false;
 
                 bool isReady = GameLobbyManager.Instance.IsPlayerReady(AuthenticationManager.Instance.PlayerId);
                 UpdateReadyButton(isReady);
@@ -141,9 +142,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
         {
             leaveButton.interactable = false;
 
-            leaveButtonLoadingBar.StartLoading();
             OperationResult result = await LobbyManager.Instance.LeaveLobby();
-            leaveButtonLoadingBar.StopLoading();
 
             if (result.Status == ResultStatus.Error)
                 NotificationManager.Instance.HandleResult(result);
@@ -155,11 +154,13 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
         {
             lobbyNameText.text = $"{LobbyManager.Instance.LobbyName}" + (LobbyManager.Instance.IsPrivate ? " (PRIVATE)" : "");
             lobbyCodeText.text = $"CODE: {LobbyManager.Instance.LobbyCode}";
-            lobbyRoundCountText.text = $"{LobbyManager.Instance.RoundCount}" + (LobbyManager.Instance.RoundCount > 1 ? " ROUNDS" : " ROUND");
-            lobbyGameModeText.text = $"{LobbyManager.Instance.GameMode} MODE";
+            roundCountText.text = $"{GameLobbyManager.Instance.GetRoundCount()}";
 
             currentMapIndex = GameLobbyManager.Instance.GetMapIndex();
-            UpdateMap();
+            mapName.text = mapSelectionData.Maps[currentMapIndex].Name;
+            mapThumbnailImage.sprite = mapSelectionData.Maps[currentMapIndex].Thumbnail;
+
+
         }
 
         private void OnLobbyCodeClicked()
@@ -172,14 +173,12 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
         private async void OnReadyUnreadyClicked()
         {
             readyUnreadyButton.interactable = false;
-            readyUnreadyLoadingBar.StartLoading();
 
             await GameLobbyManager.Instance.TogglePlayerReady();
             UpdateReadyButton(GameLobbyManager.Instance.IsPlayerReady(AuthenticationManager.Instance.PlayerId));
 
             await Task.Delay(2000);
             readyUnreadyButton.interactable = true;
-            readyUnreadyLoadingBar.StopLoading();
         }
 
         private void UpdateReadyButton(bool isReady)
@@ -230,11 +229,8 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
         {
             startButton.interactable = false;
 
-            startButtonLoadingBar.StartLoading();
             Debug.Log("Starting...");
             await Task.Delay(2000);
-            startButtonLoadingBar.StopLoading();
-
             await GameLobbyManager.Instance.SetAllPlayersUnready();
             // await GameLobbyManager.Instance.StartGame(mapSelectionData.Maps[currentMapIndex].MapName, mapSelectionData.Maps[currentMapIndex].MapThumbnail, mapSelectionData.Maps[currentMapIndex].MapSceneName);
         }
@@ -249,33 +245,36 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
             else
                 currentMapIndex = mapSelectionData.Maps.Count - 1;
 
-            UpdateMap();
             await GameLobbyManager.Instance.SetSelectedMap(currentMapIndex);
 
-            await Task.Delay(1200);
+            await Task.Delay(1500);
             leftButton.interactable = true;
         }
 
         private async void OnRightClicked()
         {
             rightButton.interactable = false;
-            if (currentMapIndex < mapSelectionData.Maps.Count - 1)
-                currentMapIndex++;
-            else
-                currentMapIndex = 0;
+            if (currentMapIndex < mapSelectionData.Maps.Count - 1) currentMapIndex++;
+            else currentMapIndex = 0;
 
-            UpdateMap();
             await GameLobbyManager.Instance.SetSelectedMap(currentMapIndex);
 
-            await Task.Delay(1200);
+            await Task.Delay(1500);
             rightButton.interactable = true;
         }
+        #endregion
 
-        private void UpdateMap()
+        #region Round Count
+        private async void OnRoundCountChanged()
         {
-            // send system chat message
-            mapName.text = mapSelectionData.Maps[currentMapIndex].Name;
-            mapThumbnailImage.sprite = mapSelectionData.Maps[currentMapIndex].Thumbnail;
+            roundCountIncrementer.incrementButton.interactable = false;
+            roundCountIncrementer.decrementButton.interactable = false;
+
+            await GameLobbyManager.Instance.SetRoundCount(roundCountIncrementer.Value);
+
+            await Task.Delay(1500);
+            roundCountIncrementer.incrementButton.interactable = roundCountIncrementer.Value < roundCountIncrementer.maxValue;
+            roundCountIncrementer.decrementButton.interactable = roundCountIncrementer.Value > roundCountIncrementer.minValue;
         }
         #endregion
     }

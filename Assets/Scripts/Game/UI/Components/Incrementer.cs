@@ -4,18 +4,20 @@ using UnityEngine.UI;
 
 namespace Assets.Scripts.Game.UI.Components
 {
-    public class NumberSelector : MonoBehaviour
+    public class Incrementer : MonoBehaviour
     {
         [Header("UI Components")]
-        [SerializeField] private Button decrementButton;
-        [SerializeField] private Button incrementButton;
+        [SerializeField] public Button decrementButton;
+        [SerializeField] public Button incrementButton;
         [SerializeField] private TextMeshProUGUI valueText;
 
-        [Header("Settings")]
-        [SerializeField] private int minValue = 1;
-        [SerializeField] private int maxValue = 99;
+        [Header("Incremeneter Settings")]
+        [SerializeField] public int minValue = 1;
+        [SerializeField] public int maxValue = 99;
         [SerializeField] private int startValue = 1;
         [SerializeField] private int stepSize = 2;
+
+        public System.Action<int> onValueChanged;
 
         public int Value { get; private set; }
 
@@ -43,6 +45,7 @@ namespace Assets.Scripts.Game.UI.Components
             {
                 Value -= stepSize;
                 UpdateUI();
+                onValueChanged?.Invoke(Value);
             }
         }
 
@@ -52,6 +55,7 @@ namespace Assets.Scripts.Game.UI.Components
             {
                 Value += stepSize;
                 UpdateUI();
+                onValueChanged?.Invoke(Value);
             }
         }
 
@@ -70,6 +74,7 @@ namespace Assets.Scripts.Game.UI.Components
             {
                 Value = newValue;
                 UpdateUI();
+                onValueChanged?.Invoke(Value);
             }
         }
     }

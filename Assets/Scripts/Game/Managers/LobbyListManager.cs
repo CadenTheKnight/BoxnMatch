@@ -2,7 +2,6 @@ using UnityEngine;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Unity.Services.Lobbies.Models;
-using Assets.Scripts.Framework.Core;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Framework.Utilities;
 using Assets.Scripts.Game.UI.Components.ListEntries;
@@ -54,7 +53,7 @@ namespace Assets.Scripts.Game.Managers
         /// <param name="lobbies">The list of lobbies to display.</param>
         public void UpdateLobbyList(List<Lobby> lobbies)
         {
-            foreach (LobbyListEntry entry in lobbyListContainer)
+            foreach (LobbyListEntry entry in lobbyListContainer.GetComponentsInChildren<LobbyListEntry>())
                 Destroy(entry.gameObject);
 
             foreach (Lobby lobby in lobbies)

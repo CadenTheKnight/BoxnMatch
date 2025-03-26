@@ -1,12 +1,13 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using Assets.Scripts.Game.Managers;
-using Assets.Scripts.Framework.Enums;
 using System.Text.RegularExpressions;
 using Assets.Scripts.Game.UI.Components;
+using Assets.Scripts.Game.UI.Components.ToggleSwitch;
+using Assets.Scripts.Game.Managers;
 using Assets.Scripts.Framework.Utilities;
-using Assets.Scripts.Game.UI.Components.Colors;
+using Assets.Scripts.Framework.Enums;
+using System.Collections.Generic;
 
 namespace Assets.Scripts.Game.UI.Controllers.MainMenu
 {
@@ -17,48 +18,66 @@ namespace Assets.Scripts.Game.UI.Controllers.MainMenu
     {
         [Header("Options Components")]
         [SerializeField] private TMP_InputField lobbyNameInput;
-        [SerializeField] private Button twoPlayerButton;
-        [SerializeField] private Button fourPlayerButton;
-        [SerializeField] private Button privateButton;
-        [SerializeField] private Button publicButton;
-        [SerializeField] private NumberSelector roundCountSelector;
+        [SerializeField] private ToggleSwitchColorChange isPrivateToggle;
+        [SerializeField] private Selector maxPlayersSelector;
 
         [Header("Footer Components")]
         [SerializeField] private Button createLobbyButton;
-        [SerializeField] private LoadingBar createLoadingBar;
 
+        private string lobbyName = string.Empty;
+        private bool isPrivate = false;
         private int maxPlayers = 0;
-        private int isPrivate = 0;
-
-        /// <summary>
-        /// Regex pattern for a valid lobby name. Must be alphanumeric and between 1 and 14 characters.
-        /// </summary>
-        private readonly Regex lobbyNameRegex = new(@"^[a-zA-Z0-9]{1,14}$");
 
         protected override void OnEnable()
         {
             base.OnEnable();
 
+            lobbyNameInput.onValueChanged.AddListener(OnLobbyNameChanged);
+            isPrivateToggle.onToggle += OnPrivacyChanged;
+            maxPlayersSelector.onSelectionChanged += OnMaxPlayersChanged;
             createLobbyButton.onClick.AddListener(OnCreateClicked);
-            lobbyNameInput.onValueChanged.AddListener(CheckForCompletion);
-            twoPlayerButton.onClick.AddListener(OnTwoPlayersClicked);
-            fourPlayerButton.onClick.AddListener(OnFourPlayersClicked);
-            privateButton.onClick.AddListener(OnPrivateClicked);
-            publicButton.onClick.AddListener(OnPublicClicked);
 
-            CheckForCompletion(lobbyNameInput.text);
+            UpdateCreateButtonState();
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
 
+            lobbyNameInput.onValueChanged.RemoveListener(OnLobbyNameChanged);
+            isPrivateToggle.onToggle -= OnPrivacyChanged;
+            maxPlayersSelector.onSelectionChanged -= OnMaxPlayersChanged;
             createLobbyButton.onClick.RemoveListener(OnCreateClicked);
-            lobbyNameInput.onValueChanged.RemoveListener(CheckForCompletion);
-            twoPlayerButton.onClick.RemoveListener(OnTwoPlayersClicked);
-            fourPlayerButton.onClick.RemoveListener(OnFourPlayersClicked);
-            privateButton.onClick.RemoveListener(OnPrivateClicked);
-            publicButton.onClick.RemoveListener(OnPublicClicked);
+        }
+
+        private void OnLobbyNameChanged(string input)
+        {
+            lobbyName = input;
+            UpdateCreateButtonState();
+        }
+
+        private void OnPrivacyChanged(bool input)
+        {
+            isPrivate = input;
+            UpdateCreateButtonState();
+        }
+
+        private void OnMaxPlayersChanged(List<int> selections)
+        {
+            if (selections.Count == 0) maxPlayers = 0;
+            else maxPlayers = (selections[0] + 1) * 2;
+
+            UpdateCreateButtonState();
+        }
+
+        private bool IsFormValid()
+        {
+            return Regex.IsMatch(lobbyName, @"^[a-zA-Z0-9]{1,14}$") && (maxPlayers == 2 || maxPlayers == 4);
+        }
+
+        private void UpdateCreateButtonState()
+        {
+            createLobbyButton.interactable = IsFormValid();
         }
 
         protected override void Update()
@@ -68,58 +87,11 @@ namespace Assets.Scripts.Game.UI.Controllers.MainMenu
                 OnCreateClicked();
         }
 
-        private void CheckForCompletion(string lobbyName)
-        {
-            createLobbyButton.interactable = lobbyNameRegex.IsMatch(lobbyNameInput.text) && maxPlayers != 0 && isPrivate != 0;
-        }
-
-        private void OnTwoPlayersClicked()
-        {
-            maxPlayers = 2;
-            ToggleButtons(twoPlayerButton, fourPlayerButton);
-            CheckForCompletion(lobbyNameInput.text);
-        }
-
-        private void OnFourPlayersClicked()
-        {
-            maxPlayers = 4;
-            ToggleButtons(fourPlayerButton, twoPlayerButton);
-            CheckForCompletion(lobbyNameInput.text);
-        }
-
-        private void OnPrivateClicked()
-        {
-            isPrivate = 1;
-            ToggleButtons(privateButton, publicButton);
-            CheckForCompletion(lobbyNameInput.text);
-        }
-
-        private void OnPublicClicked()
-        {
-            isPrivate = 2;
-            ToggleButtons(publicButton, privateButton);
-            CheckForCompletion(lobbyNameInput.text);
-        }
-
-        private void ToggleButtons(Button selectedButton, Button unselectedButton)
-        {
-            ColorBlock selectedColors = selectedButton.colors;
-            ColorBlock unselectedColors = unselectedButton.colors;
-
-            selectedColors.normalColor = UIColors.primaryHoverColor;
-            unselectedColors.normalColor = UIColors.primaryDefaultColor;
-
-            selectedButton.colors = selectedColors;
-            unselectedButton.colors = unselectedColors;
-        }
-
         private async void OnCreateClicked()
         {
             createLobbyButton.interactable = false;
 
-            createLoadingBar.StartLoading();
-            OperationResult result = await GameLobbyManager.Instance.CreateLobby(lobbyNameInput.text.Trim(), maxPlayers, isPrivate == 1, roundCountSelector.Value);
-            createLoadingBar.StopLoading();
+            OperationResult result = await GameLobbyManager.Instance.CreateLobby(lobbyName, isPrivate, maxPlayers);
 
             if (result.Status == ResultStatus.Error)
                 NotificationManager.Instance.HandleResult(result);

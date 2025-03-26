@@ -3,8 +3,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using Assets.Scripts.Game.Data;
 using Assets.Scripts.Game.Enums;
+using Assets.Scripts.Game.UI.Colors;
 using Assets.Scripts.Framework.Managers;
-using Assets.Scripts.Game.UI.Components.Colors;
 
 namespace Assets.Scripts.Game.UI.Components.ListEntries
 {

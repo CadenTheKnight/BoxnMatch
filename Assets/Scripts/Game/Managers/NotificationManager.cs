@@ -16,7 +16,7 @@ namespace Assets.Scripts.Game.Managers
 
         private void Start()
         {
-            AuthenticationEvents.OnAuthenticatedNotification += HandleAuthenticated;
+            AuthenticationEvents.OnAuthenticated += HandleAuthenticated;
 
             LobbyEvents.OnLobbyCreated += HandleLobbyCreated;
             LobbyEvents.OnLobbyJoined += HandleLobbyJoined;
@@ -26,7 +26,7 @@ namespace Assets.Scripts.Game.Managers
 
         private void OnDestroy()
         {
-            AuthenticationEvents.OnAuthenticatedNotification -= HandleAuthenticated;
+            AuthenticationEvents.OnAuthenticated -= HandleAuthenticated;
 
             LobbyEvents.OnLobbyCreated -= HandleLobbyCreated;
             LobbyEvents.OnLobbyJoined -= HandleLobbyJoined;

@@ -18,6 +18,7 @@ namespace Assets.Scripts.Game.Managers
     public class GameLobbyManager : Singleton<GameLobbyManager>
     {
         private LobbyData lobbyData;
+        private string previousHostId;
         private LobbyPlayerData localLobbyPlayerData;
         private readonly List<LobbyPlayerData> lobbyPlayersData = new();
 
@@ -33,7 +34,7 @@ namespace Assets.Scripts.Game.Managers
 
         private void OnApplicationQuit()
         {
-            UpdateConnectionStatus(false);
+            if (localLobbyPlayerData != null) UpdateConnectionStatus(false);
         }
 
         public async Task<bool> HasActiveLobbies()
@@ -46,11 +47,10 @@ namespace Assets.Scripts.Game.Managers
         /// Creates a new lobby with the given parameters.
         /// </summary>
         /// <param name="lobbyName">Name of the lobby.</param>
-        /// <param name="maxPlayers">Maximum number of players in the lobby.</param>
         /// <param name="isPrivate">True if the lobby is private, false if public.</param>
-        /// <param name="roundCount">Number of rounds to play in the game.</param>
+        /// <param name="maxPlayers">Maximum number of players in the lobby.</param>
         /// <returns>Operation result indicating success or failure</returns>
-        public async Task<OperationResult> CreateLobby(string lobbyName, int maxPlayers, bool isPrivate, int roundCount)
+        public async Task<OperationResult> CreateLobby(string lobbyName, bool isPrivate, int maxPlayers)
         {
             try
             {
@@ -58,7 +58,7 @@ namespace Assets.Scripts.Game.Managers
                 playerData.Initialize(AuthenticationManager.Instance.PlayerId, PlayerPrefs.GetString("PlayerName"));
 
                 lobbyData = new();
-                lobbyData.Initialize(lobbyName, maxPlayers, isPrivate, roundCount);
+                lobbyData.Initialize(lobbyName, isPrivate, maxPlayers);
 
                 return await LobbyManager.Instance.CreateLobby(lobbyData.Serialize(), playerData.Serialize());
             }
@@ -206,6 +206,15 @@ namespace Assets.Scripts.Game.Managers
         }
 
         /// <summary>
+        /// Gets the current round count.
+        /// </summary>
+        /// <returns>Current round count.</returns>
+        public int GetRoundCount()
+        {
+            return lobbyData?.RoundCount ?? 1;
+        }
+
+        /// <summary>
         /// Sets the selected map for the game.
         /// </summary>
         /// <param name="mapIndex">Index of the map.</param>
@@ -220,6 +229,24 @@ namespace Assets.Scripts.Game.Managers
             catch (System.Exception ex)
             {
                 return OperationResult.ErrorResult("SetSelectedMap", $"Failed to set selected map: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Sets the updated round count for the game.
+        /// </summary>
+        /// <param name="roundCount">Number of rounds to play.</param>
+        /// <returns>Operation result</returns>
+        public async Task<OperationResult> SetRoundCount(int roundCount)
+        {
+            try
+            {
+                lobbyData.RoundCount = roundCount;
+                return await LobbyManager.Instance.UpdateLobbyData(lobbyData.Serialize());
+            }
+            catch (System.Exception ex)
+            {
+                return OperationResult.ErrorResult("SetRoundCount", $"Failed to set round count: {ex.Message}");
             }
         }
         #endregion
@@ -532,6 +559,14 @@ namespace Assets.Scripts.Game.Managers
         {
             try
             {
+                string currentHostId = lobby.HostId;
+
+                if (!string.IsNullOrEmpty(previousHostId) && !string.IsNullOrEmpty(currentHostId) && previousHostId != currentHostId)
+                {
+                    previousHostId = currentHostId;
+                    LobbyEvents.InvokeHostMigrated(currentHostId);
+                }
+
                 List<Dictionary<string, PlayerDataObject>> playersData = LobbyManager.Instance.GetPlayersData();
                 lobbyPlayersData.Clear();
 

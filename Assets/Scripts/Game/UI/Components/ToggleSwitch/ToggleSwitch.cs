@@ -1,56 +1,56 @@
+using System;
 using UnityEngine;
-using UnityEngine.UI;
 using System.Collections;
-using UnityEngine.Events;
 using UnityEngine.EventSystems;
-
 
 namespace Assets.Scripts.Game.UI.Components.ToggleSwitch
 {
     public class ToggleSwitch : MonoBehaviour, IPointerClickHandler
     {
-        [Header("Slider")]
-        [SerializeField, Range(0, 1f)] private float sliderValue;
-        public bool CurrentValue { get; private set; }
-        private Slider _slider;
+        [Header("Toggle Components")]
+        [SerializeField] private RectTransform handleRect;
+        [SerializeField] private RectTransform backgroundRect;
+
+        [Header("Toggle State")]
+        [SerializeField] private bool startOn = false;
+        protected float sliderValue;
 
         [Header("Animation")]
-        [SerializeField, Range(0, 1f)] private float animationDurationSeconds = 0.5f;
-        [SerializeField] private AnimationCurve slideEase = AnimationCurve.EaseInOut(timeStart: 0, valueStart: 0, timeEnd: 1, valueEnd: 1);
-        private Coroutine _animationSliderCoroutine;
+        [SerializeField, Range(0, 1f)] private float animationDurationSeconds = 0.25f;
+        [SerializeField] private AnimationCurve slideEase = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
         [Header("Events")]
-        [SerializeField] private UnityEvent onToggleOn;
-        [SerializeField] private UnityEvent onToggleOff;
+        public Action<bool> onToggle;
+        protected Action transitionEffect;
+
+        public bool CurrentValue { get; private set; }
         private ToggleSwitchGroupManager _toggleSwitchGroupManager;
+        private Coroutine _animationCoroutine;
+        private Vector2 _offPosition;
+        private Vector2 _onPosition;
 
-        protected void OnValidate()
+        private void OnRectTransformDimensionsChange()
         {
-            SetUpToggleComponents();
-
-            _slider.value = sliderValue;
+            if (Application.isPlaying)
+            {
+                InitializePositions();
+                UpdateHandlePosition(CurrentValue ? 1f : 0f);
+            }
         }
 
-        private void SetUpToggleComponents()
+        protected virtual void Awake()
         {
-            if (_slider == null)
-                return;
+            InitializePositions();
+            CurrentValue = startOn;
 
-            SetUpSliderComponent();
+            UpdateHandlePosition(startOn ? 1f : 0f);
+            sliderValue = startOn ? 1f : 0f;
         }
 
-        private void SetUpSliderComponent()
+        private void InitializePositions()
         {
-            _slider = GetComponent<Slider>();
-
-            if (_slider == null)
-                return;
-
-            _slider.interactable = false;
-            var sliderColors = _slider.colors;
-            sliderColors.disabledColor = Color.white;
-            _slider.colors = sliderColors;
-            _slider.transition = Selectable.Transition.None;
+            _offPosition = new Vector2(0, 0);
+            _onPosition = new Vector2(backgroundRect.rect.width - handleRect.rect.width, 0);
         }
 
         public void SetupForManager(ToggleSwitchGroupManager manager)
@@ -58,20 +58,15 @@ namespace Assets.Scripts.Game.UI.Components.ToggleSwitch
             _toggleSwitchGroupManager = manager;
         }
 
-        private void Awake()
-        {
-            SetUpToggleComponents();
-        }
-
-        void IPointerClickHandler.OnPointerClick(PointerEventData eventData)
+        public void OnPointerClick(PointerEventData eventData)
         {
             Toggle();
         }
 
-        private void Toggle()
+        public void Toggle()
         {
             if (_toggleSwitchGroupManager != null)
-                _toggleSwitchGroupManager.ToggleGroup(toggleSwitch: this);
+                _toggleSwitchGroupManager.ToggleGroup(this);
             else
                 SetStateAndStartAnimation(!CurrentValue);
         }
@@ -88,37 +83,45 @@ namespace Assets.Scripts.Game.UI.Components.ToggleSwitch
 
             CurrentValue = state;
 
-            if (CurrentValue)
-                onToggleOn.Invoke();
-            else
-                onToggleOff.Invoke();
+            onToggle?.Invoke(CurrentValue);
 
-            if (_animationSliderCoroutine != null)
-                StopCoroutine(_animationSliderCoroutine);
+            if (_animationCoroutine != null)
+                StopCoroutine(_animationCoroutine);
 
-            _animationSliderCoroutine = StartCoroutine(routine: AnimateSlider());
+            _animationCoroutine = StartCoroutine(AnimateToggle());
         }
 
-        private IEnumerator AnimateSlider()
+        private IEnumerator AnimateToggle()
         {
-            float startValue = _slider.value;
-            float endValue = CurrentValue ? 1 : 0;
+            float startValue = sliderValue;
+            float endValue = CurrentValue ? 1f : 0f;
+            float startTime = Time.time;
 
-            float time = 0;
-            if (animationDurationSeconds > 0)
+            while (Time.time < startTime + animationDurationSeconds)
             {
-                while (time < animationDurationSeconds)
-                {
-                    time += Time.deltaTime;
+                float elapsed = Time.time - startTime;
+                float t = elapsed / animationDurationSeconds;
+                float easedT = slideEase.Evaluate(t);
 
-                    float lerpFactor = slideEase.Evaluate(time / animationDurationSeconds);
-                    _slider.value = sliderValue = Mathf.Lerp(startValue, endValue, lerpFactor);
+                sliderValue = Mathf.Lerp(startValue, endValue, easedT);
+                UpdateHandlePosition(sliderValue);
 
-                    yield return null;
-                }
+                transitionEffect?.Invoke();
+
+                yield return null;
             }
 
-            _slider.value = endValue;
+            sliderValue = endValue;
+            UpdateHandlePosition(sliderValue);
+            transitionEffect?.Invoke();
+
+            _animationCoroutine = null;
+        }
+
+        private void UpdateHandlePosition(float value)
+        {
+            if (handleRect != null)
+                handleRect.anchoredPosition = Vector2.Lerp(_offPosition, _onPosition, value);
         }
     }
 }

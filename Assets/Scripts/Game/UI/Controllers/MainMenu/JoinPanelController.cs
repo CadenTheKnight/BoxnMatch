@@ -21,9 +21,9 @@ namespace Assets.Scripts.Game.UI.Controllers.MainMenu
         [Header("UI Components")]
         [SerializeField] private Button joinButton;
         [SerializeField] private Button refreshButton;
-        [SerializeField] private LoadingBar joinLoadingBar;
-        [SerializeField] private LoadingBar refreshLoadingBar;
         [SerializeField] private TMP_InputField lobbyCodeInput;
+        [SerializeField] private GameObject refreshingPanel;
+        [SerializeField] private LoadingBar refeshingLoadingBar;
 
         [Header("List Manager")]
         [SerializeField] private LobbyListManager lobbyListManager;
@@ -31,6 +31,7 @@ namespace Assets.Scripts.Game.UI.Controllers.MainMenu
         protected override void OnEnable()
         {
             base.OnEnable();
+
             joinButton.onClick.AddListener(OnJoinButtonClicked);
             refreshButton.onClick.AddListener(OnRefreshButtonClicked);
             lobbyCodeInput.onValueChanged.AddListener(OnLobbyCodeInputChanged);
@@ -54,8 +55,8 @@ namespace Assets.Scripts.Game.UI.Controllers.MainMenu
             Events.LobbyEvents.OnLobbySelected -= OnLobbySelected;
             Events.LobbyEvents.OnLobbyDoubleClicked -= OnLobbyDoubleClicked;
 
-            joinLoadingBar.StopLoading();
-            refreshLoadingBar.StopLoading();
+            lobbyListManager.ClearSelection();
+            refeshingLoadingBar.StopLoading();
         }
 
         private void OnLobbyCodeInputChanged(string code)
@@ -75,13 +76,11 @@ namespace Assets.Scripts.Game.UI.Controllers.MainMenu
         {
             joinButton.interactable = false;
 
-            joinLoadingBar.StartLoading();
             OperationResult result;
             if (!string.IsNullOrEmpty(lobbyCodeInput.text) && lobbyCodeInput.text.Length == 6)
                 result = await GameLobbyManager.Instance.JoinLobbyByCode(lobbyCodeInput.text);
             else
                 result = await GameLobbyManager.Instance.JoinLobbyById(lobbyListManager.SelectedLobbyId);
-            joinLoadingBar.StopLoading();
 
             if (result.Status == ResultStatus.Error)
                 NotificationManager.Instance.HandleResult(result);
@@ -116,9 +115,7 @@ namespace Assets.Scripts.Game.UI.Controllers.MainMenu
 
             lobbyListManager.SelectLobby(lobbyId);
 
-            joinLoadingBar.StartLoading();
             var result = await GameLobbyManager.Instance.JoinLobbyById(lobbyId);
-            joinLoadingBar.StopLoading();
 
             if (result.Status == ResultStatus.Error)
                 NotificationManager.Instance.HandleResult(result);
@@ -132,15 +129,17 @@ namespace Assets.Scripts.Game.UI.Controllers.MainMenu
         private async void OnRefreshButtonClicked()
         {
             refreshButton.interactable = false;
+            refreshingPanel.SetActive(true);
+            refeshingLoadingBar.StartLoading();
 
-            refreshLoadingBar.StartLoading();
             OperationResult result = await lobbyListManager.RefreshLobbyList();
             UpdateJoinButtonState();
 
             await Task.Delay(1000);
             NotificationManager.Instance.HandleResult(result);
-            refreshLoadingBar.StopLoading();
 
+            refeshingLoadingBar.StopLoading();
+            refreshingPanel.SetActive(false);
             refreshButton.interactable = true;
 
         }

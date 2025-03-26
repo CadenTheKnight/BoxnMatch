@@ -1,4 +1,3 @@
-using TMPro;
 using UnityEngine;
 using Assets.Scripts.Game.Managers;
 using Assets.Scripts.Framework.Enums;
@@ -26,14 +25,19 @@ namespace Assets.Scripts.Game.UI.Controllers.InitializationMenu
             loadingStatus.UpdateStatus("Initializing...");
             loadingStatus.StartLoading();
 
-            await Tests.LoadingTest(1000);
             OperationResult result = await AuthenticationManager.Instance.InitializeAsync();
-
             if (result.Status == ResultStatus.Error)
             {
                 loadingStatus.StopLoading();
                 loadingStatus.UpdateStatus("Initialization failed");
+
                 NotificationManager.Instance.HandleResult(result, () => Start());
+            }
+            else
+            {
+                loadingStatus.UpdateStatus("Initialization successful");
+
+                NotificationManager.Instance.HandleResult(await SceneTransitionManager.Instance.OnAuthenticated(PlayerPrefs.GetString("PlayerName")));
             }
 
         }

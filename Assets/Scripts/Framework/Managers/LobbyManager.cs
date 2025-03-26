@@ -278,7 +278,7 @@ namespace Assets.Scripts.Framework.Managers
 
                 LobbyEvents.InvokeLobbyListUpdated(queryResponse.Results);
 
-                return OperationResult.SuccessResult("GetLobbies", $"Retrieved {queryResponse.Results.Count} lobbies");
+                return OperationResult.SuccessResult("GetLobbies", $"Retrieved {queryResponse.Results.Count} " + (queryResponse.Results.Count == 1 ? "lobby" : "lobbies"));
             }
             catch (LobbyServiceException e)
             {
@@ -358,13 +358,9 @@ namespace Assets.Scripts.Framework.Managers
                 Data = SerializeLobbyData(lobbyData)
             };
 
-            string oldHostId = _lobby.HostId;
-
             try
             {
                 _lobby = await LobbyService.Instance.UpdateLobbyAsync(_lobby.Id, updateLobbyOptions);
-                if (oldHostId != _lobby.HostId)
-                    LobbyEvents.InvokeHostMigrated(_lobby.HostId);
 
                 LobbyEvents.InvokeLobbyUpdated(_lobby);
 

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Assets.Scripts.Game.UI.Components.Colors
+namespace Assets.Scripts.Game.UI.Colors
 {
     /// <summary>
     /// Scriptable Object that contains editable UI color palettes.
@@ -25,8 +25,8 @@ namespace Assets.Scripts.Game.UI.Components.Colors
         [SerializeField] public static Color yellowHoverColor = new(1f, 0.75f, 0.1f);   // FFCF19
 
         [Header("Red Colors")]
-        [SerializeField] public static Color redDefaultColor = new(0.91f, 0.3f, 0.24f); // E74C3C
-        [SerializeField] public static Color redHoverColor = new(0.95f, 0.45f, 0.35f);   // F16F5A
+        [SerializeField] public static Color redDefaultColor = new(1f, 0.278f, 0.3414f); // FF4757
+        [SerializeField] public static Color redHoverColor = new(1f, 0.412f, 0.506f);   // FF6B81
 
     }
 }
