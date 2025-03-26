@@ -504,33 +504,33 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 3391311882854758568, guid: 096fc797519de2b4dbac6cfc122c3a27, type: 3}
-      propertyPath: m_Enabled
-      value: 0
+      propertyPath: spawnY
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 3391311882854758568, guid: 096fc797519de2b4dbac6cfc122c3a27, type: 3}
-      propertyPath: secBetweenSpawn
-      value: 1
+      propertyPath: spawnRangeX.x
+      value: -5
       objectReference: {fileID: 0}
+    - target: {fileID: 3391311882854758568, guid: 096fc797519de2b4dbac6cfc122c3a27, type: 3}
+      propertyPath: spawnRangeX.y
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3391311882854758568, guid: 096fc797519de2b4dbac6cfc122c3a27, type: 3}
+      propertyPath: abilities.Array.size
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3391311882854758568, guid: 096fc797519de2b4dbac6cfc122c3a27, type: 3}
+      propertyPath: abilities.Array.data[4]
+      value: 
+      objectReference: {fileID: -4804818971215047204, guid: 8f42ada35a4e8f74a807d7fe7888a67f, type: 3}
     - target: {fileID: 3391311882854758568, guid: 096fc797519de2b4dbac6cfc122c3a27, type: 3}
       propertyPath: ability_sprites.Array.size
-      value: 4
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 3391311882854758568, guid: 096fc797519de2b4dbac6cfc122c3a27, type: 3}
-      propertyPath: ability_sprites.Array.data[0]
+      propertyPath: ability_sprites.Array.data[4]
       value: 
-      objectReference: {fileID: 21300000, guid: 8f8606e3f64117a448a46e77d44d9201, type: 3}
-    - target: {fileID: 3391311882854758568, guid: 096fc797519de2b4dbac6cfc122c3a27, type: 3}
-      propertyPath: ability_sprites.Array.data[1]
-      value: 
-      objectReference: {fileID: 21300000, guid: ff2fdcf237d5bdc4790e55f7bb589b18, type: 3}
-    - target: {fileID: 3391311882854758568, guid: 096fc797519de2b4dbac6cfc122c3a27, type: 3}
-      propertyPath: ability_sprites.Array.data[2]
-      value: 
-      objectReference: {fileID: 21300000, guid: 32c0a15864fcbf148a9c1e88beefc8e6, type: 3}
-    - target: {fileID: 3391311882854758568, guid: 096fc797519de2b4dbac6cfc122c3a27, type: 3}
-      propertyPath: ability_sprites.Array.data[3]
-      value: 
-      objectReference: {fileID: 21300000, guid: 48281b0022d996c40bfcb08b9d074a00, type: 3}
+      objectReference: {fileID: 7482667652216324306, guid: 75f5f34dc1b5347e0b8351032682f224, type: 3}
     - target: {fileID: 5460704952463864590, guid: 096fc797519de2b4dbac6cfc122c3a27, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.054960184
