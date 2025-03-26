@@ -31,9 +31,10 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
         [SerializeField] private Image mapThumbnailImage;
         [SerializeField] private TextMeshProUGUI mapName;
         [SerializeField] private MapSelectionData mapSelectionData;
-        [SerializeField] private Incrementer roundCountIncrementer;
-        [SerializeField] private TextMeshProUGUI roundCountText;
-        // [SerializeField] private Dropdown gameModeDropdown;
+        // [SerializeField] private Incrementer roundCountIncrementer;
+        // [SerializeField] private TextMeshProUGUI roundCountText;
+
+        // [SerializeField] private Selector gameModeSelector;
 
         [Header("Lobby Settings Components")]
 
@@ -98,8 +99,8 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
             rightButton.onClick.RemoveListener(OnRightClicked);
             startButton.onClick.RemoveListener(OnStartClicked);
             readyUnreadyButton.onClick.RemoveListener(OnReadyUnreadyClicked);
-            roundCountIncrementer.incrementButton.onClick.RemoveListener(OnRoundCountChanged);
-            roundCountIncrementer.decrementButton.onClick.RemoveListener(OnRoundCountChanged);
+            // roundCountIncrementer.incrementButton.onClick.RemoveListener(OnRoundCountChanged);
+            // roundCountIncrementer.decrementButton.onClick.RemoveListener(OnRoundCountChanged);
 
             leaveButton.onClick.AddListener(OnLeaveClicked);
             lobbyCodeButton.onClick.AddListener(OnLobbyCodeClicked);
@@ -111,14 +112,14 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
                 rightButton.gameObject.SetActive(true);
                 startButton.gameObject.SetActive(true);
                 readyUnreadyButton.gameObject.SetActive(false);
-                roundCountIncrementer.incrementButton.interactable = true;
-                roundCountIncrementer.decrementButton.interactable = true;
+                // roundCountIncrementer.incrementButton.interactable = true;
+                // roundCountIncrementer.decrementButton.interactable = true;
 
                 leftButton.onClick.AddListener(OnLeftClicked);
                 rightButton.onClick.AddListener(OnRightClicked);
                 startButton.onClick.AddListener(OnStartClicked);
-                roundCountIncrementer.incrementButton.onClick.AddListener(OnRoundCountChanged);
-                roundCountIncrementer.decrementButton.onClick.AddListener(OnRoundCountChanged);
+                // roundCountIncrementer.incrementButton.onClick.AddListener(OnRoundCountChanged);
+                // roundCountIncrementer.decrementButton.onClick.AddListener(OnRoundCountChanged);
             }
             else
             {
@@ -127,8 +128,8 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
                 startButton.gameObject.SetActive(false);
                 readyUnreadyButton.gameObject.SetActive(true);
                 readyUnreadyButton.onClick.AddListener(OnReadyUnreadyClicked);
-                roundCountIncrementer.incrementButton.interactable = false;
-                roundCountIncrementer.decrementButton.interactable = false;
+                // roundCountIncrementer.incrementButton.interactable = false;
+                // roundCountIncrementer.decrementButton.interactable = false;
 
                 bool isReady = GameLobbyManager.Instance.IsPlayerReady(AuthenticationManager.Instance.PlayerId);
                 UpdateReadyButton(isReady);
@@ -154,13 +155,11 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
         {
             lobbyNameText.text = $"{LobbyManager.Instance.LobbyName}" + (LobbyManager.Instance.IsPrivate ? " (PRIVATE)" : "");
             lobbyCodeText.text = $"CODE: {LobbyManager.Instance.LobbyCode}";
-            roundCountText.text = $"{GameLobbyManager.Instance.GetRoundCount()}";
+            // roundCountText.text = $"{GameLobbyManager.Instance.GetRoundCount()}";
 
             currentMapIndex = GameLobbyManager.Instance.GetMapIndex();
             mapName.text = mapSelectionData.Maps[currentMapIndex].Name;
             mapThumbnailImage.sprite = mapSelectionData.Maps[currentMapIndex].Thumbnail;
-
-
         }
 
         private void OnLobbyCodeClicked()
@@ -265,17 +264,17 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyMenu
         #endregion
 
         #region Round Count
-        private async void OnRoundCountChanged()
-        {
-            roundCountIncrementer.incrementButton.interactable = false;
-            roundCountIncrementer.decrementButton.interactable = false;
+        // private async void OnRoundCountChanged()
+        // {
+        //     roundCountIncrementer.incrementButton.interactable = false;
+        //     roundCountIncrementer.decrementButton.interactable = false;
 
-            await GameLobbyManager.Instance.SetRoundCount(roundCountIncrementer.Value);
+        //     await GameLobbyManager.Instance.SetRoundCount(roundCountIncrementer.Value);
 
-            await Task.Delay(1500);
-            roundCountIncrementer.incrementButton.interactable = roundCountIncrementer.Value < roundCountIncrementer.maxValue;
-            roundCountIncrementer.decrementButton.interactable = roundCountIncrementer.Value > roundCountIncrementer.minValue;
-        }
+        //     await Task.Delay(1500);
+        //     roundCountIncrementer.incrementButton.interactable = roundCountIncrementer.Value < roundCountIncrementer.maxValue;
+        //     roundCountIncrementer.decrementButton.interactable = roundCountIncrementer.Value > roundCountIncrementer.minValue;
+        // }
         #endregion
     }
 }

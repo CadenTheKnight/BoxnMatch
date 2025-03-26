@@ -26,18 +26,24 @@ namespace Assets.Scripts.Game.UI.Components
 
         private void OnEnable()
         {
-            foreach (Button selectionButton in selectionButtons)
-                if (selectionButton != null)
-                    selectionButton.onClick.AddListener(() => OnButtonClicked(selectionButtons.IndexOf(selectionButton)));
+            for (int i = 0; i < selectionButtons.Count; i++)
+            {
+                int index = i;
+                if (selectionButtons[i] != null)
+                    selectionButtons[i].onClick.AddListener(() => OnButtonClicked(index));
+            }
 
             UpdateButtonAppearance();
         }
 
         private void OnDisable()
         {
-            foreach (Button selectionButton in selectionButtons)
-                if (selectionButton != null)
-                    selectionButton.onClick.RemoveListener(() => OnButtonClicked(selectionButtons.IndexOf(selectionButton)));
+            for (int i = 0; i < selectionButtons.Count; i++)
+            {
+                int index = i;
+                if (selectionButtons[i] != null)
+                    selectionButtons[i].onClick.RemoveListener(() => OnButtonClicked(index));
+            }
         }
 
         public void SetSelectionMode(SelectionMode mode, int count = 1)
@@ -143,7 +149,7 @@ namespace Assets.Scripts.Game.UI.Components
                     bool isSelected = currentSelections.Contains(selectionButtons.IndexOf(selectionButton));
 
                     colors.normalColor = isSelected ? selectedColor : unselectedColor;
-                    colors.selectedColor = isSelected ? selectedColor : unselectedColor;
+                    colors.selectedColor = isSelected ? selectedColor : colors.highlightedColor;
 
                     selectionButton.colors = colors;
                 }
