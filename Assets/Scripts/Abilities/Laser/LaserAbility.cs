@@ -22,7 +22,7 @@ public class LaserAbility : AbilityBinding
         // Spawns fireball in the direction used
         Vector3 spawnPos = pr.transform.position;
         spawnPos += dir.GetUnitDirection() * positionOffset;
-        activeLaser = Instantiate(Laser, spawnPos, transform.rotation);
+        activeLaser = Instantiate(Laser, spawnPos, pr.transform.rotation, pr.transform);
         activeLaser.transform.Rotate(0, 0, dir.GetRotationZ());
         activeLaser.GetComponent<Laser>().dir = dir;
 
