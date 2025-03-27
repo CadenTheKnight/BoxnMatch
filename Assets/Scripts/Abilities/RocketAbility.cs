@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using static Unity.Burst.Intrinsics.X86.Avx;
+using static UnityEngine.Rendering.DebugUI;
 
 public class RocketlAbility : AbilityBinding
 {
@@ -44,17 +46,19 @@ public class RocketlAbility : AbilityBinding
 
         if (!isActive)
         {
-            // Spawns rocket in the direction used
-            Vector3 spawnPosition = pr.transform.position;
-            spawnPosition += dir.GetUnitDirection() * positionOffset;
-
-            rb = pr.GetComponent<Rigidbody2D>();
-
-            temp = Instantiate(rocket, spawnPosition, pr.transform.rotation, pr.transform);
-            
-            isActive = true;
+            // conversion to get actual socket position for any rotation
             int socketToFire = ((int)dir - (int)pr.currDirection);
             if (socketToFire < 0) socketToFire += 4;
+
+            // Spawns rocket in the direction used
+            Vector3 spawnPos = pr.transform.position;
+            spawnPos += dir.GetUnitDirection() * positionOffset;
+            temp = Instantiate(rocket, spawnPos, pr.transform.rotation, pr.transform);
+            temp.transform.Rotate(0, 0, ((AbilityDirection)socketToFire).GetRotationZ() + 180);
+
+            rb = pr.GetComponent<Rigidbody2D>();
+            
+            isActive = true;
             pr.sockets[socketToFire].GetComponent<SpriteRenderer>().sprite = null;
         }
         else // if pressed a second time it will cancel the ability so that players can prevent flying to much

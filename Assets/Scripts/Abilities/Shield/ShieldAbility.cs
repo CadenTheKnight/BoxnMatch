@@ -31,15 +31,18 @@ public class ShieldAbility : AbilityBinding
 
         // Activate Ability on first fire
         if (!active)
-        { 
+        {
+            // conversion to get actual socket position for any rotation
+            int socketToFire = ((int)dir - (int)pr.currDirection);
+            if (socketToFire < 0) socketToFire += 4;
+
             // Spawn the shield
             Vector3 spawnPos = pr.transform.position;
             spawnPos += dir.GetUnitDirection() * positionOffset;
             tmp = Instantiate(shield, spawnPos, pr.transform.rotation, pr.transform);
+            tmp.transform.Rotate(0, 0, ((AbilityDirection)socketToFire).GetRotationZ());
 
             // Remove socket sprite
-            int socketToFire = ((int)dir - (int)pr.currDirection);
-            if (socketToFire < 0) socketToFire += 4;
             pr.sockets[socketToFire].GetComponent<SpriteRenderer>().sprite = null;
 
             active = true;

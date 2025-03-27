@@ -19,18 +19,21 @@ public class LaserAbility : AbilityBinding
 
     public override void Fire(AbilityDirection dir, PlayerRotator pr)
     {
-        // Spawns fireball in the direction used
+
+        // conversion ot find actual socket location
+        int socketToFire = ((int)dir - (int)pr.currDirection);
+        if (socketToFire < 0) socketToFire += 4;
+
+        // Spawns laser in the direction used
         Vector3 spawnPos = pr.transform.position;
         spawnPos += dir.GetUnitDirection() * positionOffset;
         activeLaser = Instantiate(Laser, spawnPos, pr.transform.rotation, pr.transform);
-        activeLaser.transform.Rotate(0, 0, dir.GetRotationZ());
+        activeLaser.transform.Rotate(0, 0, ((AbilityDirection)socketToFire).GetRotationZ());
         activeLaser.GetComponent<Laser>().dir = dir;
 
         currentShots++;
         if (currentShots >= maxShots)
         {
-            int socketToFire = ((int)dir - (int)pr.currDirection);
-            if (socketToFire < 0) socketToFire += 4;
             pr.sockets[socketToFire].GetComponent<SpriteRenderer>().sprite = null;
             Destroy(gameObject);
         }
