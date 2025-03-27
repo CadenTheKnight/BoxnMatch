@@ -172,6 +172,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   explosion: {fileID: -6230804984076244684, guid: e4fc169b2a9265540a46e19288b8b215, type: 3}
-  explosionDuration: 0.5
+  explosionDuration: 0.1
   explosionDamage: 30
-  explosionKnockback: 50
+  explosionKnockback: 30
