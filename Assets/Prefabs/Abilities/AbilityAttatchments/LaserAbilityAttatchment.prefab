@@ -83,6 +83,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   positionOffset: 1
-  maxShots: 1
+  maxShots: 3
   noAbility: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
   Laser: {fileID: 215190149022633427, guid: 2cf651686091f5446ad8e3c1770fa825, type: 3}

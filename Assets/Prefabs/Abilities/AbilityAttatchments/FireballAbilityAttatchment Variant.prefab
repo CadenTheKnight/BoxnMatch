@@ -83,7 +83,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   positionOffset: 1
-  maxShots: 1
+  maxShots: 3
   launchForce: {x: 15, y: 20}
   noAbility: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
   Fireball: {fileID: 1345575990676556360, guid: d8ba9e5f1ecc7424abc1b85f9c9cd55a, type: 3}
