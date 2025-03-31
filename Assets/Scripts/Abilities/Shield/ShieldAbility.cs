@@ -49,7 +49,7 @@ public class ShieldAbility : AbilityBinding
         }
         else // Destroy on second fire
         {
-            Destroy(tmp);
+            tmp.GetComponent<Shield>().delete();
             delete();
         }
     }

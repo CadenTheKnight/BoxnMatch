@@ -6,6 +6,7 @@ using UnityEngine.InputSystem.Controls;
 public class Explosion : MonoBehaviour
 {
     [SerializeField] public float explosionDuration;
+    [SerializeField] private float visibleDuration;
 
     private float time = 0;
 
@@ -13,9 +14,14 @@ public class Explosion : MonoBehaviour
     { 
         time += Time.deltaTime;
 
-        if(time > explosionDuration)
+        if(time > visibleDuration) // removes the whole object when we dont want to see or hear it anymore
         {
             Destroy(gameObject);
+        }
+
+        if(time > explosionDuration) // removes collider after explosion duration ends
+        {
+            Destroy(gameObject.GetComponent<Collider2D>());
         }
     }
 }

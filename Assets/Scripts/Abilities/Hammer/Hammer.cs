@@ -10,6 +10,8 @@ public class Hammer : MonoBehaviour
     private Vector2 baseDamageKnockback;
     private Rigidbody2D rb;
     private Vector2 previousPos;
+    private AudioSource audiosource;
+    [SerializeField] private float speedToPlay;
 
     // Start is called before the first frame update
     void Start()
@@ -18,6 +20,7 @@ public class Hammer : MonoBehaviour
         d = gameObject.GetComponent<DamageObject>();
         baseDamageKnockback = d.getDamageKnockback();
         previousPos = rb.position;
+        audiosource = GetComponent<AudioSource>();
     }
 
     // Update is called once per frame
@@ -29,6 +32,11 @@ public class Hammer : MonoBehaviour
         // Updates damage and knockback values based on the speed of the hammer
         d.setDamageKnockback(baseDamageKnockback * speed);
         Debug.Log(d.getDamageKnockback());
+
+        if(speed > speedToPlay)
+        {
+            audiosource.Play();
+        }
 
         previousPos = rb.position;
     }
