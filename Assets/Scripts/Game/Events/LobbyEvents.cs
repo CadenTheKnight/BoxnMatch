@@ -13,21 +13,6 @@ namespace Assets.Scripts.Game.Events
         public static event LobbyUpdated OnLobbyUpdated;
 
         /// <summary>
-        /// Triggered when a lobby is single clicked in the lobby list.
-        /// </summary>
-        /// <param name="lobbyId">The ID of the selected lobby.</param>
-        /// <param name="lobbyListEntry">The list entry of the selected lobby.</param>
-        public delegate void LobbySelectedHandler(string lobbyId, LobbyListEntry lobbyListEntry);
-        public static event LobbySelectedHandler OnLobbySelected;
-
-        /// <summary>
-        /// Triggered when a lobby is double clicked in the lobby list.
-        /// </summary>
-        /// <param name="lobbyId">The ID of the selected lobby.</param>
-        public delegate void LobbyDoubleClickedHandler(string lobbyId);
-        public static event LobbyDoubleClickedHandler OnLobbyDoubleClicked;
-
-        /// <summary>
         /// Triggered when a player toggles their ready status.
         /// </summary>
         /// <param name="playerId">ID of the player who changed their ready status.</param>
@@ -38,16 +23,16 @@ namespace Assets.Scripts.Game.Events
         /// <summary>
         /// Triggered when all players in the lobby are ready.
         /// </summary>
-        public delegate void AllPlayersReadyHandler();
-        public static event AllPlayersReadyHandler OnAllPlayersReady;
+        public delegate void LobbyReadyHandler();
+        public static event LobbyReadyHandler OnLobbyReady;
 
         /// <summary>
         /// Triggered when at least one player in the lobby is not ready.
         /// </summary>
         /// <param name="playersReady">The number of players that are ready.</param>
         /// <param name="maxPlayerCount">The maximum number of players in the lobby.</param>
-        public delegate void NotAllPlayersReadyHandler(int playersReady, int maxPlayerCount);
-        public static event NotAllPlayersReadyHandler OnNotAllPlayersReady;
+        public delegate void LobbyNotReadyHandler(int playersReady, int maxPlayerCount);
+        public static event LobbyNotReadyHandler OnLobbyNotReady;
 
         /// <summary>
         /// Triggered when the match has started.
@@ -77,11 +62,9 @@ namespace Assets.Scripts.Game.Events
 
         #region Invocations
         public static void InvokeLobbyUpdated() => OnLobbyUpdated?.Invoke();
-        public static void InvokeLobbySelected(string lobbyId, LobbyListEntry lobbyListEntry) => OnLobbySelected?.Invoke(lobbyId, lobbyListEntry);
-        public static void InvokeLobbyDoubleClicked(string lobbyId) => OnLobbyDoubleClicked?.Invoke(lobbyId);
         public static void InvokePlayerReadyChanged(string playerId, bool isReady) => OnPlayerReadyChanged?.Invoke(playerId, isReady);
-        public static void InvokeAllPlayersReady() => OnAllPlayersReady?.Invoke();
-        public static void InvokeNotAllPlayersReady(int playersReady, int maxPlayerCount) => OnNotAllPlayersReady?.Invoke(playersReady, maxPlayerCount);
+        public static void InvokeLobbyReady() => OnLobbyReady?.Invoke();
+        public static void InvokeLobbyNotReady(int playersReady, int maxPlayerCount) => OnLobbyNotReady?.Invoke(playersReady, maxPlayerCount);
         public static void InvokeMatchStarted() => OnMatchStarted?.Invoke();
         public static void InvokeLobbyDataChanged(string propertyName, object oldValue, object newValue) => OnLobbyDataChanged?.Invoke(propertyName, oldValue, newValue);
         public static void InvokePlayerDataChanged(string playerId, string propertyName, string oldValue, string newValue) => OnLobbyPlayerDataChanged?.Invoke(playerId, propertyName, oldValue, newValue);

@@ -1,7 +1,7 @@
 using TMPro;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
-using Assets.Scripts.Game.Events;
 using Unity.Services.Lobbies.Models;
 
 namespace Assets.Scripts.Game.UI.Components.ListEntries
@@ -10,14 +10,17 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
     {
         [Header("UI Components")]
         [SerializeField] private Button lobbyButton;
-        [SerializeField] private TextMeshProUGUI gameModeText;
-        [SerializeField] private TextMeshProUGUI lobbyNameText;
-        [SerializeField] private TextMeshProUGUI lobbyStatusText;
+        [SerializeField] private TextMeshProUGUI nameText;
         [SerializeField] private TextMeshProUGUI playerCountText;
+        [SerializeField] private TextMeshProUGUI gameModeText;
+        [SerializeField] private TextMeshProUGUI statusText;
+        [SerializeField] private Image mapImage;
 
         private string lobbyId;
         private float lastClickTime;
-        private const float doubleClickTimeThreshold = 0.3f;
+
+        public Action<string, LobbyListEntry> lobbySingleClicked;
+        public Action<string> lobbyDoubleClicked;
 
         private void OnEnable()
         {
@@ -33,10 +36,10 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
         {
             float timeSinceLastClick = Time.time - lastClickTime;
 
-            if (timeSinceLastClick <= doubleClickTimeThreshold)
-                LobbyEvents.InvokeLobbyDoubleClicked(lobbyId);
+            if (timeSinceLastClick <= 0.3f)
+                lobbyDoubleClicked?.Invoke(lobbyId);
             else
-                LobbyEvents.InvokeLobbySelected(lobbyId, this);
+                lobbySingleClicked?.Invoke(lobbyId, this);
 
             lastClickTime = Time.time;
         }
@@ -44,10 +47,11 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
         public void SetLobby(Lobby lobby)
         {
             lobbyId = lobby.Id;
-            lobbyNameText.text = lobby.Name;
+            nameText.text = lobby.Name;
             playerCountText.text = $"{lobby.Players.Count}/{lobby.MaxPlayers}";
+            statusText.text = lobby.Data["Status"].Value;
             gameModeText.text = lobby.Data["GameMode"].Value;
-            lobbyStatusText.text = lobby.Data["InGame"].Value == "true" ? "In Game" : "In Lobby";
+            // mapImage.sprite = Resources.Load<Sprite>($"Maps/{lobby.Data["MapName"].Value}");
         }
     }
 }

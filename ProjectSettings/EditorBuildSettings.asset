@@ -20,7 +20,4 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Maps/RedMap.unity
     guid: 4019d064ffb03be4588beff3932af1c4
-  - enabled: 1
-    path: Assets/Scenes/Maps/GreenScene.unity
-    guid: ec4f9418b63bd694e9cca6804bb67443
   m_configObjects: {}

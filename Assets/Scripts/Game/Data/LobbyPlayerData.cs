@@ -1,3 +1,4 @@
+using Assets.Scripts.Game.Types;
 using System.Collections.Generic;
 using Assets.Scripts.Game.Events;
 using Unity.Services.Lobbies.Models;
@@ -9,40 +10,33 @@ namespace Assets.Scripts.Game.Data
     /// </summary>
     public class LobbyPlayerData
     {
-        private string _playerId;
-        private string _playerName;
-        private bool _isReady;
-        private bool _isConnected;
-        private bool _inGame;
+        private string _id;
+        private string _name;
+        private Team _team;
+        private PlayerStatus _status;
 
-        public string PlayerId
+        public string Id
         {
-            get => _playerId;
-            private set => SetValue(ref _playerId, value, nameof(PlayerId));
+            get => _id;
+            set => SetValue(ref _id, value, nameof(Id));
         }
 
-        public string PlayerName
+        public string Name
         {
-            get => _playerName;
-            set => SetValue(ref _playerName, value, nameof(PlayerName));
+            get => _name;
+            set => SetValue(ref _name, value, nameof(Name));
         }
 
-        public bool IsReady
+        public Team Team
         {
-            get => _isReady;
-            set => SetValue(ref _isReady, value, nameof(IsReady));
+            get => _team;
+            set => SetValue(ref _team, value, nameof(Team));
         }
 
-        public bool IsConnected
+        public PlayerStatus Status
         {
-            get => _isConnected;
-            set => SetValue(ref _isConnected, value, nameof(IsConnected));
-        }
-
-        public bool InGame
-        {
-            get => _inGame;
-            set => SetValue(ref _inGame, value, nameof(InGame));
+            get => _status;
+            set => SetValue(ref _status, value, nameof(Status));
         }
 
         private void SetValue<T>(ref T field, T value, string propertyName)
@@ -52,51 +46,46 @@ namespace Assets.Scripts.Game.Data
                 string oldValue = field?.ToString();
                 field = value;
                 string newValue = value?.ToString();
-                LobbyEvents.InvokePlayerDataChanged(_playerId, propertyName, oldValue, newValue);
+                LobbyEvents.InvokePlayerDataChanged(_id, propertyName, oldValue, newValue);
             }
         }
 
         public void Initialize(string playerId, string playerName)
         {
-            _playerId = playerId;
-            _playerName = playerName;
-            _isReady = false;
-            _isConnected = true;
-            _inGame = false;
+            _id = playerId;
+            _name = playerName;
+            _team = Team.Blue;
+            _status = PlayerStatus.NotReady;
         }
 
-        public void Initialize(Dictionary<string, PlayerDataObject> playerData)
+        public void Initialize(Dictionary<string, PlayerDataObject> lobbyPlayerData)
         {
-            UpdateState(playerData);
+            UpdateState(lobbyPlayerData);
         }
 
-        public void UpdateState(Dictionary<string, PlayerDataObject> playerData)
+        public void UpdateState(Dictionary<string, PlayerDataObject> lobbyPlayerData)
         {
-            if (playerData.TryGetValue("PlayerId", out PlayerDataObject playerIdObj))
-                PlayerId = playerIdObj.Value;
+            if (lobbyPlayerData.TryGetValue("PlayerId", out PlayerDataObject playerIdObj))
+                Id = playerIdObj.Value;
 
-            if (playerData.TryGetValue("PlayerName", out PlayerDataObject playerNameObj))
-                PlayerName = playerNameObj.Value;
+            if (lobbyPlayerData.TryGetValue("PlayerName", out PlayerDataObject playerNameObj))
+                Name = playerNameObj.Value;
 
-            if (playerData.TryGetValue("IsReady", out PlayerDataObject isReadyObj))
-                IsReady = isReadyObj.Value == "true";
+            if (lobbyPlayerData.TryGetValue("Team", out PlayerDataObject teamObj))
+                Team = (Team)int.Parse(teamObj.Value);
 
-            if (playerData.TryGetValue("IsConnected", out PlayerDataObject isConnectedObj))
-                IsConnected = isConnectedObj.Value == "true";
-
-            if (playerData.TryGetValue("InGame", out PlayerDataObject inGameObj))
-                InGame = inGameObj.Value == "true";
+            if (lobbyPlayerData.TryGetValue("Status", out PlayerDataObject statusObj))
+                _status = (PlayerStatus)int.Parse(statusObj.Value);
         }
 
         public Dictionary<string, string> Serialize()
         {
             return new Dictionary<string, string>
             {
-                { "PlayerId", _playerId },
-                { "PlayerName", _playerName },
-                { "IsReady", _isReady.ToString().ToLower() },
-                { "IsConnected", _isConnected.ToString().ToLower() },
-                { "InGame", _inGame.ToString().ToLower() }
+                { "PlayerId", _id },
+                { "PlayerName", _name },
+                { "Team", ((int)_team).ToString() },
+                { "Status", ((int)_status).ToString() }
             };
         }
     }

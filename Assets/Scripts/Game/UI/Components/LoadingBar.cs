@@ -38,8 +38,7 @@ namespace Assets.Scripts.Game.UI.Components
             if (!isLoading) return;
 
             float newX = movingBar.anchoredPosition.x + speed * Time.deltaTime;
-            if (newX > endPosition)
-                newX = startPosition;
+            if (newX > endPosition) newX = startPosition;
 
             movingBar.anchoredPosition = new Vector2(newX, movingBar.anchoredPosition.y);
         }
@@ -65,8 +64,7 @@ namespace Assets.Scripts.Game.UI.Components
 
         private void OnRectTransformDimensionsChange()
         {
-            if (isActiveAndEnabled)
-                RecalculatePositions();
+            if (isActiveAndEnabled) RecalculatePositions();
         }
     }
 }

@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using Unity.Services.Lobbies.Models;
+using Assets.Scripts.Framework.Utilities;
+using Assets.Scripts.Game.Types;
 
 namespace Assets.Scripts.Framework.Events
 {
@@ -12,51 +14,72 @@ namespace Assets.Scripts.Framework.Events
         /// <summary>
         /// Triggered when a new lobby is successfully created.
         /// </summary>
-        /// <param name="lobby">The created lobby data.</param>
-        public delegate void LobbyCreatedHandler(Lobby lobby);
+        /// <param name="result"> The result of the lobby creation operation.</param>
+        public delegate void LobbyCreatedHandler(OperationResult result);
         public static event LobbyCreatedHandler OnLobbyCreated;
 
         /// <summary>
         /// Triggered when successfully joining an existing lobby.
         /// </summary>
-        /// <param name="lobby">The joined lobby data.</param>
-        public delegate void LobbyJoinedHandler(Lobby lobby);
+        /// <param name="result">The result of the lobby join operation.</param>
+        public delegate void LobbyJoinedHandler(OperationResult result);
         public static event LobbyJoinedHandler OnLobbyJoined;
 
         /// <summary>
         /// Triggered when successfully leaving a lobby.
         /// </summary>
-        /// <param name="lobby">The lobby that was left.</param>
-        public delegate void LobbyLeftHandler(Lobby lobby);
+        /// <param name="result">The result of the lobby leave operation.</param>
+        public delegate void LobbyLeftHandler(OperationResult result);
         public static event LobbyLeftHandler OnLobbyLeft;
 
         /// <summary>
         /// Triggered when kicked from a lobby.
         /// </summary>
-        /// <param name="lobby">The lobby kicked from.</param>
-        public delegate void LobbyKickedHandler(Lobby lobby);
+        /// <param name="result">The result of the lobby kick operation.</param>
+        public delegate void LobbyKickedHandler(OperationResult result);
         public static event LobbyKickedHandler OnLobbyKicked;
 
         /// <summary>
         /// Triggered when a player joins the lobby.
         /// </summary>
-        /// <param name="playerName">Name of the player who joined.</param>
-        public delegate void PlayerJoinedHandler(string playerName);
+        /// <param name="result">The result of the player join operation.</param>
+        public delegate void PlayerJoinedHandler(OperationResult result);
         public static event PlayerJoinedHandler OnPlayerJoined;
 
         /// <summary>
         /// Triggered when a player leaves the lobby.
         /// </summary>
-        /// <param name="playerName">Name of the player who left.</param>
-        public delegate void PlayerLeftHandler(string playerName);
+        /// <param name="result">The result of the player leave operation.</param>
+        public delegate void PlayerLeftHandler(OperationResult result);
         public static event PlayerLeftHandler OnPlayerLeft;
 
         /// <summary>
         /// Triggered when a player is kicked from the lobby.
         /// </summary>
-        /// <param name="playerName">Name of the player who was kicked.</param>
-        public delegate void PlayerKickedHandler(string playerName);
+        /// <param name="result">The result of the player kick operation.</param>
+        public delegate void PlayerKickedHandler(OperationResult result);
         public static event PlayerKickedHandler OnPlayerKicked;
+
+        /// <summary>
+        /// Triggered when a lobby query is successfully completed.
+        /// </summary>
+        /// <param name="result">The result of the lobby query operation.</param>
+        /// <param name="lobbies">The list of lobbies returned from the query.</param>
+        public delegate void InvokeLobbyQueryResponseHandler(OperationResult result, List<Lobby> lobbies);
+        public static event InvokeLobbyQueryResponseHandler OnLobbyQueryResponse;
+
+        /// <summary>
+        /// Triggered when there is an error during a lobby operation.
+        /// </summary>
+        /// <param name="result">The result of the lobby operation.</param>
+        public delegate void LobbyErrorHandler(OperationResult result);
+        public static event LobbyErrorHandler OnLobbyError;
+
+
+        public delegate void LobbyDataUpdatedHandler(OperationResult result);
+        public static event LobbyDataUpdatedHandler OnLobbyDataUpdated;
+
+
 
         /// <summary>
         /// Triggered when the lobby host has migrated.
@@ -71,26 +94,25 @@ namespace Assets.Scripts.Framework.Events
         /// <param name="lobby">The updated lobby data.</param>
         public delegate void LobbyUpdated(Lobby lobby);
         public static event LobbyUpdated OnLobbyUpdated;
-
-        /// <summary>
-        /// Triggered when the list of lobbies is updated.
-        /// </summary>
-        /// <param name="lobbies">The updated list of lobbies.</param>
-        public delegate void LobbyListUpdatedHandler(List<Lobby> lobbies);
-        public static event LobbyListUpdatedHandler OnLobbyListUpdated;
         #endregion
 
         #region Invocations
-        public static void InvokeLobbyCreated(Lobby lobby) => OnLobbyCreated?.Invoke(lobby);
-        public static void InvokeLobbyJoined(Lobby lobby) => OnLobbyJoined?.Invoke(lobby);
-        public static void InvokeLobbyLeft(Lobby lobby) => OnLobbyLeft?.Invoke(lobby);
-        public static void InvokeLobbyKicked(Lobby lobby) => OnLobbyKicked?.Invoke(lobby);
-        public static void InvokePlayerJoined(string playerName) => OnPlayerJoined?.Invoke(playerName);
-        public static void InvokePlayerLeft(string playerName) => OnPlayerLeft?.Invoke(playerName);
-        public static void InvokePlayerKicked(string playerName) => OnPlayerKicked?.Invoke(playerName);
+        public static void InvokeLobbyCreated(OperationResult result) => OnLobbyCreated?.Invoke(result);
+        public static void InvokeLobbyJoined(OperationResult result) => OnLobbyJoined?.Invoke(result);
+        public static void InvokeLobbyLeft(OperationResult result) => OnLobbyLeft?.Invoke(result);
+        public static void InvokeLobbyKicked(OperationResult result) => OnLobbyKicked?.Invoke(result);
+        public static void InvokePlayerJoined(OperationResult result) => OnPlayerJoined?.Invoke(result);
+        public static void InvokePlayerLeft(OperationResult result) => OnPlayerLeft?.Invoke(result);
+        public static void InvokePlayerKicked(OperationResult result) => OnPlayerKicked?.Invoke(result);
+        public static void InvokeLobbyQueryResponse(OperationResult result, List<Lobby> lobbies) => OnLobbyQueryResponse?.Invoke(result, lobbies);
+        public static void InvokeLobbyError(OperationResult result) => OnLobbyError?.Invoke(result);
+
+
+
+        public static void InvokeLobbyDataUpdated(OperationResult result) => OnLobbyDataUpdated?.Invoke(result);
+
         public static void InvokeHostMigrated(string newHostId) => OnHostMigrated?.Invoke(newHostId);
         public static void InvokeLobbyUpdated(Lobby lobby) => OnLobbyUpdated?.Invoke(lobby);
-        public static void InvokeLobbyListUpdated(List<Lobby> lobbies) => OnLobbyListUpdated?.Invoke(lobbies);
         #endregion
     }
 }

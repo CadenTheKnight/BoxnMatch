@@ -21,6 +21,18 @@ namespace Assets.Scripts.Game.Data
             return maps[index];
         }
 
+        public int GetMapIndex(string mapName)
+        {
+            for (int i = 0; i < maps.Count; i++)
+            {
+                if (maps[i].Name == mapName)
+                    return i;
+            }
+            Debug.LogWarning($"Map with scene name {mapName} not found.");
+            return -1;
+        }
+
+
         public MapInfo GetMapBySceneName(string sceneName)
         {
             return maps.Find(map => map.Name == sceneName);

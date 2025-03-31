@@ -14,6 +14,9 @@ namespace Assets.Scripts.Game.UI.Colors
         [SerializeField] public static Color primaryDisabledColor = new(0.34f, 0.38f, 0.44f); // 57606F
 
         [Header("Secondary Colors")]
+        [SerializeField] public static Color secondaryDefaultColor = new(0.184f, 0.208f, 0.259f); // 2F3542
+        [SerializeField] public static Color secondaryHoverColor = new(0.34f, 0.38f, 0.44f); // 57606F
+        [SerializeField] public static Color secondaryPressedColor = new(0.455f, 0.490f, 0.549f); // 747D8C
         [SerializeField] public static Color secondaryDisabledColor = new(0.87f, 0.89f, 0.92f); // DFE4EA
 
         [Header("Green Colors")]

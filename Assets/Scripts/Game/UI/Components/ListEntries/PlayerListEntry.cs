@@ -2,9 +2,10 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Assets.Scripts.Game.Data;
-using Assets.Scripts.Game.Enums;
+using Assets.Scripts.Game.Types;
 using Assets.Scripts.Game.UI.Colors;
 using Assets.Scripts.Framework.Managers;
+using Unity.Services.Lobbies.Models;
 
 namespace Assets.Scripts.Game.UI.Components.ListEntries
 {
@@ -20,34 +21,45 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
         [SerializeField] private TextMeshProUGUI playerNameText;
         [SerializeField] private Image readyUnreadyIndicatorPanel;
 
-        private LobbyPlayerData playerData;
-        private LobbyPlayerSpotState currentState = LobbyPlayerSpotState.Empty;
+        private LobbyPlayerData lobbyPlayerData;
 
-        public void SetData(LobbyPlayerData data, LobbyPlayerSpotState state)
+        public void SetData(LobbyPlayerData lobbyPlayerData)
         {
-            playerData = data;
+            this.lobbyPlayerData = lobbyPlayerData;
 
-            if (state != LobbyPlayerSpotState.Empty)
+            if (lobbyPlayerData.Status == PlayerStatus.Connected)
             {
-                bool isHost = LobbyManager.Instance.IsHostId(playerData.PlayerId);
-                playerNameText.text = isHost ? $"{playerData.PlayerName} (Host)" : playerData.PlayerName;
+                bool isHost = LobbyManager.Instance.IsHostId(lobbyPlayerData.Id);
+                playerNameText.text = lobbyPlayerData.Name + (isHost ? "(Host)" : "");
 
                 if (isHost)
                     readyUnreadyIndicatorPanel.gameObject.SetActive(false);
                 else
-                    readyUnreadyIndicatorPanel.color = playerData.IsReady ? UIColors.greenDefaultColor : UIColors.redDefaultColor;
+                    readyUnreadyIndicatorPanel.color = lobbyPlayerData.Status == PlayerStatus.Ready ? UIColors.greenDefaultColor : UIColors.redDefaultColor;
             }
 
-            SetState(state);
+            SetState(lobbyPlayerData.Status);
         }
 
-        public void SetState(LobbyPlayerSpotState state)
+        public void SetState(PlayerStatus status)
         {
-            currentState = state;
+            emptyStatePanel.SetActive(false);
+            activeStatePanel.SetActive(false);
+            disconnectedStatePanel.SetActive(false);
 
-            emptyStatePanel.SetActive(state == LobbyPlayerSpotState.Empty);
-            activeStatePanel.SetActive(state == LobbyPlayerSpotState.Active || state == LobbyPlayerSpotState.Disconnected);
-            disconnectedStatePanel.SetActive(state == LobbyPlayerSpotState.Disconnected);
+            switch (status)
+            {
+                case PlayerStatus.Disconnected:
+                    disconnectedStatePanel.SetActive(true);
+                    break;
+                case PlayerStatus.NotReady:
+                case PlayerStatus.Ready:
+                    activeStatePanel.SetActive(true);
+                    break;
+                default:
+                    emptyStatePanel.SetActive(true);
+                    break;
+            }
         }
     }
 }

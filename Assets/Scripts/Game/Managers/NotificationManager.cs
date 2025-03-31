@@ -1,10 +1,11 @@
+using System;
 using UnityEngine;
-using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Core;
-using Assets.Scripts.Framework.Enums;
 using Assets.Scripts.Framework.Events;
-using Assets.Scripts.Game.UI.Components;
 using Assets.Scripts.Framework.Utilities;
+using Assets.Scripts.Game.UI.Controllers.NotificationCanvas;
+using System.Collections.Generic;
+using Unity.Services.Lobbies.Models;
 
 namespace Assets.Scripts.Game.Managers
 {
@@ -16,75 +17,57 @@ namespace Assets.Scripts.Game.Managers
 
         private void Start()
         {
-            AuthenticationEvents.OnAuthenticated += HandleAuthenticated;
+            AuthenticationEvents.OnAuthenticated += ShowNotification;
+            AuthenticationEvents.OnAuthenticationError += ShowErrorPopup;
+            AuthenticationEvents.OnLobbyRejoined += ShowNotification;
+            AuthenticationEvents.OnLobbyRejoinError += ShowNotification;
 
-            LobbyEvents.OnLobbyCreated += HandleLobbyCreated;
-            LobbyEvents.OnLobbyJoined += HandleLobbyJoined;
-            LobbyEvents.OnLobbyLeft += HandleLobbyLeft;
-            LobbyEvents.OnLobbyKicked += HandleLobbyKicked;
+            LobbyEvents.OnLobbyCreated += ShowNotification;
+            LobbyEvents.OnLobbyJoined += ShowNotification;
+            LobbyEvents.OnLobbyLeft += ShowNotification;
+            LobbyEvents.OnLobbyKicked += ShowNotification;
+            LobbyEvents.OnPlayerJoined += ShowNotification;
+            LobbyEvents.OnPlayerLeft += ShowNotification;
+            LobbyEvents.OnPlayerKicked += ShowNotification;
+            LobbyEvents.OnLobbyQueryResponse += ShowNotification;
+            LobbyEvents.OnLobbyError += ShowNotification;
+
+            LobbyEvents.OnLobbyDataUpdated += ShowNotification;
         }
 
         private void OnDestroy()
         {
-            AuthenticationEvents.OnAuthenticated -= HandleAuthenticated;
+            AuthenticationEvents.OnAuthenticated -= ShowNotification;
+            AuthenticationEvents.OnAuthenticationError -= ShowErrorPopup;
+            AuthenticationEvents.OnLobbyRejoined -= ShowNotification;
+            AuthenticationEvents.OnLobbyRejoinError -= ShowNotification;
 
-            LobbyEvents.OnLobbyCreated -= HandleLobbyCreated;
-            LobbyEvents.OnLobbyJoined -= HandleLobbyJoined;
-            LobbyEvents.OnLobbyLeft -= HandleLobbyLeft;
-            LobbyEvents.OnLobbyKicked -= HandleLobbyKicked;
+            LobbyEvents.OnLobbyCreated -= ShowNotification;
+            LobbyEvents.OnLobbyJoined -= ShowNotification;
+            LobbyEvents.OnLobbyLeft -= ShowNotification;
+            LobbyEvents.OnLobbyKicked -= ShowNotification;
+            LobbyEvents.OnPlayerJoined -= ShowNotification;
+            LobbyEvents.OnPlayerLeft -= ShowNotification;
+            LobbyEvents.OnPlayerKicked -= ShowNotification;
+            LobbyEvents.OnLobbyQueryResponse -= ShowNotification;
+            LobbyEvents.OnLobbyError -= ShowNotification;
+
+            LobbyEvents.OnLobbyDataUpdated -= ShowNotification;
         }
 
-        /// <summary>
-        /// Handles the result of an operation.
-        /// </summary>
-        /// <param name="operationResult">The result of the operation.</param>
-        /// <param name="retryAction">The action to retry the operation.</param>
-        public void HandleResult(OperationResult operationResult, System.Action retryAction = null)
+        private void ShowNotification(OperationResult result)
         {
-            if (operationResult.Status == ResultStatus.Success)
-            {
-                Debug.Log($"{operationResult.Code} - {operationResult.Message}");
-                resultNotification.ShowNotification(operationResult, ResultStatus.Success);
-            }
-            else if (operationResult.Status == ResultStatus.Warning)
-            {
-                Debug.Log($"{operationResult.Code} - {operationResult.Message}");
-                resultNotification.ShowNotification(operationResult, ResultStatus.Warning);
-            }
-            else
-            {
-                Debug.LogError($"{operationResult.Code} - {operationResult.Message}");
-                if (operationResult.Category == "Authentication")
-                    errorPopup.ShowError(operationResult.Code, operationResult.Message, retryAction);
-                else
-                    resultNotification.ShowNotification(operationResult, ResultStatus.Error);
-            }
+            resultNotification.ShowNotification(result);
         }
 
-        private void HandleAuthenticated(string playerName)
+        private void ShowNotification(OperationResult result, List<Lobby> lobbies)
         {
-            HandleResult(OperationResult.SuccessResult("Authenticated", $"Signed in as {playerName}"));
+            resultNotification.ShowNotification(result);
         }
 
-        private void HandleLobbyCreated(Lobby lobby)
+        private void ShowErrorPopup(OperationResult result, Action retryAction)
         {
-            HandleResult(OperationResult.SuccessResult("LobbyCreated", $"Lobby created: {lobby.Name}"));
+            errorPopup.ShowError(result, retryAction);
         }
-
-        private void HandleLobbyJoined(Lobby lobby)
-        {
-            HandleResult(OperationResult.SuccessResult("LobbyJoined", $"Lobby joined: {lobby.Name}"));
-        }
-
-        private void HandleLobbyLeft(Lobby lobby)
-        {
-            HandleResult(OperationResult.SuccessResult("LobbyLeft", $"Left lobby: {lobby.Name}"));
-        }
-
-        private void HandleLobbyKicked(Lobby lobby)
-        {
-            HandleResult(OperationResult.WarningResult("LobbyKicked", $"Kicked from lobby: {lobby.Name}"));
-        }
-
     }
 }

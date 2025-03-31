@@ -1,5 +1,5 @@
 using System;
-using Assets.Scripts.Game.Enums;
+using Assets.Scripts.Game.Types;
 
 namespace Assets.Scripts.Framework.Utilities
 {
@@ -9,9 +9,10 @@ namespace Assets.Scripts.Framework.Utilities
     public class ChatMessage
     {
         public DateTime TimeSent { get; }
+        public ChatMessageType MessageType { get; }
         public string SenderName { get; }
         public string Message { get; }
-        public ChatMessageType MessageType { get; }
+
 
         /// <summary>
         /// Creates a new ChatMessage with the provided message type, sender name, and formatted message.
