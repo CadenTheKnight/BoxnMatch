@@ -4,8 +4,6 @@ using Assets.Scripts.Framework.Core;
 using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Utilities;
 using Assets.Scripts.Game.UI.Controllers.NotificationCanvas;
-using System.Collections.Generic;
-using Unity.Services.Lobbies.Models;
 
 namespace Assets.Scripts.Game.Managers
 {
@@ -17,50 +15,41 @@ namespace Assets.Scripts.Game.Managers
 
         private void Start()
         {
-            AuthenticationEvents.OnAuthenticated += ShowNotification;
+            // AuthenticationEvents.OnAuthenticated += ShowNotification;
             AuthenticationEvents.OnAuthenticationError += ShowErrorPopup;
-            AuthenticationEvents.OnLobbyRejoined += ShowNotification;
+            // AuthenticationEvents.OnLobbyRejoined += ShowNotification;
             AuthenticationEvents.OnLobbyRejoinError += ShowNotification;
 
-            LobbyEvents.OnLobbyCreated += ShowNotification;
-            LobbyEvents.OnLobbyJoined += ShowNotification;
-            LobbyEvents.OnLobbyLeft += ShowNotification;
-            LobbyEvents.OnLobbyKicked += ShowNotification;
-            LobbyEvents.OnPlayerJoined += ShowNotification;
-            LobbyEvents.OnPlayerLeft += ShowNotification;
-            LobbyEvents.OnPlayerKicked += ShowNotification;
-            LobbyEvents.OnLobbyQueryResponse += ShowNotification;
+            // LobbyEvents.OnLobbyCreated += ShowNotification;
+            // LobbyEvents.OnLobbyJoined += ShowNotification;
+            // LobbyEvents.OnLobbyLeft += ShowNotification;
+            // LobbyEvents.OnLobbyKicked += ShowNotification;
+            // LobbyEvents.OnPlayerJoined += ShowNotification;
+            // LobbyEvents.OnPlayerLeft += ShowNotification;
+            // LobbyEvents.OnPlayerKicked += ShowNotification;
+            // LobbyEvents.OnLobbyQueryResponse += ShowNotification;
             LobbyEvents.OnLobbyError += ShowNotification;
-
-            LobbyEvents.OnLobbyDataUpdated += ShowNotification;
         }
 
         private void OnDestroy()
         {
-            AuthenticationEvents.OnAuthenticated -= ShowNotification;
+            // AuthenticationEvents.OnAuthenticated -= ShowNotification;
             AuthenticationEvents.OnAuthenticationError -= ShowErrorPopup;
-            AuthenticationEvents.OnLobbyRejoined -= ShowNotification;
+            // AuthenticationEvents.OnLobbyRejoined -= ShowNotification;
             AuthenticationEvents.OnLobbyRejoinError -= ShowNotification;
 
-            LobbyEvents.OnLobbyCreated -= ShowNotification;
-            LobbyEvents.OnLobbyJoined -= ShowNotification;
-            LobbyEvents.OnLobbyLeft -= ShowNotification;
-            LobbyEvents.OnLobbyKicked -= ShowNotification;
-            LobbyEvents.OnPlayerJoined -= ShowNotification;
-            LobbyEvents.OnPlayerLeft -= ShowNotification;
-            LobbyEvents.OnPlayerKicked -= ShowNotification;
-            LobbyEvents.OnLobbyQueryResponse -= ShowNotification;
+            // LobbyEvents.OnLobbyCreated -= ShowNotification;
+            // LobbyEvents.OnLobbyJoined -= ShowNotification;
+            // LobbyEvents.OnLobbyLeft -= ShowNotification;
+            // LobbyEvents.OnLobbyKicked -= ShowNotification;
+            // LobbyEvents.OnPlayerJoined -= ShowNotification;
+            // LobbyEvents.OnPlayerLeft -= ShowNotification;
+            // LobbyEvents.OnPlayerKicked -= ShowNotification;
+            // LobbyEvents.OnLobbyQueryResponse -= ShowNotification;
             LobbyEvents.OnLobbyError -= ShowNotification;
-
-            LobbyEvents.OnLobbyDataUpdated -= ShowNotification;
         }
 
         private void ShowNotification(OperationResult result)
-        {
-            resultNotification.ShowNotification(result);
-        }
-
-        private void ShowNotification(OperationResult result, List<Lobby> lobbies)
         {
             resultNotification.ShowNotification(result);
         }

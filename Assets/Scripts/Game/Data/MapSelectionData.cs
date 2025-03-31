@@ -7,11 +7,11 @@ namespace Assets.Scripts.Game.Data
     [CreateAssetMenu(menuName = "Resources/Data/MapSelectionData", fileName = "MapSelectionData")]
     public class MapSelectionData : ScriptableObject
     {
-        [SerializeField] private List<MapInfo> maps = new();
+        [SerializeField] private List<Map> maps = new();
 
-        public List<MapInfo> Maps => maps;
+        public List<Map> Maps => maps;
 
-        public MapInfo GetMap(int index)
+        public Map GetMap(int index)
         {
             if (index < 0 || index >= maps.Count)
             {
@@ -24,23 +24,22 @@ namespace Assets.Scripts.Game.Data
         public int GetMapIndex(string mapName)
         {
             for (int i = 0; i < maps.Count; i++)
-            {
                 if (maps[i].Name == mapName)
                     return i;
-            }
+
             Debug.LogWarning($"Map with scene name {mapName} not found.");
             return -1;
         }
 
 
-        public MapInfo GetMapBySceneName(string sceneName)
+        public Map GetMapBySceneName(string sceneName)
         {
             return maps.Find(map => map.Name == sceneName);
         }
     }
 
     [Serializable]
-    public struct MapInfo
+    public struct Map
     {
         public Sprite Thumbnail;
         public string Name;

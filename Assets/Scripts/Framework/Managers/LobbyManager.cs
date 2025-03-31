@@ -15,29 +15,45 @@ namespace Assets.Scripts.Framework.Managers
     /// </summary>
     public class LobbyManager : Singleton<LobbyManager>
     {
-        #region Private Fields
         private Lobby lobby;
-        private List<string> joinedLobbyIds;
-        #endregion
-
-        #region Public Properties
         public Lobby Lobby => lobby;
-        public List<string> JoinedLobbyIds => joinedLobbyIds;
-        public string LobbyName => lobby.Name;
-        public bool IsPrivate => lobby.IsPrivate;
-        public string LobbyCode => IsInLobby ? lobby.LobbyCode : string.Empty;
-        public bool IsInLobby => lobby != null;
-        public string LobbyId => IsInLobby ? lobby.Id : string.Empty;
-        public bool IsHostId(string playerId) => lobby.HostId == playerId;
-        public bool IsLobbyHost => lobby.HostId == AuthenticationManager.Instance.LocalPlayer.Id;
-        public int PlayerCount => lobby.Players.Count;
-        public int MaxPlayers => int.Parse(lobby.Data["MaxPlayers"].Value);
-        public int RoundCount => int.Parse(lobby.Data["RoundCount"].Value);
-        public string GameMode => lobby.Data["GameMode"].Value;
-        public bool IsGameInProgress => lobby.Data["GameInProgress"].Value == "true";
-        public string RelayJoinCode => lobby.Data["JoinCode"].Value ?? default;
-        public IReadOnlyList<Player> Players => IsInLobby ? lobby.Players : new List<Player>();
-        #endregion
+
+        /// <summary>
+        /// Retrieves list of all active lobbies.
+        /// </summary>
+        /// <param name="filters">The filters to apply to the query.</param>
+        /// <param name="maxResults">The maximum number of results to return.</param>
+        /// <returns>A list of lobbies matching the query.</returns>
+        public async Task<List<Lobby>> GetLobbies(List<QueryFilter> filters, int maxResults)
+        {
+            QueryLobbiesOptions queryLobbiesOptions = new()
+            {
+                Count = maxResults,
+                Order = new List<QueryOrder> { new(false, QueryOrder.FieldOptions.Created) },
+                Filters = filters,
+            };
+
+            try
+            {
+                QueryResponse queryResponse = await LobbyService.Instance.QueryLobbiesAsync(queryLobbiesOptions);
+                LobbyEvents.InvokeLobbyQueryResponse(OperationResult.SuccessResult("GetLobbies", $"Found {queryResponse.Results.Count} " + (queryResponse.Results.Count == 1 ? "lobby" : "lobbies")));
+                return queryResponse.Results;
+            }
+            catch (LobbyServiceException e)
+            {
+                LobbyEvents.InvokeLobbyError(OperationResult.ErrorResult("GetLobbiesError", e.Message));
+                return new List<Lobby>();
+            }
+        }
+
+        /// <summary>
+        /// Retrieves a list of all lobbies the player is in.
+        /// </summary>
+        /// <returns>A list of lobby IDs the player is currently in.</returns>
+        public async Task<List<string>> GetJoinedLobbies()
+        {
+            return await LobbyService.Instance.GetJoinedLobbiesAsync();
+        }
 
         #region Lifecycle Methods
         private Coroutine _heartbeatCoroutine;
@@ -68,11 +84,21 @@ namespace Assets.Scripts.Framework.Managers
         {
             while (true)
             {
-                Task<Lobby> task = LobbyService.Instance.GetLobbyAsync(lobbyId);
+                Task<Lobby> task = null;
+                try
+                {
+                    task = LobbyService.Instance.GetLobbyAsync(lobbyId);
+                }
+                catch (LobbyServiceException e)
+                {
+                    LobbyEvents.InvokeLobbyError(OperationResult.ErrorResult("RefreshLobbyError", e.Message));
+                    yield break;
+                }
+
                 yield return new WaitUntil(() => task.IsCompleted);
 
                 lobby = task.Result;
-                // LobbyEvents.InvokeLobbyUpdated(lobby);
+                LobbyEvents.InvokeLobbyRefreshed();
 
                 yield return new WaitForSecondsRealtime(refreshIntervalSeconds);
             }
@@ -83,22 +109,22 @@ namespace Assets.Scripts.Framework.Managers
         /// <summary>
         /// Creates a new lobby with the specified parameters.
         /// </summary>
-        /// <param name="lobbyData">Dictionary of lobby data.</param>
-        public async void CreateLobby(Dictionary<string, string> lobbyData)
+        /// <param name="lobbyName">The name of the lobby.</param>
+        /// <param name="isPrivate">Whether the lobby is private or public.</param>
+        /// <param name="maxPlayers">The maximum number of players allowed in the lobby.</param>
+        /// <param name="lobbyData">Serialized lobby data.</param>
+        public async void CreateLobby(string lobbyName, bool isPrivate, int maxPlayers, Dictionary<string, DataObject> lobbyData)
         {
-
-            Dictionary<string, DataObject> serializedLobbyData = SerializeLobbyData(lobbyData);
-
             CreateLobbyOptions createLobbyOptions = new()
             {
-                IsPrivate = serializedLobbyData["IsPrivate"].Value == "true",
+                IsPrivate = isPrivate,
                 Player = AuthenticationManager.Instance.LocalPlayer,
-                Data = serializedLobbyData
+                Data = lobbyData
             };
 
             try
             {
-                lobby = await LobbyService.Instance.CreateLobbyAsync(serializedLobbyData["LobbyName"].Value, int.Parse(serializedLobbyData["MaxPlayers"].Value), createLobbyOptions);
+                lobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, maxPlayers, createLobbyOptions);
 
                 _heartbeatCoroutine = StartCoroutine(HeartbeatCoroutine(lobby.Id, 6f));
                 _refreshCoroutine = StartCoroutine(RefreshCoroutine(lobby.Id, 1f));
@@ -129,7 +155,6 @@ namespace Assets.Scripts.Framework.Managers
                 _refreshCoroutine = StartCoroutine(RefreshCoroutine(lobby.Id, 1f));
 
                 LobbyEvents.InvokeLobbyJoined(OperationResult.SuccessResult("JoinLobbyByCode", $"Joined lobby: {lobby.Name} by code: {lobbyCode}"));
-                LobbyEvents.InvokePlayerJoined(OperationResult.SuccessResult("PlayerJoinedByCode", $"{AuthenticationManager.Instance.LocalPlayer.Profile.Name} joined the lobby"));
             }
             catch (LobbyServiceException e)
             {
@@ -155,7 +180,6 @@ namespace Assets.Scripts.Framework.Managers
                 _refreshCoroutine = StartCoroutine(RefreshCoroutine(lobby.Id, 1f));
 
                 LobbyEvents.InvokeLobbyJoined(OperationResult.SuccessResult("JoinLobbyById", $"Joined lobby: {lobby.Name} by ID: {lobbyId}"));
-                LobbyEvents.InvokePlayerJoined(OperationResult.SuccessResult("PlayerJoinedById", $"{AuthenticationManager.Instance.LocalPlayer.Profile.Name} joined the lobby"));
             }
             catch (LobbyServiceException e)
             {
@@ -166,14 +190,13 @@ namespace Assets.Scripts.Framework.Managers
         /// <summary>
         /// Rejoins the first lobby in the list of joined lobbies.
         /// </summary>
-        public async void RejoinLobby()
+        public async void RejoinLobby(List<string> joinedLobbyIds)
         {
             try
             {
                 foreach (string lobbyId in joinedLobbyIds.GetRange(1, joinedLobbyIds.Count - 1))
                 {
                     await Task.Delay(1500);
-                    Debug.Log($"Removing player from lobby: {lobbyId}");
                     await LobbyService.Instance.RemovePlayerAsync(lobbyId, AuthenticationManager.Instance.LocalPlayer.Id);
                 }
 
@@ -199,6 +222,7 @@ namespace Assets.Scripts.Framework.Managers
                 await LobbyService.Instance.RemovePlayerAsync(lobby.Id, AuthenticationManager.Instance.LocalPlayer.Id);
 
                 LobbyEvents.InvokeLobbyLeft(OperationResult.SuccessResult("LeaveLobby", $"Left lobby: {lobby.Name}"));
+
                 ClearLobby();
             }
             catch (LobbyServiceException e)
@@ -232,150 +256,64 @@ namespace Assets.Scripts.Framework.Managers
         }
         #endregion
 
-        /// <summary>
-        /// Retrieves a list of active lobbies.
-        /// </summary>
-        public async void GetLobbies()
-        {
-            QueryLobbiesOptions queryLobbiesOptions = new()
-            {
-                Order = new List<QueryOrder> { new(false, QueryOrder.FieldOptions.Created) }
-            };
-
-            try
-            {
-                QueryResponse queryResponse = await LobbyService.Instance.QueryLobbiesAsync(queryLobbiesOptions);
-                LobbyEvents.InvokeLobbyQueryResponse(OperationResult.SuccessResult("GetLobbies", $"Found {queryResponse.Results.Count} " + (queryResponse.Results.Count == 1 ? "lobby" : "lobbies")), queryResponse.Results);
-            }
-            catch (LobbyServiceException e)
-            {
-                LobbyEvents.InvokeLobbyError(OperationResult.ErrorResult("GetLobbiesError", e.Message));
-            }
-        }
-
-        public async Task<bool> HasActiveLobbies()
-        {
-            joinedLobbyIds = await LobbyService.Instance.GetJoinedLobbiesAsync();
-
-            return joinedLobbyIds.Count > 0;
-        }
-
         #region Data Management
-        public List<Dictionary<string, PlayerDataObject>> GetPlayersData()
-        {
-            List<Dictionary<string, PlayerDataObject>> playersData = new();
-
-            foreach (Player player in lobby.Players)
-                playersData.Add(player.Data);
-
-            return playersData;
-        }
-
-        public async Task<OperationResult> UpdatePlayerData(string playerId, Dictionary<string, string> playerData, string allocationId = default, string connectionData = default)
+        /// <summary>
+        /// Updates the player data with the provided dictionary.
+        /// </summary>
+        /// <param name="playerId">The ID of the player whose data is being updated.</param>
+        /// <param name="playerData">The dictionary containing the player data to update.</param>
+        /// <param name="allocationId">The allocation ID for the player.</param>
+        /// <param name="connectionData">The connection data for the player.</param>
+        public async void UpdatePlayerData(string playerId, Dictionary<string, PlayerDataObject> playerData, string allocationId = default, string connectionData = default)
         {
             UpdatePlayerOptions updatePlayerOptions = new()
             {
-                Data = SerializePlayerData(playerData),
-                AllocationId = allocationId,
-                ConnectionInfo = connectionData
+                ConnectionInfo = connectionData,
+                Data = playerData,
+                AllocationId = allocationId
+
             };
 
             try
             {
                 lobby = await LobbyService.Instance.UpdatePlayerAsync(lobby.Id, playerId, updatePlayerOptions);
 
-                // LobbyEvents.InvokeLobbyUpdated(lobby);
-
-                return OperationResult.SuccessResult("UpdatePlayerData", $"Player {playerId} data updated");
+                LobbyEvents.InvokePlayerDataUpdated(OperationResult.SuccessResult("UpdatePlayerData", $"Player {playerId} data updated"));
             }
             catch (LobbyServiceException e)
             {
-                return OperationResult.ErrorResult(e.ErrorCode.ToString(), e.Message);
+                LobbyEvents.InvokeLobbyError(OperationResult.ErrorResult("UpdatePlayerDataError", e.Message));
             }
         }
 
-        public async Task<OperationResult> UpdateAllPlayerData(List<Dictionary<string, string>> playersData)
-        {
-            foreach (Dictionary<string, string> playerData in playersData)
-            {
-                UpdatePlayerOptions updatePlayerOptions = new()
-                {
-                    Data = SerializePlayerData(playerData)
-                };
-
-                try
-                {
-                    lobby = await LobbyService.Instance.UpdatePlayerAsync(lobby.Id, AuthenticationManager.Instance.LocalPlayer.Id, updatePlayerOptions);
-
-                    // LobbyEvents.InvokeLobbyUpdated(lobby);
-                }
-                catch (LobbyServiceException e)
-                {
-                    return OperationResult.ErrorResult(e.ErrorCode.ToString(), e.Message);
-                }
-            }
-
-            return OperationResult.SuccessResult("UpdateAllPlayerData", "All player data updated");
-        }
-
-        public async Task<bool> UpdateLobbyData(Dictionary<string, string> lobbyData)
+        /// <summary>
+        /// Updates the lobby data with the provided dictionary.
+        /// </summary>
+        /// <param name="lobbyData">The dictionary containing the lobby data to update.</param>
+        public async void UpdateLobbyData(Dictionary<string, DataObject> lobbyData)
         {
             UpdateLobbyOptions updateLobbyOptions = new()
             {
-                Data = SerializeLobbyData(lobbyData)
+                Data = lobbyData
             };
 
             try
             {
                 lobby = await LobbyService.Instance.UpdateLobbyAsync(lobby.Id, updateLobbyOptions);
 
-                LobbyEvents.InvokeLobbyDataUpdated(OperationResult.SuccessResult("UpdateLobbyData", $"Lobby data updated"));
-                return true;
+                LobbyEvents.InvokeLobbyDataUpdated(OperationResult.SuccessResult("UpdateLobbyData", $"Lobby {lobby.Id} data updated"));
             }
             catch (LobbyServiceException e)
             {
                 LobbyEvents.InvokeLobbyError(OperationResult.ErrorResult("UpdateLobbyDataError", e.Message));
-                return false;
             }
         }
-
-        /// <summary>
-        /// Serializes player data into a format that can be sent to the Unity Lobby service.
-        /// </summary>
-        /// <param name="playerData">The player data to serialize.</param>
-        /// <returns>A dictionary of data objects.</returns>
-        private Dictionary<string, PlayerDataObject> SerializePlayerData(Dictionary<string, string> playerData)
-        {
-            Dictionary<string, PlayerDataObject> serializedPlayerData = new();
-
-            foreach (KeyValuePair<string, string> data in playerData)
-                serializedPlayerData.Add(data.Key, new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, data.Value));
-
-            return serializedPlayerData;
-        }
-
-        /// <summary>
-        /// Serializes lobby data into a format that can be sent to the Unity Lobby service.
-        /// </summary>
-        /// <param name="lobbyData">The lobby data to serialize.</param>
-        /// <returns>A dictionary of data objects.</returns>
-        private Dictionary<string, DataObject> SerializeLobbyData(Dictionary<string, string> lobbyData)
-        {
-            Dictionary<string, DataObject> serializedLobbyData = new();
-
-            foreach (KeyValuePair<string, string> data in lobbyData)
-                serializedLobbyData.Add(data.Key, new DataObject(DataObject.VisibilityOptions.Public, data.Value));
-
-            return serializedLobbyData;
-        }
-
         #endregion
 
         private void ClearLobby()
         {
             StopAllCoroutines();
             lobby = null;
-            joinedLobbyIds = null;
         }
     }
 }

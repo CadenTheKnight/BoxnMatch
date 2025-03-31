@@ -18,34 +18,34 @@ namespace Assets.Scripts.Game.Managers
     /// </summary>
     public class GameLobbyManager : Singleton<GameLobbyManager>
     {
-        private LobbyData lobbyData;
-        private string previousHostId;
-        private LobbyPlayerData localLobbyPlayerData;
-        private readonly List<LobbyPlayerData> lobbyPlayersData = new();
-
         private void Start()
         {
-            LobbyEvents.OnLobbyUpdated += OnLobbyUpdated;
+            LobbyEvents.OnLobbyRefreshed += OnLobbyUpdated;
         }
 
         private void OnDestroy()
         {
-            LobbyEvents.OnLobbyUpdated -= OnLobbyUpdated;
+            LobbyEvents.OnLobbyRefreshed -= OnLobbyUpdated;
         }
 
-        private void OnApplicationQuit()
+        /// <summary>
+        /// Returns list of lobbies based on the provided filters and maximum results.
+        /// </summary>
+        /// <param name="filters">Optional filters to apply to the lobby query.</param>
+        /// <param name="maxResults">>Maximum number of lobbies to return.</param>
+        /// <returns>List of lobbies matching the filters.</returns>
+        public async Task<List<Lobby>> GetLobbies(List<QueryFilter> filters = null, int maxResults = 20)
         {
-            if (localLobbyPlayerData != null) UpdateConnectionStatus(false);
+            return await LobbyManager.Instance.GetLobbies(filters, maxResults);
         }
 
-        public void GetLobbies()
+        /// <summary>
+        /// Returns a list of lobby IDs that the player has joined.
+        /// </summary>
+        /// <returns>List of lobby IDs.</returns>
+        public async Task<List<string>> GetJoinedLobbies()
         {
-            LobbyManager.Instance.GetLobbies();
-        }
-
-        public async Task<bool> HasActiveLobbies()
-        {
-            return await LobbyManager.Instance.HasActiveLobbies();
+            return await LobbyManager.Instance.GetJoinedLobbies();
         }
 
         #region Lobby Management
@@ -57,10 +57,12 @@ namespace Assets.Scripts.Game.Managers
         /// <param name="maxPlayers">Maximum number of players in the lobby.</param>
         public void CreateLobby(string lobbyName, bool isPrivate, int maxPlayers)
         {
-            lobbyData = new();
-            lobbyData.Initialize(lobbyName, isPrivate, maxPlayers);
+            LobbyData lobbyData = new();
+            lobbyData.Initialize();
 
-            LobbyManager.Instance.CreateLobby(lobbyData.Serialize());
+            AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value = PlayerStatus.NotReady.ToString();
+
+            LobbyManager.Instance.CreateLobby(lobbyName, isPrivate, maxPlayers, lobbyData.Serialize());
         }
 
         /// <summary>
@@ -69,6 +71,8 @@ namespace Assets.Scripts.Game.Managers
         /// <param name="lobbyCode">The lobby code to join.</param>
         public void JoinLobbyByCode(string lobbyCode)
         {
+            AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value = PlayerStatus.NotReady.ToString();
+
             LobbyManager.Instance.JoinLobbyByCode(lobbyCode);
         }
 
@@ -78,15 +82,19 @@ namespace Assets.Scripts.Game.Managers
         /// <param name="lobbyId">The lobby ID to join.</param>
         public void JoinLobbyById(string lobbyId)
         {
+            AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value = PlayerStatus.NotReady.ToString();
+
             LobbyManager.Instance.JoinLobbyById(lobbyId);
         }
 
         /// <summary>
         /// Rejoins the first lobby in the list of joined lobbies.
         /// </summary>
-        public void RejoinLobby()
+        public void RejoinLobby(List<string> joinedLobbyIds)
         {
-            LobbyManager.Instance.RejoinLobby();
+            AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value = PlayerStatus.NotReady.ToString();
+
+            LobbyManager.Instance.RejoinLobby(joinedLobbyIds);
         }
 
         /// <summary>
@@ -100,56 +108,26 @@ namespace Assets.Scripts.Game.Managers
 
         #region Player Management
         /// <summary>
-        /// Gets all players in the lobby.
-        /// </summary>
-        /// <returns>List of player data.</returns>
-        public List<LobbyPlayerData> GetPlayers()
-        {
-            return lobbyPlayersData;
-        }
-
-        /// <summary>
-        /// Checks if the given player is ready.
-        /// </summary>
-        /// <param name="playerId">The ID of the player to check.</param>
-        /// <returns>True if the player is ready, false otherwise.</returns>
-        public bool IsPlayerReady(string playerId)
-        {
-            return lobbyPlayersData.FirstOrDefault(player => player.Id == playerId)?.Status == PlayerStatus.Ready;
-        }
-
-        /// <summary>
         /// Toggle the ready status of the current player.
         /// </summary>
-        /// <returns>Operation result indicating success or failure.</returns>
-        public async Task<OperationResult> TogglePlayerReady()
+        public void TogglePlayerReady()
         {
-            try
-            {
-                localLobbyPlayerData.Status = localLobbyPlayerData.Status == PlayerStatus.Ready ? PlayerStatus.NotReady : PlayerStatus.Ready;
-                return await LobbyManager.Instance.UpdatePlayerData(localLobbyPlayerData.Id, localLobbyPlayerData.Serialize());
-            }
-            catch (System.Exception ex)
-            {
-                return OperationResult.ErrorResult("ToggleReady", $"Failed to toggle ready status: {ex.Message}");
-            }
+            AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value =
+                (AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value == PlayerStatus.NotReady.ToString()) ?
+                    PlayerStatus.Ready.ToString() : PlayerStatus.NotReady.ToString();
+
+            LobbyManager.Instance.UpdatePlayerData(AuthenticationManager.Instance.LocalPlayer.Id, AuthenticationManager.Instance.LocalPlayer.Data);
         }
 
         /// <summary>
         /// Sets all players to not ready.
         /// </summary>
-        public async Task<OperationResult> SetAllPlayersUnready()
+        public void SetAllPlayersUnready()
         {
-            try
+            foreach (Player player in LobbyManager.Instance.Lobby.Players)
             {
-                foreach (LobbyPlayerData lobbyPlayerData in lobbyPlayersData)
-                    lobbyPlayerData.Status = PlayerStatus.NotReady;
-
-                return await LobbyManager.Instance.UpdateAllPlayerData(lobbyPlayersData.Select(player => player.Serialize()).ToList());
-            }
-            catch (System.Exception ex)
-            {
-                return OperationResult.ErrorResult("SetAllUnready", $"Failed to set all players unready: {ex.Message}");
+                player.Data["Status"].Value = PlayerStatus.NotReady.ToString();
+                LobbyManager.Instance.UpdatePlayerData(player.Id, player.Data);
             }
         }
 
@@ -157,40 +135,14 @@ namespace Assets.Scripts.Game.Managers
         /// Updates the connection status of the local player.
         /// </summary>
         /// <param name="isConnected">True if the player is connected, false otherwise.</param>
-        private async void UpdateConnectionStatus(bool isConnected)
+        private void UpdateConnectionStatus(bool isConnected)
         {
-            try
-            {
-                localLobbyPlayerData.Status = isConnected ? PlayerStatus.Connected : PlayerStatus.Disconnected;
-                await LobbyManager.Instance.UpdatePlayerData(localLobbyPlayerData.Id, localLobbyPlayerData.Serialize());
-            }
-            catch (System.Exception ex)
-            {
-                Debug.LogError($"Error updating connection status: {ex.Message}");
-            }
+            if (!isConnected) AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value = PlayerStatus.Disconnected.ToString();
+            LobbyManager.Instance.UpdatePlayerData(AuthenticationManager.Instance.LocalPlayer.Id, AuthenticationManager.Instance.LocalPlayer.Data);
         }
         #endregion
 
-        #region Game Settings Management
-
-        /// <summary>
-        /// Gets the current map index.
-        /// </summary>
-        /// <returns>Current map index.</returns>
-        public int GetMapIndex()
-        {
-            return lobbyData?.MapIndex ?? 0;
-        }
-
-        /// <summary>
-        /// Gets the current round count.
-        /// </summary>
-        /// <returns>Current round count.</returns>
-        public int GetRoundCount()
-        {
-            return lobbyData?.RoundCount ?? 1;
-        }
-
+        #region ??? Management
         /// <summary>
         /// Sets the selected map for the game.
         /// </summary>
@@ -198,17 +150,12 @@ namespace Assets.Scripts.Game.Managers
         /// <param name="roundCount">Number of rounds.</param>
         /// <param name="roundTime">Time per round.</param>
         /// <param name="gameMode">Game mode.</param>
-        public async void UpdateLobbyData(int mapIndex, int roundCount, int roundTime, GameMode gameMode)
+        public void UpdateLobbyData(int mapIndex, int roundCount, int roundTime, GameMode gameMode)
         {
-            bool success = await LobbyManager.Instance.UpdateLobbyData(lobbyData.Serialize());
+            LobbyData lobbyData = new();
+            lobbyData.Initialize(mapIndex, roundCount, roundTime, gameMode);
 
-            if (success)
-            {
-                lobbyData.MapIndex = mapIndex;
-                lobbyData.RoundCount = roundCount;
-                lobbyData.RoundTime = roundTime;
-                lobbyData.GameMode = gameMode;
-            }
+            LobbyManager.Instance.UpdateLobbyData(lobbyData.Serialize());
         }
         #endregion
 
@@ -515,67 +462,40 @@ namespace Assets.Scripts.Game.Managers
         #endregion
 
         #region Event Handlers
-        private void OnLobbyUpdated(Lobby lobby)
+        private void OnLobbyUpdated()
         {
-            try
+            int playersReady = 1; // Start with 1 for the host
+
+            foreach (Player player in LobbyManager.Instance.Lobby.Players)
             {
-                string currentHostId = lobby.HostId;
+                if (player.Data["Status"].Value == PlayerStatus.Ready.ToString())
+                    playersReady++;
 
-                if (!string.IsNullOrEmpty(previousHostId) && !string.IsNullOrEmpty(currentHostId) && previousHostId != currentHostId)
-                {
-                    previousHostId = currentHostId;
-                    LobbyEvents.InvokeHostMigrated(currentHostId);
-                }
-
-                List<Dictionary<string, PlayerDataObject>> playersData = LobbyManager.Instance.GetPlayersData();
-                lobbyPlayersData.Clear();
-
-                int playersReady = 0;
-
-                foreach (Dictionary<string, PlayerDataObject> playerData in playersData)
-                {
-                    LobbyPlayerData lobbyPlayerData = new();
-                    lobbyPlayerData.Initialize(playerData);
-
-                    if (lobbyPlayerData.Status == PlayerStatus.Ready)
-                        playersReady++;
-
-                    if (lobbyPlayerData.Id == AuthenticationManager.Instance.LocalPlayer.Id)
-                        localLobbyPlayerData = lobbyPlayerData;
-
-                    lobbyPlayersData.Add(lobbyPlayerData);
-                }
-
-                lobbyData = new();
-                lobbyData.Initialize(lobby.Data);
-
-                Events.LobbyEvents.InvokeLobbyUpdated();
-
-                if (playersReady == LobbyManager.Instance.MaxPlayers)
-                    Events.LobbyEvents.InvokeLobbyReady();
-                else
-                    Events.LobbyEvents.InvokeLobbyNotReady(playersReady, LobbyManager.Instance.MaxPlayers);
-
-                // // Handle relay join code - only if not already in game
-                // if (!LobbyManager.Instance.IsLobbyHost && lobbyData.RelayJoinCode != default && !inGame)
-                // {
-                //     await JoinRelayServer(lobbyData.RelayJoinCode);
-                // }
-
-                // if (!LobbyManager.Instance.IsLobbyHost && inGame && lobbyData.GameStarted)
-                // {
-                //     if (loadingPanelController != null)
-                //     {
-                //         loadingPanelController.SetStatus("Game is starting...");
-                //         Debug.Log("Client waiting for NetworkManager to load scene");
-                //     }
-                // }
+                // else if (player.Data["Status"].Value == PlayerStatus.Disconnected.ToString())
             }
-            catch (System.Exception ex)
-            {
-                Debug.LogError($"Error in OnLobbyUpdated: {ex.Message}");
-            }
+
+            // Events.LobbyEvents.InvokeLobbyUpdated();
+
+            if (playersReady == LobbyManager.Instance.Lobby.MaxPlayers)
+                Events.LobbyEvents.InvokeLobbyReady();
+            else
+                Events.LobbyEvents.InvokeLobbyNotReady(playersReady, LobbyManager.Instance.Lobby.MaxPlayers);
+
+            // // Handle relay join code - only if not already in game
+            // if (!LobbyManager.Instance.IsLobbyHost && lobbyData.RelayJoinCode != default && !inGame)
+            // {
+            //     await JoinRelayServer(lobbyData.RelayJoinCode);
+            // }
+
+            // if (!LobbyManager.Instance.IsLobbyHost && inGame && lobbyData.GameStarted)
+            // {
+            //     if (loadingPanelController != null)
+            //     {
+            //         loadingPanelController.SetStatus("Game is starting...");
+            //         Debug.Log("Client waiting for NetworkManager to load scene");
+            //     }
+            // }
         }
-        #endregion
     }
+    #endregion
 }

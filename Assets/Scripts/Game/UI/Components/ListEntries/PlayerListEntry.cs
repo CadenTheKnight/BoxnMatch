@@ -1,64 +1,52 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
-using Assets.Scripts.Game.Data;
 using Assets.Scripts.Game.Types;
+using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Game.UI.Colors;
 using Assets.Scripts.Framework.Managers;
-using Unity.Services.Lobbies.Models;
 
 namespace Assets.Scripts.Game.UI.Components.ListEntries
 {
     public class PlayerListEntry : MonoBehaviour
     {
 
-        [Header("State Panels")]
+        [Header("UI Components")]
         [SerializeField] private GameObject emptyStatePanel;
         [SerializeField] private GameObject activeStatePanel;
+        [SerializeField] private GameObject inGameStatePanel;
         [SerializeField] private GameObject disconnectedStatePanel;
-
-        [Header("Player Info Components")]
         [SerializeField] private TextMeshProUGUI playerNameText;
-        [SerializeField] private Image readyUnreadyIndicatorPanel;
 
-        private LobbyPlayerData lobbyPlayerData;
-
-        public void SetData(LobbyPlayerData lobbyPlayerData)
+        public void SetEmpty()
         {
-            this.lobbyPlayerData = lobbyPlayerData;
-
-            if (lobbyPlayerData.Status == PlayerStatus.Connected)
-            {
-                bool isHost = LobbyManager.Instance.IsHostId(lobbyPlayerData.Id);
-                playerNameText.text = lobbyPlayerData.Name + (isHost ? "(Host)" : "");
-
-                if (isHost)
-                    readyUnreadyIndicatorPanel.gameObject.SetActive(false);
-                else
-                    readyUnreadyIndicatorPanel.color = lobbyPlayerData.Status == PlayerStatus.Ready ? UIColors.greenDefaultColor : UIColors.redDefaultColor;
-            }
-
-            SetState(lobbyPlayerData.Status);
+            emptyStatePanel.SetActive(true);
+            activeStatePanel.SetActive(false);
+            inGameStatePanel.SetActive(false);
+            disconnectedStatePanel.SetActive(false);
         }
 
-        public void SetState(PlayerStatus status)
+        public void SetPlayer(Player player)
         {
             emptyStatePanel.SetActive(false);
-            activeStatePanel.SetActive(false);
+            activeStatePanel.SetActive(true);
+            inGameStatePanel.SetActive(false);
             disconnectedStatePanel.SetActive(false);
 
-            switch (status)
+            if (player.Data["Status"].Value == PlayerStatus.Ready.ToString() || player.Data["Status"].Value == PlayerStatus.NotReady.ToString())
             {
-                case PlayerStatus.Disconnected:
-                    disconnectedStatePanel.SetActive(true);
-                    break;
-                case PlayerStatus.NotReady:
-                case PlayerStatus.Ready:
-                    activeStatePanel.SetActive(true);
-                    break;
-                default:
-                    emptyStatePanel.SetActive(true);
-                    break;
+                bool isHost = LobbyManager.Instance.Lobby.HostId == player.Id;
+                playerNameText.text = player.Data["Name"].Value + (isHost ? "(Host)" : "");
+                playerNameText.color = isHost ? UIColors.greenDefaultColor : player.Data["Status"].Value == PlayerStatus.Ready.ToString() ? UIColors.greenDefaultColor : UIColors.redDefaultColor;
+            }
+            else if (player.Data["Status"].Value == PlayerStatus.InGame.ToString())
+            {
+                playerNameText.color = UIColors.yellowDefaultColor;
+                inGameStatePanel.SetActive(true);
+            }
+            else if (player.Data["Status"].Value == PlayerStatus.Disconnected.ToString())
+            {
+                playerNameText.color = UIColors.redDefaultColor;
+                disconnectedStatePanel.SetActive(true);
             }
         }
     }

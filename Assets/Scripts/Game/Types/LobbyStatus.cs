@@ -13,6 +13,6 @@ namespace Assets.Scripts.Game.Types
         /// <summary>
         /// The lobby is currently in the game phase, where the actual gameplay is taking place.
         /// </summary>
-        InGame,
+        InGame
     }
 }

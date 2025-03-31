@@ -1,11 +1,11 @@
 using UnityEngine;
+using Unity.Services.Core;
 using System.Threading.Tasks;
+using Assets.Scripts.Game.Data;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Core;
 using Unity.Services.Authentication;
 using Assets.Scripts.Framework.Utilities;
-using Assets.Scripts.Game.Data;
-using Unity.Services.Core;
 
 namespace Assets.Scripts.Framework.Managers
 {
@@ -17,25 +17,7 @@ namespace Assets.Scripts.Framework.Managers
         /// <summary>
         /// The local player as a unity player object.
         /// </summary>
-        public Player LocalPlayer { get; private set; }
-
-        /// <summary>
-        /// Generates a new player with a random name if one does not already exist in PlayerPrefs.
-        /// </summary>
-        private void GeneratePlayer()
-        {
-            if (string.IsNullOrEmpty(PlayerPrefs.GetString("PlayerName")))
-            {
-                string randomName = $"BoxnTester{Random.Range(1000, 9999)}";
-                PlayerPrefs.SetString("PlayerName", randomName);
-                PlayerPrefs.Save();
-            }
-
-            PlayerData playerData = new();
-            playerData.Initialize();
-
-            LocalPlayer = new Player(id: AuthenticationService.Instance.PlayerId, data: playerData.Serialize(), profile: new PlayerProfile(PlayerPrefs.GetString("PlayerName")));
-        }
+        public Player LocalPlayer { get; private set; } = null;
 
         /// <summary>
         /// Initializes Unity Services and signs in the player anonymously.
@@ -48,9 +30,20 @@ namespace Assets.Scripts.Framework.Managers
                 await UnityServices.InitializeAsync();
                 await AuthenticationService.Instance.SignInAnonymouslyAsync();
 
-                GeneratePlayer();
+                if (!PlayerPrefs.HasKey("Name"))
+                {
+                    if (LocalPlayer.Data["Name"].Value == null)
+                        PlayerPrefs.SetString("Name", "BoxnPlayer" + Random.Range(1000, 9999).ToString());
+                    else
+                        PlayerPrefs.SetString("Name", LocalPlayer.Data["Name"].Value);
+                    PlayerPrefs.Save();
+                }
 
-                return OperationResult.SuccessResult("Initialize", $"Signed in as {LocalPlayer.Profile.Name}");
+                PlayerData playerData = new();
+                playerData.Initialize(PlayerPrefs.GetString("Name"));
+                LocalPlayer = new Player(id: AuthenticationService.Instance.PlayerId, data: playerData.Serialize());
+
+                return OperationResult.SuccessResult("Initialize", $"Signed in as {LocalPlayer.Data["Name"].Value}");
             }
             catch (System.Exception ex)
             {

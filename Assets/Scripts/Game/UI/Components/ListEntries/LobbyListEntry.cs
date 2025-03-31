@@ -2,7 +2,10 @@ using TMPro;
 using System;
 using UnityEngine;
 using UnityEngine.UI;
+using Assets.Scripts.Game.Types;
 using Unity.Services.Lobbies.Models;
+using Assets.Scripts.Game.UI.Colors;
+using Assets.Scripts.Game.Data;
 
 namespace Assets.Scripts.Game.UI.Components.ListEntries
 {
@@ -16,11 +19,14 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
         [SerializeField] private TextMeshProUGUI statusText;
         [SerializeField] private Image mapImage;
 
+        [Header("Data References - might replace")]
+        [SerializeField] private MapSelectionData mapSelectionData;
+
         private string lobbyId;
         private float lastClickTime;
 
-        public Action<string, LobbyListEntry> lobbySingleClicked;
-        public Action<string> lobbyDoubleClicked;
+        public Action<string> lobbySingleClicked;
+        public Action lobbyDoubleClicked;
 
         private void OnEnable()
         {
@@ -36,10 +42,10 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
         {
             float timeSinceLastClick = Time.time - lastClickTime;
 
-            if (timeSinceLastClick <= 0.3f)
-                lobbyDoubleClicked?.Invoke(lobbyId);
+            if (timeSinceLastClick <= 0.5f)
+                lobbyDoubleClicked?.Invoke();
             else
-                lobbySingleClicked?.Invoke(lobbyId, this);
+                lobbySingleClicked?.Invoke(lobbyId);
 
             lastClickTime = Time.time;
         }
@@ -49,9 +55,10 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             lobbyId = lobby.Id;
             nameText.text = lobby.Name;
             playerCountText.text = $"{lobby.Players.Count}/{lobby.MaxPlayers}";
-            statusText.text = lobby.Data["Status"].Value;
-            gameModeText.text = lobby.Data["GameMode"].Value;
+            gameModeText.text = ((GameMode)int.Parse(lobby.Data["GameMode"].Value)).ToString();
+            statusText.text = ((LobbyStatus)int.Parse(lobby.Data["Status"].Value)).ToString();
             // mapImage.sprite = Resources.Load<Sprite>($"Maps/{lobby.Data["MapName"].Value}");
+            mapImage.sprite = mapSelectionData.GetMap(int.Parse(lobby.Data["MapIndex"].Value)).Thumbnail;
         }
     }
 }

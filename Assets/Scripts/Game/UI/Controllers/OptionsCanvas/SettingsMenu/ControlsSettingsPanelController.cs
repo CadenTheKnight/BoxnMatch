@@ -1,22 +1,34 @@
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections.Generic;
+using UnityEngine.SceneManagement;
+using Unity.Services.Authentication;
 using Assets.Scripts.Game.UI.Components;
 
 namespace Assets.Scripts.Game.UI.Controllers.OptionsCanvas.SettingsMenu
 {
     public class ControlsSettingsPanelController : BaseSettingsPanel
     {
-        // [Header("Options")]
+        [Header("Options")]
+        [SerializeField] private Button deletePlayerPrefsButton;
 
 
         private void OnEnable()
         {
+            deletePlayerPrefsButton.onClick.AddListener(OnDeletePlayerPrefsClicked);
         }
 
         private void OnDisable()
         {
+            deletePlayerPrefsButton.onClick.RemoveListener(OnDeletePlayerPrefsClicked);
+        }
+
+        private void OnDeletePlayerPrefsClicked()
+        {
+            PlayerPrefs.DeleteAll();
+            PlayerPrefs.Save();
+            // sign out and delete player data
+            AuthenticationService.Instance.SignOut();
+            SceneManager.LoadScene("Initialization", LoadSceneMode.Single);
         }
 
         public override void LoadSettings()

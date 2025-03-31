@@ -5,9 +5,9 @@ namespace Assets.Scripts.Game.Types
     /// </summary>
     public enum Team
     {
-        Red = 0,
-        Blue = 1,
-        Green = 2,
-        Yellow = 3,
+        Red,
+        Blue,
+        Green,
+        Yellow
     }
 }

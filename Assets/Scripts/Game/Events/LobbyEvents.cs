@@ -9,8 +9,11 @@ namespace Assets.Scripts.Game.Events
     public static class LobbyEvents
     {
         #region Events
-        public delegate void LobbyUpdated();
-        public static event LobbyUpdated OnLobbyUpdated;
+        /// <summary>
+        /// Triggered when the lobby is refreshed by coroutine.
+        /// </summary>
+        // public delegate void LobbyRefreshedHandler();
+        // public static event LobbyRefreshedHandler OnLobbyRefreshed;
 
         /// <summary>
         /// Triggered when a player toggles their ready status.
@@ -61,7 +64,7 @@ namespace Assets.Scripts.Game.Events
         #endregion
 
         #region Invocations
-        public static void InvokeLobbyUpdated() => OnLobbyUpdated?.Invoke();
+        // public static void InvokeLobbyRefreshed() => OnLobbyRefreshed?.Invoke();
         public static void InvokePlayerReadyChanged(string playerId, bool isReady) => OnPlayerReadyChanged?.Invoke(playerId, isReady);
         public static void InvokeLobbyReady() => OnLobbyReady?.Invoke();
         public static void InvokeLobbyNotReady(int playersReady, int maxPlayerCount) => OnLobbyNotReady?.Invoke(playersReady, maxPlayerCount);

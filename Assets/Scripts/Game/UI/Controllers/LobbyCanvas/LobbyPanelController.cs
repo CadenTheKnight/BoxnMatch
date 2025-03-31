@@ -5,6 +5,8 @@ using Assets.Scripts.Game.Managers;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Managers;
+using Assets.Scripts.Game.Types;
+using Assets.Scripts.Framework.Utilities;
 
 namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 {
@@ -16,6 +18,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
         [SerializeField] private TextMeshProUGUI lobbyCodeText;
 
         [Header("Main Components")]
+        [SerializeField] private PlayerListPanelController playerListPanelController;
         [SerializeField] private GameSettingsPanelController gameSettingsPanelController;
 
 
@@ -28,44 +31,34 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
         {
             ConfigureUIBasedOnHostStatus();
 
-            LobbyEvents.OnLobbyUpdated += OnLobbyUpdated;
-            LobbyEvents.OnHostMigrated += OnHostMigrated;
+            LobbyEvents.OnLobbyRefreshed += OnLobbyUpdated;
         }
 
         private void OnDisable()
         {
             lobbyCodeButton.onClick.RemoveListener(OnLobbyCodeClicked);
 
-            LobbyEvents.OnLobbyUpdated -= OnLobbyUpdated;
-            LobbyEvents.OnHostMigrated -= OnHostMigrated;
+            LobbyEvents.OnLobbyRefreshed -= OnLobbyUpdated;
         }
 
-        void Start()
-        {
-            OnLobbyUpdated(LobbyManager.Instance.Lobby);
+        // private void OnHostMigrated(string newHostId)
+        // {
+        //     Debug.Log($"Host migrated to: {newHostId}. Local player ID: {AuthenticationManager.Instance.LocalPlayer.Id}");
 
-            // if (LobbyManager.Instance.IsLobbyHost)
-            //     await GameLobbyManager.Instance.SetSelectedMap(currentMapIndex);
-        }
+        //     bool isNowHost = newHostId == AuthenticationManager.Instance.LocalPlayer.Id;
+        //     ConfigureUIBasedOnHostStatus();
 
-        private void OnHostMigrated(string newHostId)
-        {
-            Debug.Log($"Host migrated to: {newHostId}. Local player ID: {AuthenticationManager.Instance.LocalPlayer.Id}");
-
-            bool isNowHost = newHostId == AuthenticationManager.Instance.LocalPlayer.Id;
-            ConfigureUIBasedOnHostStatus();
-
-            // if (isNowHost)
-            //     NotificationManager.Instance.HandleResult(OperationResult.SuccessResult("HostMigration", "You are now the lobby host"));
-            // else
-            //     NotificationManager.Instance.HandleResult(OperationResult.WarningResult("HostMigration", "The lobby has a new host"));
-        }
+        //     // if (isNowHost)
+        //     //     NotificationManager.Instance.HandleResult(OperationResult.SuccessResult("HostMigration", "You are now the lobby host"));
+        //     // else
+        //     //     NotificationManager.Instance.HandleResult(OperationResult.WarningResult("HostMigration", "The lobby has a new host"));
+        // }
 
         private void ConfigureUIBasedOnHostStatus()
         {
             lobbyCodeButton.onClick.AddListener(OnLobbyCodeClicked);
 
-            bool isHost = LobbyManager.Instance.IsLobbyHost;
+            bool isHost = LobbyManager.Instance.Lobby.HostId == AuthenticationManager.Instance.LocalPlayer.Id;
             if (isHost)
             {
 
@@ -73,7 +66,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             else
             {
 
-                bool isReady = GameLobbyManager.Instance.IsPlayerReady(AuthenticationManager.Instance.LocalPlayer.Id);
+                bool isReady = AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value == PlayerStatus.Ready.ToString();
                 // UpdateReadyButton(isReady);
             }
 
@@ -82,10 +75,10 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
         }
 
 
-        private void OnLobbyUpdated(Lobby lobby)
+        private void OnLobbyUpdated()
         {
-            lobbyNameText.text = $"{LobbyManager.Instance.LobbyName}" + (LobbyManager.Instance.IsPrivate ? " (PRIVATE)" : "");
-            lobbyCodeText.text = $"CODE: {LobbyManager.Instance.LobbyCode}";
+            lobbyNameText.text = $"{LobbyManager.Instance.Lobby.Name}" + (LobbyManager.Instance.Lobby.IsPrivate ? " (PRIVATE)" : "");
+            lobbyCodeText.text = $"CODE: {LobbyManager.Instance.Lobby.LobbyCode}";
             // roundCountText.text = $"{GameLobbyManager.Instance.GetRoundCount()}";
 
             // currentMapIndex = GameLobbyManager.Instance.GetMapIndex();
@@ -95,7 +88,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private void OnLobbyCodeClicked()
         {
-            GUIUtility.systemCopyBuffer = LobbyManager.Instance.LobbyCode;
+            GUIUtility.systemCopyBuffer = LobbyManager.Instance.Lobby.LobbyCode;
             // NotificationManager.Instance.HandleResult(OperationResult.SuccessResult("LobbyCode", $"Lobby code: {LobbyManager.Instance.LobbyCode} copied to clipboard"));
         }
     }

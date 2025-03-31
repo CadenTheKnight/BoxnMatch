@@ -69,7 +69,7 @@ namespace Assets.Scripts.Game.UI.Components.Options
         {
             currentSelections.Clear();
             UpdateButtonAppearance();
-            onSelectionChanged.Invoke(GetSelectedIndices());
+            onSelectionChanged?.Invoke(GetSelectedIndices());
         }
 
         public void SetSelection(int index, bool selected)
@@ -103,14 +103,14 @@ namespace Assets.Scripts.Game.UI.Components.Options
             }
 
             UpdateButtonAppearance();
-            onSelectionChanged.Invoke(GetSelectedIndices());
+            onSelectionChanged?.Invoke(GetSelectedIndices());
         }
 
         private void HandleDeselection(int buttonIndex)
         {
             currentSelections.Remove(buttonIndex);
             UpdateButtonAppearance();
-            onSelectionChanged.Invoke(GetSelectedIndices());
+            onSelectionChanged?.Invoke(GetSelectedIndices());
         }
 
         private void UpdateButtonAppearance()

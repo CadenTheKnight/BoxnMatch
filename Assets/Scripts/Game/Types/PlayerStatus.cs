@@ -6,28 +6,23 @@ namespace Assets.Scripts.Game.Types
     public enum PlayerStatus
     {
         /// <summary>
-        /// The player is connected to the lobby.
-        /// </summary>
-        Connected = 0,
-
-        /// <summary>
         /// The player is not connected to the lobby.
         /// </summary>
-        Disconnected = 1,
+        Disconnected,
 
         /// <summary>
         /// The player is connected to the lobby but not ready.
         /// </summary>
-        NotReady = 2,
+        NotReady,
 
         /// <summary>
         /// The player is connected to the lobby and ready.
         /// </summary>
-        Ready = 3,
+        Ready,
 
         /// <summary>
         /// The player is in-game.
         /// </summary>
-        InGame = 4,
+        InGame
     }
 }

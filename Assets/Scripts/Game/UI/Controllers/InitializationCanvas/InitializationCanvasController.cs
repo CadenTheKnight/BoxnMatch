@@ -6,6 +6,7 @@ using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Game.UI.Components;
 using Assets.Scripts.Framework.Utilities;
+using System.Collections.Generic;
 
 namespace Assets.Scripts.Game.UI.Controllers.InitializationCanvas
 {
@@ -38,11 +39,11 @@ namespace Assets.Scripts.Game.UI.Controllers.InitializationCanvas
                 loadingStatusPanel.UpdateStatus("Checking for active lobbies...");
                 try
                 {
-                    bool hasActiveLobbies = await GameLobbyManager.Instance.HasActiveLobbies();
-                    if (hasActiveLobbies)
+                    List<string> joinedLobbyIds = await GameLobbyManager.Instance.GetJoinedLobbies();
+                    if (joinedLobbyIds.Count > 0)
                     {
                         loadingStatusPanel.UpdateStatus("Rejoining lobby...");
-                        GameLobbyManager.Instance.RejoinLobby();
+                        GameLobbyManager.Instance.RejoinLobby(joinedLobbyIds);
                     }
                     else
                     {

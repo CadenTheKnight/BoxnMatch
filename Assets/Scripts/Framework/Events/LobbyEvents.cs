@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Utilities;
-using Assets.Scripts.Game.Types;
 
 namespace Assets.Scripts.Framework.Events
 {
@@ -64,8 +61,7 @@ namespace Assets.Scripts.Framework.Events
         /// Triggered when a lobby query is successfully completed.
         /// </summary>
         /// <param name="result">The result of the lobby query operation.</param>
-        /// <param name="lobbies">The list of lobbies returned from the query.</param>
-        public delegate void InvokeLobbyQueryResponseHandler(OperationResult result, List<Lobby> lobbies);
+        public delegate void InvokeLobbyQueryResponseHandler(OperationResult result);
         public static event InvokeLobbyQueryResponseHandler OnLobbyQueryResponse;
 
         /// <summary>
@@ -75,25 +71,25 @@ namespace Assets.Scripts.Framework.Events
         public delegate void LobbyErrorHandler(OperationResult result);
         public static event LobbyErrorHandler OnLobbyError;
 
+        /// <summary>
+        /// Triggered when the lobby is refreshed by coroutine.
+        /// </summary>
+        public delegate void LobbyRefreshedHandler();
+        public static event LobbyRefreshedHandler OnLobbyRefreshed;
 
+        /// <summary>
+        /// Triggered when the player data is updated.
+        /// </summary>
+        /// <param name="result">The result of the player data update operation.</param>
+        public delegate void PlayerDataUpdatedHandler(OperationResult result);
+        public static event PlayerDataUpdatedHandler OnPlayerDataUpdated;
+
+        /// <summary>
+        /// Triggered when the lobby data is updated.
+        /// </summary>
+        /// <param name="result">The result of the lobby data update operation.</param>
         public delegate void LobbyDataUpdatedHandler(OperationResult result);
         public static event LobbyDataUpdatedHandler OnLobbyDataUpdated;
-
-
-
-        /// <summary>
-        /// Triggered when the lobby host has migrated.
-        /// </summary>
-        /// <param name="newHostId">The ID of the new lobby host.</param>
-        public delegate void HostMigratedHandler(string newHostId);
-        public static event HostMigratedHandler OnHostMigrated;
-
-        /// <summary>
-        /// Triggered when any lobby data is updated.
-        /// </summary>
-        /// <param name="lobby">The updated lobby data.</param>
-        public delegate void LobbyUpdated(Lobby lobby);
-        public static event LobbyUpdated OnLobbyUpdated;
         #endregion
 
         #region Invocations
@@ -104,15 +100,11 @@ namespace Assets.Scripts.Framework.Events
         public static void InvokePlayerJoined(OperationResult result) => OnPlayerJoined?.Invoke(result);
         public static void InvokePlayerLeft(OperationResult result) => OnPlayerLeft?.Invoke(result);
         public static void InvokePlayerKicked(OperationResult result) => OnPlayerKicked?.Invoke(result);
-        public static void InvokeLobbyQueryResponse(OperationResult result, List<Lobby> lobbies) => OnLobbyQueryResponse?.Invoke(result, lobbies);
+        public static void InvokeLobbyQueryResponse(OperationResult result) => OnLobbyQueryResponse?.Invoke(result);
         public static void InvokeLobbyError(OperationResult result) => OnLobbyError?.Invoke(result);
-
-
-
+        public static void InvokeLobbyRefreshed() => OnLobbyRefreshed?.Invoke();
+        public static void InvokePlayerDataUpdated(OperationResult result) => OnPlayerDataUpdated?.Invoke(result);
         public static void InvokeLobbyDataUpdated(OperationResult result) => OnLobbyDataUpdated?.Invoke(result);
-
-        public static void InvokeHostMigrated(string newHostId) => OnHostMigrated?.Invoke(newHostId);
-        public static void InvokeLobbyUpdated(Lobby lobby) => OnLobbyUpdated?.Invoke(lobby);
         #endregion
     }
 }

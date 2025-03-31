@@ -2,8 +2,11 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using Assets.Scripts.Game.Managers;
+using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Game.UI.Components;
+using Assets.Scripts.Game.UI.Components.ListEntries;
 
 namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.JoinMenu
 {
@@ -18,15 +21,14 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.JoinMenu
         [SerializeField] private TMP_InputField lobbyCodeInput;
         [SerializeField] private GameObject refreshingPanel;
         [SerializeField] private LoadingBar refeshingLoadingBar;
+        [SerializeField] private LobbyListEntry lobbyListEntry;
+        [SerializeField] private Transform lobbyListContainer;
 
-        [Header("List Manager")]
-        [SerializeField] private LobbyListPanelController lobbyListPanelController;
+        private string selectedLobbyId = null;
 
         protected override void OnEnable()
         {
             base.OnEnable();
-
-            // lobbyListPanelController.SpawnTestLobbies();
 
             joinButton.onClick.AddListener(OnJoinButtonClicked);
             refreshButton.onClick.AddListener(OnRefreshButtonClicked);
@@ -44,7 +46,7 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.JoinMenu
             refreshButton.onClick.RemoveListener(OnRefreshButtonClicked);
             lobbyCodeInput.onValueChanged.RemoveListener(OnLobbyCodeInputChanged);
 
-            lobbyListPanelController.ClearSelection();
+            ClearSelection();
             refeshingLoadingBar.StopLoading();
         }
 
@@ -53,22 +55,44 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.JoinMenu
             UpdateJoinButtonState();
         }
 
+        /// <summary>
+        /// Updates the state of the join button based on the input field and selected lobby.
+        /// </summary>
         private void UpdateJoinButtonState()
         {
-            joinButton.interactable = lobbyCodeInput.text.Length == 6 || lobbyListPanelController.SelectedLobbyId != null;
+            joinButton.interactable = lobbyCodeInput.text.Length == 6 || selectedLobbyId != null;
         }
 
         /// <summary>
-        /// Handles the join button click event. First tries to join by code, then by selected lobby.
+        /// Sets the selected lobby.
         /// </summary>
-        private void OnJoinButtonClicked()
+        /// <param name="lobbyId">The ID of the selected lobby.</param>
+        private void SelectLobby(string lobbyId)
+        {
+            selectedLobbyId = lobbyId;
+            UpdateJoinButtonState();
+        }
+
+        /// <summary>
+        /// Clears the selected lobby.
+        /// </summary>
+        public void ClearSelection()
+        {
+            selectedLobbyId = null;
+            UpdateJoinButtonState();
+        }
+
+        /// <summary>
+        /// Handles the join button click event and lobby double click. First tries to join by code, then by selected lobby.
+        /// </summary>
+        public void OnJoinButtonClicked()
         {
             joinButton.interactable = false;
 
             if (!string.IsNullOrEmpty(lobbyCodeInput.text) && lobbyCodeInput.text.Length == 6)
                 GameLobbyManager.Instance.JoinLobbyByCode(lobbyCodeInput.text);
             else
-                GameLobbyManager.Instance.JoinLobbyById(lobbyListPanelController.SelectedLobbyId);
+                GameLobbyManager.Instance.JoinLobbyById(selectedLobbyId);
 
             joinButton.interactable = true;
         }
@@ -84,13 +108,32 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.JoinMenu
             refeshingLoadingBar.StartLoading();
 
             await Task.Delay(1500);
-            GameLobbyManager.Instance.GetLobbies();
+            List<Lobby> lobbies = await GameLobbyManager.Instance.GetLobbies();
+
+            ClearSelection();
+
+            foreach (LobbyListEntry entry in lobbyListContainer.GetComponentsInChildren<LobbyListEntry>())
+            {
+                entry.lobbySingleClicked -= SelectLobby;
+                entry.lobbyDoubleClicked -= OnJoinButtonClicked;
+
+                Destroy(entry.gameObject);
+            }
+
+            foreach (Lobby lobby in lobbies)
+            {
+                LobbyListEntry lobbyEntry = Instantiate(lobbyListEntry, lobbyListContainer);
+                lobbyEntry.SetLobby(lobby);
+
+                lobbyEntry.lobbySingleClicked += SelectLobby;
+                lobbyEntry.lobbyDoubleClicked += OnJoinButtonClicked;
+            }
+
             UpdateJoinButtonState();
 
             refeshingLoadingBar.StopLoading();
             refreshingPanel.SetActive(false);
             refreshButton.interactable = true;
-
         }
     }
 }

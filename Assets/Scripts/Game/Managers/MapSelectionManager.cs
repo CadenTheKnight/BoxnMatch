@@ -7,7 +7,7 @@ namespace Assets.Scripts.Game.Managers
     {
         [SerializeField] private MapSelectionData mapSelectionData;
 
-        public MapInfo GetMapInfo(int mapIndex)
+        public Map GetMapInfo(int mapIndex)
         {
             if (mapSelectionData == null || mapIndex < 0 || mapIndex >= mapSelectionData.Maps.Count)
                 Debug.LogError($"Invalid map index: {mapIndex}");

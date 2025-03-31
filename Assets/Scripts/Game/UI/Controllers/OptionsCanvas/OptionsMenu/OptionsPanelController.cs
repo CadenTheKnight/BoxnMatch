@@ -42,7 +42,7 @@ namespace Assets.Scripts.Game.UI.Controllers.OptionsCanvas.OptionsMenu
         {
             SetCollapsed();
 
-            profileNameText.text = AuthenticationManager.Instance.LocalPlayer.Profile.Name;
+            profileNameText.text = AuthenticationManager.Instance.LocalPlayer.Data["Name"].Value;
             profileLevelText.text = "Level " + AuthenticationManager.Instance.LocalPlayer.Data["Level"].Value;
             profileLevelProgressBar.SetProgress(float.Parse(AuthenticationManager.Instance.LocalPlayer.Data["Experience"].Value));
 

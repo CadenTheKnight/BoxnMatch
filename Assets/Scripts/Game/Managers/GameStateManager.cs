@@ -166,7 +166,7 @@ namespace Assets.Scripts.Game.Managers
 
         private bool ShouldEndGame()
         {
-            int maxRounds = LobbyManager.Instance.RoundCount;
+            int maxRounds = int.Parse(LobbyManager.Instance.Lobby.Data["RoundCount"].Value);
             int requiredWins = (maxRounds / 2) + 1;
 
             if (leftTeamScore.Value >= requiredWins || rightTeamScore.Value >= requiredWins || currentRound.Value >= maxRounds)
