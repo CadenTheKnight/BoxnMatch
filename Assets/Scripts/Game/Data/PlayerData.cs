@@ -2,6 +2,7 @@ using UnityEngine;
 using Assets.Scripts.Game.Types;
 using System.Collections.Generic;
 using Unity.Services.Lobbies.Models;
+using Steamworks;
 
 namespace Assets.Scripts.Game.Data
 {
@@ -10,13 +11,13 @@ namespace Assets.Scripts.Game.Data
     /// </summary>
     public class PlayerData
     {
-        public string Name { get; set; } = "BoxnPlayer";
+        public CSteamID Id { get; set; } = CSteamID.Nil;
         public Team Team { get; set; } = Team.Blue;
         public PlayerStatus Status { get; set; } = PlayerStatus.NotReady;
 
-        public void Initialize(string playerName)
+        public void Initialize(CSteamID id)
         {
-            Name = playerName;
+            Id = id;
             Team = Team.Blue;
             Status = PlayerStatus.NotReady;
         }
@@ -25,7 +26,7 @@ namespace Assets.Scripts.Game.Data
         {
             return new Dictionary<string, PlayerDataObject>
             {
-                { "Name", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Public, Name) },
+                { "Id", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, Id.ToString()) },
                 { "Team", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)Team).ToString()) },
                 { "Status", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)Status).ToString()) }
             };

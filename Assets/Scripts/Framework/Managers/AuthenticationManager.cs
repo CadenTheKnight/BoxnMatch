@@ -74,10 +74,10 @@ namespace Assets.Scripts.Framework.Managers
                     return OperationResult.ErrorResult("AuthError", "Failed to sign in to Unity Authentication Service");
 
                 PlayerData playerData = new();
-                playerData.Initialize(SteamFriends.GetPersonaName());
+                playerData.Initialize(SteamUser.GetSteamID());
                 LocalPlayer = new Player(id: AuthenticationService.Instance.PlayerId, data: playerData.Serialize());
 
-                return OperationResult.SuccessResult("Initialize", $"Signed in as {LocalPlayer.Data["Name"].Value}");
+                return OperationResult.SuccessResult("Initialize", $"Signed in as {SteamFriends.GetPersonaName()}");
             }
             catch (Exception ex)
             {

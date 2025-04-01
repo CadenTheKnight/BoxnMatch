@@ -47,11 +47,8 @@ namespace Assets.Scripts.Game.UI.Controllers.OptionsCanvas.OptionsMenu
 
             avatarImageLoadedCallback = Callback<AvatarImageLoaded_t>.Create(OnAvatarImageLoaded);
 
-            int imageId = SteamFriends.GetLargeFriendAvatar(SteamUser.GetSteamID());
-            if (imageId != -1)
-                profilePictureRawImage.texture = GetSteamInfo.SteamImageToUnityImage(imageId);
-
-            profileNameText.text = AuthenticationManager.Instance.LocalPlayer.Data["Name"].Value;
+            profilePictureRawImage.texture = GetSteamInfo.SteamImageToUnityImage(SteamFriends.GetLargeFriendAvatar(SteamUser.GetSteamID()));
+            profileNameText.text = SteamFriends.GetPersonaName();
             profileLevelText.text = "Level " + 3; // implement steam level later
             profileLevelProgressBar.SetProgress(0.3f); // implement steam experience later
 
