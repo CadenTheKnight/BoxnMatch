@@ -5252,7 +5252,7 @@ MonoBehaviour:
   refeshingLoadingBar: {fileID: 1285108989}
   lobbyListEntry: {fileID: 8042527009381652292, guid: ccd0811f437c2824c8e4a2e47cef4006, type: 3}
   lobbyListContainer: {fileID: 1877205666}
-  lobbyListEntryHeight: 0.08
+  lobbyListEntryHeight: 0.15
 --- !u!1001 &1776263400
 PrefabInstance:
   m_ObjectHideFlags: 0

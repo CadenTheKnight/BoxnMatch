@@ -23,6 +23,8 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
         [SerializeField] private TextMeshProUGUI startText;
         [SerializeField] private TextMeshProUGUI readyUnreadyText;
 
+        private bool isStarting = false;
+
         private void OnEnable()
         {
             leaveButton.onClick.AddListener(OnLeaveClicked);
@@ -54,6 +56,8 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private void OnLobbyReady()
         {
+            if (isStarting) return;
+
             startText.text = "START";
             startButton.interactable = true;
             UpdateButtonColors(startButton, true);
@@ -61,6 +65,8 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private void OnLobbyNotReady(int playersReady, int maxPlayerCount)
         {
+            if (isStarting) return;
+
             startText.text = $"{playersReady}/{maxPlayerCount} PLAYERS READY";
             startButton.interactable = false;
             UpdateButtonColors(startButton, false);
@@ -70,7 +76,10 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
         {
             bool isHost = LobbyManager.Instance.Lobby.HostId == AuthenticationManager.Instance.LocalPlayer.Id;
 
+            GameLobbyManager.Instance.GetPlayersReady();
             startButton.gameObject.SetActive(isHost);
+
+            SetReadyUnreadyButton(AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value == PlayerStatus.Ready.ToString());
             readyUnreadyButton.gameObject.SetActive(!isHost);
         }
 
@@ -87,6 +96,9 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private async void OnStartClicked()
         {
+            if (isStarting) return;
+            isStarting = true;
+
             bool isHost = LobbyManager.Instance.Lobby.HostId == AuthenticationManager.Instance.LocalPlayer.Id;
             if (isHost)
             {
@@ -119,6 +131,8 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
                 readyUnreadyButton.interactable = true;
                 readyUnreadyLoadingBar.StopLoading();
             }
+
+            isStarting = false;
         }
 
         private async void OnReadyUnreadyClicked()
@@ -127,12 +141,17 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             readyUnreadyLoadingBar.StartLoading();
 
             GameLobbyManager.Instance.TogglePlayerReady();
-            readyUnreadyText.text = AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value == PlayerStatus.Ready.ToString() ? "READY" : "NOT READY";
-            UpdateButtonColors(readyUnreadyButton, AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value == PlayerStatus.Ready.ToString());
+            SetReadyUnreadyButton(AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value == PlayerStatus.Ready.ToString());
 
             await Task.Delay(1500);
             readyUnreadyLoadingBar.StopLoading();
             readyUnreadyButton.interactable = true;
+        }
+
+        private void SetReadyUnreadyButton(bool isReady)
+        {
+            readyUnreadyText.text = isReady ? "READY" : "NOT READY";
+            UpdateButtonColors(readyUnreadyButton, isReady);
         }
 
         private void UpdateButtonColors(Button button, bool green)

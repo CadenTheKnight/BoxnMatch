@@ -27,9 +27,10 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.JoinMenu
         [SerializeField] private Transform lobbyListContainer;
 
         [Header("List Entry Settings")]
-        [SerializeField] private float lobbyListEntryHeight = .08f;
+        [SerializeField] private float lobbyListEntryHeight = .15f;
 
-        private string selectedLobbyId = null;
+        private string currentSelectedId;
+        private LobbyListEntry currentSelectedEntry;
 
         protected override void OnEnable()
         {
@@ -65,16 +66,21 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.JoinMenu
         /// </summary>
         private void UpdateJoinButtonState()
         {
-            joinButton.interactable = lobbyCodeInput.text.Length == 6 || selectedLobbyId != null;
+            joinButton.interactable = lobbyCodeInput.text.Length == 6 || currentSelectedId != null;
         }
 
         /// <summary>
         /// Sets the selected lobby.
         /// </summary>
-        /// <param name="lobbyId">The ID of the selected lobby.</param>
-        private void SelectLobby(string lobbyId)
+        /// param name="newSelectedId">The ID of the selected lobby.</param>
+        /// <param name="newSelectedEntry">The entry of the selected lobby.</param>
+        private void SelectLobby(string newSelectedId, LobbyListEntry newSelectedEntry)
         {
-            selectedLobbyId = lobbyId;
+            if (currentSelectedEntry != null && currentSelectedEntry != newSelectedEntry)
+                currentSelectedEntry.SetSelected(false);
+
+            currentSelectedId = newSelectedId;
+            currentSelectedEntry = newSelectedEntry;
             UpdateJoinButtonState();
         }
 
@@ -83,7 +89,8 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.JoinMenu
         /// </summary>
         public void ClearSelection()
         {
-            selectedLobbyId = null;
+            currentSelectedId = null;
+            currentSelectedEntry = null;
             UpdateJoinButtonState();
         }
 
@@ -98,7 +105,7 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.JoinMenu
             if (!string.IsNullOrEmpty(lobbyCodeInput.text) && lobbyCodeInput.text.Length == 6)
                 GameLobbyManager.Instance.JoinLobbyByCode(lobbyCodeInput.text);
             else
-                GameLobbyManager.Instance.JoinLobbyById(selectedLobbyId);
+                GameLobbyManager.Instance.JoinLobbyById(currentSelectedId);
 
             joinText.text = "Join";
             joinButton.interactable = true;
@@ -110,6 +117,9 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.JoinMenu
         /// </summary>
         private async void OnRefreshButtonClicked()
         {
+            ClearSelection();
+
+            joinButton.interactable = false;
             refreshButton.interactable = false;
             refreshText.text = "Refreshing...";
             refreshingPanel.SetActive(true);
@@ -118,33 +128,35 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.JoinMenu
             await Task.Delay(1500);
             List<Lobby> lobbies = await GameLobbyManager.Instance.GetLobbies();
 
-            ClearSelection();
-
             foreach (LobbyListEntry entry in lobbyListContainer.GetComponentsInChildren<LobbyListEntry>())
-            {
-                entry.lobbySingleClicked -= SelectLobby;
-                entry.lobbyDoubleClicked -= OnJoinButtonClicked;
+                DeleteLobbyListEntry(entry);
 
-                Destroy(entry.gameObject);
-            }
-
-            foreach (Lobby lobby in lobbies)
-            {
-                LobbyListEntry lobbyEntry = Instantiate(lobbyListEntry, lobbyListContainer);
-                LayoutElement item = lobbyEntry.GetComponent<LayoutElement>();
-                item.preferredHeight = item.minHeight = Screen.height * lobbyListEntryHeight;
-                lobbyEntry.SetLobby(lobby);
-
-                lobbyEntry.lobbySingleClicked += SelectLobby;
-                lobbyEntry.lobbyDoubleClicked += OnJoinButtonClicked;
-            }
-
-            UpdateJoinButtonState();
+            foreach (Lobby lobby in lobbies) CreateLobbyListEntry(lobby);
 
             refeshingLoadingBar.StopLoading();
             refreshingPanel.SetActive(false);
             refreshText.text = "Refresh";
             refreshButton.interactable = true;
+            joinButton.interactable = true;
+        }
+
+        private void DeleteLobbyListEntry(LobbyListEntry entry)
+        {
+            entry.lobbySingleClicked -= SelectLobby;
+            entry.lobbyDoubleClicked -= OnJoinButtonClicked;
+
+            Destroy(entry.gameObject);
+        }
+
+        private void CreateLobbyListEntry(Lobby lobby)
+        {
+            LobbyListEntry lobbyEntry = Instantiate(lobbyListEntry, lobbyListContainer);
+            LayoutElement item = lobbyEntry.GetComponent<LayoutElement>();
+            item.preferredHeight = item.minHeight = Screen.height * lobbyListEntryHeight;
+            lobbyEntry.SetLobby(lobby);
+
+            lobbyEntry.lobbySingleClicked += SelectLobby;
+            lobbyEntry.lobbyDoubleClicked += OnJoinButtonClicked;
         }
     }
 }

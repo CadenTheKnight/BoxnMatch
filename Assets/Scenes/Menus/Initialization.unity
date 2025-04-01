@@ -3702,6 +3702,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2119089240}
     m_Modifications:
+    - target: {fileID: 874722416783370029, guid: edb653c57610d0a4aa138e13c8c2eb2d, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -172.79999
+      objectReference: {fileID: 0}
     - target: {fileID: 1641135590301235164, guid: edb653c57610d0a4aa138e13c8c2eb2d, type: 3}
       propertyPath: m_Color.a
       value: 0

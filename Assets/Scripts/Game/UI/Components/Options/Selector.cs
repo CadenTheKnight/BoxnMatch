@@ -67,7 +67,7 @@ namespace Assets.Scripts.Game.UI.Components.Options
             {
                 ColorBlock colors = selectionButton.colors;
 
-                bool isSelected = selectionButton == selectionButtons[Selection];
+                bool isSelected = selectionButtons.IndexOf(selectionButton) == Selection;
 
                 colors.normalColor = isSelected ? selectedColor : unselectedColor;
                 colors.selectedColor = isSelected ? selectedColor : colors.highlightedColor;

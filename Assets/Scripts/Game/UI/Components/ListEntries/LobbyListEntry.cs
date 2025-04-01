@@ -2,10 +2,9 @@ using TMPro;
 using System;
 using UnityEngine;
 using UnityEngine.UI;
+using Assets.Scripts.Game.Data;
 using Assets.Scripts.Game.Types;
 using Unity.Services.Lobbies.Models;
-using Assets.Scripts.Game.UI.Colors;
-using Assets.Scripts.Game.Data;
 
 namespace Assets.Scripts.Game.UI.Components.ListEntries
 {
@@ -24,8 +23,9 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         private string lobbyId;
         private float lastClickTime;
+        private bool doubleClickCooldown = false;
 
-        public Action<string> lobbySingleClicked;
+        public Action<string, LobbyListEntry> lobbySingleClicked;
         public Action lobbyDoubleClicked;
 
         private void OnEnable()
@@ -40,14 +40,27 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         private void HandleClick()
         {
-            float timeSinceLastClick = Time.time - lastClickTime;
+            if (doubleClickCooldown) return;
 
-            if (timeSinceLastClick <= 0.5f)
+            if (Time.time - lastClickTime <= 0.5f)
+            {
                 lobbyDoubleClicked?.Invoke();
+                doubleClickCooldown = true;
+                Invoke(nameof(ResetDoubleClickCooldown), 1f);
+            }
             else
-                lobbySingleClicked?.Invoke(lobbyId);
+            {
+                lobbySingleClicked?.Invoke(lobbyId, this);
+                SetSelected(true);
+            }
 
             lastClickTime = Time.time;
+        }
+
+        private void ResetDoubleClickCooldown()
+        {
+            doubleClickCooldown = false;
+            lastClickTime = 0f;
         }
 
         public void SetLobby(Lobby lobby)
@@ -58,6 +71,15 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             gameModeText.text = ((GameMode)int.Parse(lobby.Data["GameMode"].Value)).ToString();
             statusText.text = ((LobbyStatus)int.Parse(lobby.Data["Status"].Value)).ToString();
             mapImage.sprite = mapSelectionData.GetMap(int.Parse(lobby.Data["MapIndex"].Value)).Thumbnail;
+
+            SetSelected(false);
+        }
+
+        public void SetSelected(bool isSelected)
+        {
+            ColorBlock colors = lobbyButton.colors;
+            colors.normalColor = isSelected ? colors.selectedColor : colors.normalColor;
+            lobbyButton.colors = colors;
         }
     }
 }

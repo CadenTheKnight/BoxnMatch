@@ -48,6 +48,27 @@ namespace Assets.Scripts.Game.Managers
             return await LobbyManager.Instance.GetJoinedLobbies();
         }
 
+        /// <summary>
+        /// Returns the number of players that are ready in the lobby.
+        /// Invokes events to notify if the lobby is ready or not.
+        /// </summary>
+        /// <returns>Number of players ready.</returns>
+        public int GetPlayersReady()
+        {
+            int playersReady = 0;
+
+            foreach (Player player in LobbyManager.Instance.Lobby.Players)
+                if (player.Data["Status"].Value == PlayerStatus.Ready.ToString() || player.Id == LobbyManager.Instance.Lobby.HostId)
+                    playersReady++;
+
+            if (playersReady == LobbyManager.Instance.Lobby.MaxPlayers)
+                Events.LobbyEvents.InvokeLobbyReady();
+            else
+                Events.LobbyEvents.InvokeLobbyNotReady(playersReady, LobbyManager.Instance.Lobby.MaxPlayers);
+
+            return playersReady;
+        }
+
         #region Lobby Management
         /// <summary>
         /// Creates a new lobby with the given parameters.
@@ -117,6 +138,8 @@ namespace Assets.Scripts.Game.Managers
                     PlayerStatus.Ready.ToString() : PlayerStatus.NotReady.ToString();
 
             LobbyManager.Instance.UpdatePlayerData(AuthenticationManager.Instance.LocalPlayer.Id, AuthenticationManager.Instance.LocalPlayer.Data);
+
+            GetPlayersReady();
         }
 
         /// <summary>
@@ -129,6 +152,8 @@ namespace Assets.Scripts.Game.Managers
                 player.Data["Status"].Value = PlayerStatus.NotReady.ToString();
                 LobbyManager.Instance.UpdatePlayerData(player.Id, player.Data);
             }
+
+            GetPlayersReady();
         }
 
         /// <summary>
@@ -142,7 +167,7 @@ namespace Assets.Scripts.Game.Managers
         }
         #endregion
 
-        #region ??? Management
+        #region Data Management
         /// <summary>
         /// Sets the selected map for the game.
         /// </summary>
@@ -464,23 +489,6 @@ namespace Assets.Scripts.Game.Managers
         #region Event Handlers
         private void OnLobbyUpdated()
         {
-            int playersReady = 0;
-
-            foreach (Player player in LobbyManager.Instance.Lobby.Players)
-            {
-                if (player.Data["Status"].Value == PlayerStatus.Ready.ToString() || player.Id == LobbyManager.Instance.Lobby.HostId)
-                    playersReady++;
-
-                // else if (player.Data["Status"].Value == PlayerStatus.Disconnected.ToString())
-            }
-
-            // Events.LobbyEvents.InvokeLobbyUpdated();
-
-            if (playersReady == LobbyManager.Instance.Lobby.MaxPlayers)
-                Events.LobbyEvents.InvokeLobbyReady();
-            else
-                Events.LobbyEvents.InvokeLobbyNotReady(playersReady, LobbyManager.Instance.Lobby.MaxPlayers);
-
             // // Handle relay join code - only if not already in game
             // if (!LobbyManager.Instance.IsLobbyHost && lobbyData.RelayJoinCode != default && !inGame)
             // {

@@ -23,12 +23,11 @@ namespace Assets.Scripts.Framework.Managers
 
         Callback<GetTicketForWebApiResponse_t> m_AuthTicketForWebApiResponseCallback;
         string m_SessionTicket;
-        string identity = "unityauthenticationservice";
 
         void SignInWithSteam()
         {
             m_AuthTicketForWebApiResponseCallback = Callback<GetTicketForWebApiResponse_t>.Create(OnAuthCallback);
-            SteamUser.GetAuthTicketForWebApi(identity);
+            SteamUser.GetAuthTicketForWebApi("unityauthenticationservice");
         }
 
         async void OnAuthCallback(GetTicketForWebApiResponse_t callback)
@@ -37,7 +36,7 @@ namespace Assets.Scripts.Framework.Managers
             m_AuthTicketForWebApiResponseCallback.Dispose();
             m_AuthTicketForWebApiResponseCallback = null;
 
-            await AuthenticationService.Instance.SignInWithSteamAsync(m_SessionTicket, identity);
+            await AuthenticationService.Instance.SignInWithSteamAsync(m_SessionTicket, "unityauthenticationservice");
         }
 
         /// <summary>
@@ -50,28 +49,11 @@ namespace Assets.Scripts.Framework.Managers
             {
                 await UnityServices.InitializeAsync();
 
-                int attempts = 0;
-                const int maxAttempts = 30;
-                while (!SteamManager.Initialized && attempts < maxAttempts)
-                {
-                    await Task.Delay(100);
-                    attempts++;
-                }
-
-                if (!SteamManager.Initialized)
-                    return OperationResult.ErrorResult("SteamError", "Steam failed to initialize. Make sure Steam is running.");
+                while (!SteamManager.Initialized) await Task.Delay(100);
 
                 SignInWithSteam();
 
-                attempts = 0;
-                while (!AuthenticationService.Instance.IsSignedIn && attempts < maxAttempts)
-                {
-                    await Task.Delay(100);
-                    attempts++;
-                }
-
-                if (!AuthenticationService.Instance.IsSignedIn)
-                    return OperationResult.ErrorResult("AuthError", "Failed to sign in to Unity Authentication Service");
+                while (!AuthenticationService.Instance.IsSignedIn) await Task.Delay(100);
 
                 PlayerData playerData = new();
                 playerData.Initialize(SteamUser.GetSteamID());
