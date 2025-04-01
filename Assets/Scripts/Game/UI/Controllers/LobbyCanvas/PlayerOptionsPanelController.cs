@@ -53,16 +53,16 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
             if (isHost)
             {
-                int readyPlayers = 0;
-                int totalPlayers = LobbyManager.Instance.Lobby.Players.Count;
+                int readyPlayers = 1; // Host is always ready
+                int maxPlayers = LobbyManager.Instance.Lobby.MaxPlayers;
 
                 foreach (Player player in LobbyManager.Instance.Lobby.Players)
                     if (player.Data["Status"].Value == PlayerStatus.Ready.ToString())
                         readyPlayers++;
 
-                bool canStart = (totalPlayers > 1) && (readyPlayers == totalPlayers - 1);
+                bool canStart = readyPlayers == maxPlayers;
                 startButton.interactable = canStart;
-                startText.text = canStart ? "START" : $"{readyPlayers}/{totalPlayers - 1} PLAYERS READY";
+                startText.text = canStart ? "START" : $"{readyPlayers}/{maxPlayers} PLAYERS READY";
                 UpdateButtonColors(startButton, canStart);
             }
             else

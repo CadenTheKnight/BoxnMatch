@@ -49,12 +49,29 @@ namespace Assets.Scripts.Framework.Managers
             try
             {
                 await UnityServices.InitializeAsync();
-                while (!SteamManager.Initialized)
+
+                int attempts = 0;
+                const int maxAttempts = 30;
+                while (!SteamManager.Initialized && attempts < maxAttempts)
+                {
                     await Task.Delay(100);
+                    attempts++;
+                }
+
+                if (!SteamManager.Initialized)
+                    return OperationResult.ErrorResult("SteamError", "Steam failed to initialize. Make sure Steam is running.");
 
                 SignInWithSteam();
-                while (!AuthenticationService.Instance.IsSignedIn)
+
+                attempts = 0;
+                while (!AuthenticationService.Instance.IsSignedIn && attempts < maxAttempts)
+                {
                     await Task.Delay(100);
+                    attempts++;
+                }
+
+                if (!AuthenticationService.Instance.IsSignedIn)
+                    return OperationResult.ErrorResult("AuthError", "Failed to sign in to Unity Authentication Service");
 
                 PlayerData playerData = new();
                 playerData.Initialize(SteamFriends.GetPersonaName());
