@@ -8,21 +8,21 @@ namespace Assets.Scripts.Game.Types
         /// <summary>
         /// The player is not connected to the lobby.
         /// </summary>
-        Disconnected,
+        Disconnected = 0,
 
         /// <summary>
         /// The player is connected to the lobby but not ready.
         /// </summary>
-        NotReady,
+        NotReady = 1,
 
         /// <summary>
         /// The player is connected to the lobby and ready.
         /// </summary>
-        Ready,
+        Ready = 2,
 
         /// <summary>
         /// The player is in-game.
         /// </summary>
-        InGame
+        InGame = 3,
     }
 }

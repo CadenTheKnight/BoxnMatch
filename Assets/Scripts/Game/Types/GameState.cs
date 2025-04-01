@@ -5,10 +5,10 @@ namespace Assets.Scripts.Game.Types
     /// </summary>
     public enum GameState
     {
-        RoundStarting,
-        RoundInProgress,
-        RoundEnding,
-        GameEnding,
-        ReturnToLobby
+        RoundStarting = 0,
+        RoundInProgress = 1,
+        RoundEnding = 2,
+        GameEnding = 3,
+        ReturnToLobby = 4,
     }
 }

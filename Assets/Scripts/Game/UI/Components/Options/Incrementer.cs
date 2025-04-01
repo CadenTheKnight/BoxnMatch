@@ -62,14 +62,16 @@ namespace Assets.Scripts.Game.UI.Components.Options
             }
         }
 
+        private void UpdateButtons()
+        {
+            decrementButton.interactable = Value > minValue && interactable;
+            incrementButton.interactable = Value < maxValue && interactable;
+        }
+
         private void UpdateUI()
         {
             valueText.text = Value.ToString();
-            if (interactable)
-            {
-                decrementButton.interactable = Value > minValue;
-                incrementButton.interactable = Value < maxValue;
-            }
+            UpdateButtons();
         }
 
         public void SetValue(int newValue)
@@ -87,15 +89,13 @@ namespace Assets.Scripts.Game.UI.Components.Options
         public void DisableInteraction()
         {
             interactable = false;
-            decrementButton.interactable = false;
-            incrementButton.interactable = false;
+            UpdateButtons();
         }
 
         public void EnableInteraction()
         {
             interactable = true;
-            decrementButton.interactable = true;
-            incrementButton.interactable = true;
+            UpdateButtons();
         }
     }
 }

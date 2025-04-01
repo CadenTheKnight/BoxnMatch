@@ -8,11 +8,11 @@ namespace Assets.Scripts.Game.Types
         /// <summary>
         /// Single selection mode, where only one item can be selected at a time.
         /// </summary>
-        SingleSelection,
+        SingleSelection = 0,
 
         /// <summary>
         /// Multiple selection mode, where multiple items can be selected at the same time.
         /// /// </summary>
-        MultipleSelection,
+        MultipleSelection = 1,
     }
 }

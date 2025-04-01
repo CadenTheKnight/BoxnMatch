@@ -5,8 +5,8 @@ namespace Assets.Scripts.Game.Types
     /// </summary>
     public enum ChatMessageType
     {
-        Player,
-        System,
-        Error
+        Player = 0,
+        System = 1,
+        Error = 2,
     }
 }

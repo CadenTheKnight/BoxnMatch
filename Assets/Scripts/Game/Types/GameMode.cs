@@ -8,16 +8,16 @@ namespace Assets.Scripts.Game.Types
         /// <summary>
         /// Team based game mode, where players are divided into teams. (2 for now)
         /// /// </summary>
-        Teams,
+        Teams = 0,
 
         /// <summary>
         /// Free for all game mode, where players compete against each other without teams.
         /// </summary>
-        FreeForAll,
+        FreeForAll = 1,
 
         /// <summary>
         /// AI / capture the flag / others to be implemented later.
         /// /// </summary>
-        Other,
+        Other = 2,
     }
 }

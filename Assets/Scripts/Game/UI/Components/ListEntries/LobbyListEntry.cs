@@ -56,6 +56,14 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             nameText.text = lobby.Name;
             playerCountText.text = $"{lobby.Players.Count}/{lobby.MaxPlayers}";
             gameModeText.text = ((GameMode)int.Parse(lobby.Data["GameMode"].Value)).ToString();
+
+            Debug.Log($"Raw GameMode value: {lobby.Data["GameMode"].Value}");
+            Debug.Log($"Parsed GameMode int: {int.Parse(lobby.Data["GameMode"].Value)}");
+            Debug.Log($"Raw Status value: {lobby.Data["Status"].Value}");
+            Debug.Log($"Parsed Status int: {int.Parse(lobby.Data["Status"].Value)}");
+            Debug.Log($"GameMode type: {typeof(GameMode).FullName}");
+            Debug.Log($"LobbyStatus type: {typeof(LobbyStatus).FullName}");
+
             statusText.text = ((LobbyStatus)int.Parse(lobby.Data["Status"].Value)).ToString();
             // mapImage.sprite = Resources.Load<Sprite>($"Maps/{lobby.Data["MapName"].Value}");
             mapImage.sprite = mapSelectionData.GetMap(int.Parse(lobby.Data["MapIndex"].Value)).Thumbnail;
