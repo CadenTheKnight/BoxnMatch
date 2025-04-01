@@ -6,7 +6,7 @@ using Assets.Scripts.Game.Data;
 using Assets.Scripts.Game.Types;
 using Unity.Services.Lobbies.Models;
 
-namespace Assets.Scripts.Game.UI.Components.ListEntries
+namespace Assets.Scripts.Game.UI.Components.ListEntries.LobbyEntry
 {
     public class LobbyListEntry : MonoBehaviour
     {

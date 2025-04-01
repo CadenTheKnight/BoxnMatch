@@ -164,8 +164,7 @@ namespace Assets.Scripts.Game.UI.Controllers.OptionsCanvas.OptionsMenu
 
         private void OnProfileClicked()
         {
-            Debug.Log("Profile clicked");
-            // Application.OpenURL("https://steamcommunity.com/profiles/" + SteamClient.SteamId);
+            Application.OpenURL("https://steamcommunity.com/profiles/" + SteamUser.GetSteamID().ToString());
         }
 
         private void OnSettingsClicked()

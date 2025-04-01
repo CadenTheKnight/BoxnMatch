@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using Assets.Scripts.Game.Managers;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Game.UI.Components;
-using Assets.Scripts.Game.UI.Components.ListEntries;
+using Assets.Scripts.Game.UI.Components.ListEntries.LobbyEntry;
 
 namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.JoinMenu
 {

@@ -2798,11 +2798,6 @@ MonoBehaviour:
   lobbyCodeButton: {fileID: 692682267}
   lobbyNameText: {fileID: 447073619}
   lobbyCodeText: {fileID: 692682266}
-  playerListPanelController: {fileID: 1367282207}
-  gameSettingsPanelController: {fileID: 261847095}
-  leaveButton: {fileID: 1789508458}
-  startReadyUnreadyButton: {fileID: 1910672558}
-  startReadyUnreadyText: {fileID: 1910672557}
 --- !u!1001 &1059739578
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5886,6 +5881,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1367282205}
     m_Modifications:
+    - target: {fileID: 1732549057728158096, guid: b4e8b8ef25c558041b724f73abb2406b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3418916334453786450, guid: b4e8b8ef25c558041b724f73abb2406b, type: 3}
       propertyPath: m_Name
       value: PlayerListEntry

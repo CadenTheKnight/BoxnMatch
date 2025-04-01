@@ -4921,6 +4921,10 @@ PrefabInstance:
       value: ProfileButton
       objectReference: {fileID: 0}
     - target: {fileID: 6924719759885378421, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
+      propertyPath: m_Colors.m_NormalColor.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6924719759885378421, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       propertyPath: m_Colors.m_NormalColor.b
       value: 0.25882354
       objectReference: {fileID: 0}

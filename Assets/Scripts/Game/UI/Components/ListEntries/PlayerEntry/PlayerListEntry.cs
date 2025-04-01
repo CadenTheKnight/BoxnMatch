@@ -8,37 +8,54 @@ using Assets.Scripts.Game.UI.Colors;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Framework.Utilities;
 
-namespace Assets.Scripts.Game.UI.Components.ListEntries
+namespace Assets.Scripts.Game.UI.Components.ListEntries.PlayerEntry
 {
     public class PlayerListEntry : MonoBehaviour
     {
 
         [Header("UI Components")]
         [SerializeField] private GameObject emptyStatePanel;
-        [SerializeField] private GameObject playerStatePanel;
         [SerializeField] private GameObject activeStatePanel;
         [SerializeField] private GameObject inGameStatePanel;
         [SerializeField] private GameObject disconnectedStatePanel;
         [SerializeField] private RawImage profilePictureRawImage;
         [SerializeField] private TextMeshProUGUI playerNameText;
+        [SerializeField] private Button changeTeamButton;
+        [SerializeField] private Button playerOptionsButton;
+        [SerializeField] private PlayerOptionsPanelController playerOptionsPanelController;
 
         protected Callback<AvatarImageLoaded_t> avatarImageLoadedCallback;
 
         private Player player;
 
+        private void OnEnable()
+        {
+            changeTeamButton.onClick.AddListener(OnChangeTeamButtonClicked);
+            playerOptionsButton.onClick.AddListener(OnPlayerOptionsButtonClicked);
+        }
+
+        private void OnDisable()
+        {
+            changeTeamButton.onClick.RemoveListener(OnChangeTeamButtonClicked);
+            playerOptionsButton.onClick.RemoveListener(OnPlayerOptionsButtonClicked);
+        }
+
         public void SetEmpty()
         {
             emptyStatePanel.SetActive(true);
-            playerStatePanel.SetActive(false);
+
+            activeStatePanel.SetActive(false);
+            inGameStatePanel.SetActive(false);
+            disconnectedStatePanel.SetActive(false);
+            playerOptionsButton.gameObject.SetActive(false);
+            playerOptionsPanelController.gameObject.SetActive(false);
         }
 
         public void SetPlayer(Player player)
         {
             this.player = player;
 
-            playerStatePanel.SetActive(true);
             emptyStatePanel.SetActive(false);
-
             activeStatePanel.SetActive(true);
             inGameStatePanel.SetActive(false);
             disconnectedStatePanel.SetActive(false);
@@ -66,6 +83,8 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
                 playerNameText.color = UIColors.redDefaultColor;
                 disconnectedStatePanel.SetActive(true);
             }
+
+            playerOptionsPanelController.SetPlayerOptions((CSteamID)ulong.Parse(player.Data["Id"].Value), player.Id);
         }
 
         private void OnAvatarImageLoaded(AvatarImageLoaded_t callback)
@@ -86,6 +105,17 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
                     }
                 }
             }
+        }
+
+        private void OnChangeTeamButtonClicked()
+        {
+            // LobbyManager.Instance.ChangePlayerTeam(player.Id);
+            Debug.Log("Change team button clicked for player: " + player.Id);
+        }
+
+        private void OnPlayerOptionsButtonClicked()
+        {
+            playerOptionsPanelController.gameObject.SetActive(true);
         }
     }
 }

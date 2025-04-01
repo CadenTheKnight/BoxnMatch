@@ -31,5 +31,9 @@ namespace Assets.Scripts.Game.UI.Colors
         [SerializeField] public static Color redDefaultColor = new(1f, 0.278f, 0.3414f); // FF4757
         [SerializeField] public static Color redHoverColor = new(1f, 0.412f, 0.506f);   // FF6B81
 
+        [Header("Blue Colors")]
+        [SerializeField] public static Color blueDefaultColor = new(0.1f, 0.6f, 1f); // 1E90FF
+        [SerializeField] public static Color blueHoverColor = new(0.2f, 0.8f, 1f);   // 32CDFF
+
     }
 }

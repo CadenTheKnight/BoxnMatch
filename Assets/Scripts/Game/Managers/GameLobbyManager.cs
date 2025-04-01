@@ -1,5 +1,3 @@
-using System.Linq;
-using UnityEngine;
 using System.Threading.Tasks;
 using Assets.Scripts.Game.Data;
 using Assets.Scripts.Game.Types;
@@ -8,8 +6,6 @@ using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Core;
 using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Managers;
-using Assets.Scripts.Framework.Utilities;
-
 
 namespace Assets.Scripts.Game.Managers
 {
@@ -125,6 +121,15 @@ namespace Assets.Scripts.Game.Managers
         {
             LobbyManager.Instance.LeaveLobby();
         }
+
+        /// <summary>
+        /// Kicks a player from the lobby.
+        /// </summary>
+        /// <param name="playerId">The ID of the player to kick.</param>
+        public void KickPlayer(string playerId)
+        {
+            LobbyManager.Instance.KickPlayer(playerId);
+        }
         #endregion
 
         #region Player Management
@@ -149,6 +154,8 @@ namespace Assets.Scripts.Game.Managers
         {
             foreach (Player player in LobbyManager.Instance.Lobby.Players)
             {
+                if (player.Id == AuthenticationManager.Instance.LocalPlayer.Id) continue;
+
                 player.Data["Status"].Value = PlayerStatus.NotReady.ToString();
                 LobbyManager.Instance.UpdatePlayerData(player.Id, player.Data);
             }
@@ -168,6 +175,16 @@ namespace Assets.Scripts.Game.Managers
         #endregion
 
         #region Data Management
+
+        // public void UpdatePlayerData(string playerId, string playerData)
+        // {
+        //     PlayerData playerData = new();
+        //     playerData.Initialize();
+
+        //     LobbyManager.Instance.UpdatePlayerData(playerId, playerData.Serialize());
+        // }
+
+
         /// <summary>
         /// Sets the selected map for the game.
         /// </summary>

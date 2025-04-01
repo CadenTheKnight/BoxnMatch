@@ -241,13 +241,7 @@ namespace Assets.Scripts.Framework.Managers
             {
                 await LobbyService.Instance.RemovePlayerAsync(lobby.Id, playerId);
 
-                if (playerId == AuthenticationManager.Instance.LocalPlayer.Id)
-                {
-                    LobbyEvents.InvokeLobbyKicked(OperationResult.SuccessResult("KickPlayer", $"Kicked from lobby: {lobby.Name}"));
-                    ClearLobby();
-                }
-                else
-                    LobbyEvents.InvokePlayerKicked(OperationResult.SuccessResult("KickPlayer", $"Kicked {playerId} from the lobby"));
+                LobbyEvents.InvokePlayerKicked(OperationResult.SuccessResult("KickPlayer", $"Kicked {playerId} from the lobby"));
             }
             catch (LobbyServiceException e)
             {

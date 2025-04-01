@@ -15,3 +15,7 @@ MonoBehaviour:
   maps:
   - Thumbnail: {fileID: 21300000, guid: cfcffaed590c35b4180358286d438c51, type: 3}
     Name: RedMap
+  - Thumbnail: {fileID: 21300000, guid: accc8eeeb9f13f54898e31898252c187, type: 3}
+    Name: GreenMap
+  - Thumbnail: {fileID: 21300000, guid: 78735cae9e135fb42a0971f66a1b40de, type: 3}
+    Name: BlueMap

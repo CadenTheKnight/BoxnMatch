@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Managers;
-using Assets.Scripts.Game.UI.Components.ListEntries;
+using Assets.Scripts.Framework.Utilities;
+using Assets.Scripts.Game.UI.Components.ListEntries.PlayerEntry;
 
 namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 {
@@ -16,15 +17,17 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private void OnEnable()
         {
-            LobbyEvents.OnLobbyRefreshed += OnLobbyUpdated;
+            LobbyEvents.OnLobbyRefreshed += OnLobbyRefreshed;
+            LobbyEvents.OnPlayerDataUpdated += OnPlayerDataUpdated;
         }
 
         private void OnDisable()
         {
-            LobbyEvents.OnLobbyRefreshed -= OnLobbyUpdated;
+            LobbyEvents.OnLobbyRefreshed -= OnLobbyRefreshed;
+            LobbyEvents.OnPlayerDataUpdated -= OnPlayerDataUpdated;
         }
 
-        private void OnLobbyUpdated()
+        private void OnLobbyRefreshed()
         {
             List<Player> players = LobbyManager.Instance.Lobby.Players;
 
@@ -38,6 +41,11 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
                 else
                     _playerListEntries[i].gameObject.SetActive(false);
             }
+        }
+
+        private void OnPlayerDataUpdated(OperationResult result)
+        {
+
         }
     }
 }
