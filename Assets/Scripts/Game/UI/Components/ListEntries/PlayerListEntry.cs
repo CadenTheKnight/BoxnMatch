@@ -43,7 +43,11 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             disconnectedStatePanel.SetActive(false);
 
             avatarImageLoadedCallback = Callback<AvatarImageLoaded_t>.Create(OnAvatarImageLoaded);
-            profilePictureRawImage.texture = GetSteamInfo.SteamImageToUnityImage(SteamFriends.GetLargeFriendAvatar((CSteamID)ulong.Parse(player.Data["Id"].Value)));
+            int imageHandle = SteamFriends.GetLargeFriendAvatar((CSteamID)ulong.Parse(player.Data["Id"].Value));
+            if (imageHandle == -1)
+                SteamFriends.RequestUserInformation((CSteamID)ulong.Parse(player.Data["Id"].Value), false);
+            else
+                profilePictureRawImage.texture = GetSteamInfo.SteamImageToUnityImage(imageHandle);
 
             if (player.Data["Status"].Value == PlayerStatus.Ready.ToString() || player.Data["Status"].Value == PlayerStatus.NotReady.ToString())
             {
@@ -65,8 +69,22 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         private void OnAvatarImageLoaded(AvatarImageLoaded_t callback)
         {
-            if (callback.m_steamID.m_SteamID == ulong.Parse(player.Data["Id"].Value))
+            if (player != null && player.Data.TryGetValue("Id", out PlayerDataObject idObject) &&
+                ulong.TryParse(idObject.Value, out ulong playerId) &&
+                callback.m_steamID.m_SteamID == playerId)
+            {
                 profilePictureRawImage.texture = GetSteamInfo.SteamImageToUnityImage(callback.m_iImage);
+                string currentName = playerNameText.text;
+                if (currentName.Contains("[unknown]") || currentName == "Unknown Player")
+                {
+                    string updatedName = SteamFriends.GetFriendPersonaName(callback.m_steamID);
+                    if (updatedName != "[unknown]")
+                    {
+                        bool isHost = LobbyManager.Instance.Lobby.HostId == player.Id;
+                        playerNameText.text = updatedName + (isHost ? " (Host)" : "");
+                    }
+                }
+            }
         }
     }
 }
