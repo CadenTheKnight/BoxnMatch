@@ -33,7 +33,7 @@ namespace Assets.Scripts.Game.UI.Components.Options
             rightButton.onClick.RemoveListener(OnRightClicked);
         }
 
-        public void SetSelection(int index)
+        public void SetValue(int index)
         {
             if (index < 0 || index >= mapSelectionData.Maps.Count) return;
             Value = index;
@@ -64,15 +64,10 @@ namespace Assets.Scripts.Game.UI.Components.Options
             onSelectionChanged?.Invoke(mapSelectionData.GetMap(Value).Name);
         }
 
-        public void DisableInteraction()
+        public void UpdateInteractable(bool isInteractable)
         {
-            leftButton.interactable = false;
-            rightButton.interactable = false;
-        }
-        public void EnableInteraction()
-        {
-            leftButton.interactable = true;
-            rightButton.interactable = true;
+            leftButton.interactable = isInteractable;
+            rightButton.interactable = isInteractable;
         }
     }
 }

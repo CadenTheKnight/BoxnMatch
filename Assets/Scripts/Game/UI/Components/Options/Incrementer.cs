@@ -17,6 +17,7 @@ namespace Assets.Scripts.Game.UI.Components.Options
         [SerializeField] private int maxValue = 99;
         [SerializeField] private int startValue = 1;
         [SerializeField] private int stepSize = 2;
+        [SerializeField] private bool allowLooping = false;
 
         private bool interactable = true;
 
@@ -44,22 +45,20 @@ namespace Assets.Scripts.Game.UI.Components.Options
 
         private void OnDecrementClicked()
         {
-            if (Value > minValue)
-            {
-                Value -= stepSize;
-                UpdateUI();
-                onValueChanged?.Invoke(Value);
-            }
+            if (Value > minValue) Value -= stepSize;
+            else if (allowLooping) Value = maxValue;
+
+            UpdateUI();
+            onValueChanged?.Invoke(Value);
         }
 
         private void OnIncrementClicked()
         {
-            if (Value < maxValue)
-            {
-                Value += stepSize;
-                UpdateUI();
-                onValueChanged?.Invoke(Value);
-            }
+            if (Value < maxValue) Value += stepSize;
+            else if (allowLooping) Value = minValue;
+
+            UpdateUI();
+            onValueChanged?.Invoke(Value);
         }
 
         private void UpdateButtons()
@@ -86,15 +85,9 @@ namespace Assets.Scripts.Game.UI.Components.Options
             }
         }
 
-        public void DisableInteraction()
+        public void UpdateInteractable(bool isInteractable)
         {
-            interactable = false;
-            UpdateButtons();
-        }
-
-        public void EnableInteraction()
-        {
-            interactable = true;
+            interactable = isInteractable;
             UpdateButtons();
         }
     }

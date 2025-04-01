@@ -17,12 +17,17 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.JoinMenu
     {
         [Header("UI Components")]
         [SerializeField] private Button joinButton;
+        [SerializeField] private TextMeshProUGUI joinText;
         [SerializeField] private Button refreshButton;
+        [SerializeField] private TextMeshProUGUI refreshText;
         [SerializeField] private TMP_InputField lobbyCodeInput;
         [SerializeField] private GameObject refreshingPanel;
         [SerializeField] private LoadingBar refeshingLoadingBar;
         [SerializeField] private LobbyListEntry lobbyListEntry;
         [SerializeField] private Transform lobbyListContainer;
+
+        [Header("List Entry Settings")]
+        [SerializeField] private float lobbyListEntryHeight = .08f;
 
         private string selectedLobbyId = null;
 
@@ -88,12 +93,14 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.JoinMenu
         public void OnJoinButtonClicked()
         {
             joinButton.interactable = false;
+            joinText.text = "Joining...";
 
             if (!string.IsNullOrEmpty(lobbyCodeInput.text) && lobbyCodeInput.text.Length == 6)
                 GameLobbyManager.Instance.JoinLobbyByCode(lobbyCodeInput.text);
             else
                 GameLobbyManager.Instance.JoinLobbyById(selectedLobbyId);
 
+            joinText.text = "Join";
             joinButton.interactable = true;
         }
 
@@ -104,6 +111,7 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.JoinMenu
         private async void OnRefreshButtonClicked()
         {
             refreshButton.interactable = false;
+            refreshText.text = "Refreshing...";
             refreshingPanel.SetActive(true);
             refeshingLoadingBar.StartLoading();
 
@@ -123,6 +131,8 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.JoinMenu
             foreach (Lobby lobby in lobbies)
             {
                 LobbyListEntry lobbyEntry = Instantiate(lobbyListEntry, lobbyListContainer);
+                LayoutElement item = lobbyEntry.GetComponent<LayoutElement>();
+                item.preferredHeight = item.minHeight = Screen.height * lobbyListEntryHeight;
                 lobbyEntry.SetLobby(lobby);
 
                 lobbyEntry.lobbySingleClicked += SelectLobby;
@@ -133,6 +143,7 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.JoinMenu
 
             refeshingLoadingBar.StopLoading();
             refreshingPanel.SetActive(false);
+            refreshText.text = "Refresh";
             refreshButton.interactable = true;
         }
     }

@@ -464,11 +464,11 @@ namespace Assets.Scripts.Game.Managers
         #region Event Handlers
         private void OnLobbyUpdated()
         {
-            int playersReady = 1; // Start with 1 for the host
+            int playersReady = 0;
 
             foreach (Player player in LobbyManager.Instance.Lobby.Players)
             {
-                if (player.Data["Status"].Value == PlayerStatus.Ready.ToString())
+                if (player.Data["Status"].Value == PlayerStatus.Ready.ToString() || player.Id == LobbyManager.Instance.Lobby.HostId)
                     playersReady++;
 
                 // else if (player.Data["Status"].Value == PlayerStatus.Disconnected.ToString())

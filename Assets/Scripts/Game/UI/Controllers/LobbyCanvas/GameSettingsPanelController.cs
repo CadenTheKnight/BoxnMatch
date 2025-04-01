@@ -2,12 +2,12 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Threading.Tasks;
-using Assets.Scripts.Game.Data;
 using Assets.Scripts.Game.Types;
 using Assets.Scripts.Game.Managers;
 using Assets.Scripts.Game.UI.Colors;
 using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Managers;
+using Assets.Scripts.Framework.Utilities;
 using Assets.Scripts.Game.UI.Components.Options;
 
 namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
@@ -20,73 +20,80 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
         [SerializeField] private Incrementer roundTimeIncrementer;
         [SerializeField] private Selector gameModeSelector;
 
-
         [Header("Settings Management")]
         [SerializeField] private Button editUpdateButton;
         [SerializeField] private TextMeshProUGUI editUpdateText;
-        [SerializeField] private MapSelectionData mapSelectionData;
 
         private bool isEditing = false;
 
         private void OnEnable()
         {
-            SetPanelState(false);
             UpdateSelections();
+            UpdateInteractable(isEditing);
             UpdateEditUpdateButton(isEditing);
 
             editUpdateButton.onClick.AddListener(OnEditUpdateClicked);
 
-            LobbyEvents.OnLobbyRefreshed += OnLobbyUpdated;
-            // LobbyEvents.OnLobbyDataUpdated += OnLobbyUpdated;
+            LobbyEvents.OnLobbyRefreshed += OnLobbyRefreshed;
+            LobbyEvents.OnLobbyDataUpdated += OnLobbyDataUpdated;
         }
 
         private void OnDisable()
         {
             editUpdateButton.onClick.RemoveListener(OnEditUpdateClicked);
 
-            LobbyEvents.OnLobbyRefreshed -= OnLobbyUpdated;
-            // LobbyEvents.OnLobbyDataUpdated -= OnLobbyUpdated;
+            LobbyEvents.OnLobbyRefreshed -= OnLobbyRefreshed;
+            LobbyEvents.OnLobbyDataUpdated -= OnLobbyDataUpdated;
         }
 
-        private void OnEditUpdateClicked()
+        private void OnLobbyRefreshed()
         {
-            UpdateEditUpdateButton(isEditing);
+            editUpdateButton.gameObject.SetActive(LobbyManager.Instance.Lobby.HostId == AuthenticationManager.Instance.LocalPlayer.Id);
+            if (!isEditing) UpdateSelections();
+        }
+
+        private void OnLobbyDataUpdated(OperationResult result)
+        {
+            UpdateSelections();
+        }
+
+        private async void OnEditUpdateClicked()
+        {
             if (AuthenticationManager.Instance.LocalPlayer.Id == LobbyManager.Instance.Lobby.HostId)
-                SetPanelState(!isEditing);
-        }
-
-        private async void SetPanelState(bool isEditing)
-        {
+                UpdateInteractable(!isEditing);
             if (isEditing)
             {
-                mapChanger.EnableInteraction();
-                roundCountIncrementer.EnableInteraction();
-                roundTimeIncrementer.EnableInteraction();
-                gameModeSelector.EnableInteraction();
-            }
-            else
-            {
-                mapChanger.DisableInteraction();
-                roundCountIncrementer.DisableInteraction();
-                roundTimeIncrementer.DisableInteraction();
-                gameModeSelector.DisableInteraction();
-
-                editUpdateButton.interactable = false;
                 editUpdateText.text = "Updating...";
+                editUpdateButton.interactable = false;
 
-                await Task.Delay(1500);
-                GameLobbyManager.Instance.UpdateLobbyData(mapChanger.Value, roundCountIncrementer.Value, roundTimeIncrementer.Value, (GameMode)gameModeSelector.GetSelectedIndices()[0]);
+                await Task.Delay(1000);
+                GameLobbyManager.Instance.UpdateLobbyData(mapChanger.Value, roundCountIncrementer.Value, roundTimeIncrementer.Value, (GameMode)gameModeSelector.Selection);
 
                 editUpdateButton.interactable = true;
-                editUpdateText.text = "EDIT";
             }
 
-            this.isEditing = isEditing;
+            UpdateEditUpdateButton(!isEditing);
+            isEditing = !isEditing;
+        }
+
+        public void UpdateSelections()
+        {
+            mapChanger.SetValue(int.Parse(LobbyManager.Instance.Lobby.Data["MapIndex"].Value));
+            roundCountIncrementer.SetValue(int.Parse(LobbyManager.Instance.Lobby.Data["RoundCount"].Value));
+            roundTimeIncrementer.SetValue(int.Parse(LobbyManager.Instance.Lobby.Data["RoundTime"].Value));
+            gameModeSelector.SetSelection(int.Parse(LobbyManager.Instance.Lobby.Data["GameMode"].Value), true);
+        }
+
+        private void UpdateInteractable(bool isEditing)
+        {
+            mapChanger.UpdateInteractable(isEditing);
+            roundCountIncrementer.UpdateInteractable(isEditing);
+            roundTimeIncrementer.UpdateInteractable(isEditing);
+            gameModeSelector.UpdateInteractable(isEditing);
         }
 
         private void UpdateEditUpdateButton(bool isEditing)
         {
-            editUpdateButton.gameObject.SetActive(LobbyManager.Instance.Lobby.HostId == AuthenticationManager.Instance.LocalPlayer.Id);
             editUpdateText.text = isEditing ? "UPDATE" : "EDIT";
 
             ColorBlock colors = editUpdateButton.colors;
@@ -97,20 +104,6 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             colors.disabledColor = UIColors.secondaryDisabledColor;
 
             editUpdateButton.colors = colors;
-        }
-
-        private void OnLobbyUpdated()
-        {
-            if (!isEditing) UpdateSelections();
-            UpdateEditUpdateButton(isEditing);
-        }
-
-        public void UpdateSelections()
-        {
-            mapChanger.SetSelection(int.Parse(LobbyManager.Instance.Lobby.Data["MapIndex"].Value));
-            roundCountIncrementer.SetValue(int.Parse(LobbyManager.Instance.Lobby.Data["RoundCount"].Value));
-            roundTimeIncrementer.SetValue(int.Parse(LobbyManager.Instance.Lobby.Data["RoundTime"].Value));
-            gameModeSelector.SetSelection(int.Parse(LobbyManager.Instance.Lobby.Data["GameMode"].Value), true);
         }
     }
 }
