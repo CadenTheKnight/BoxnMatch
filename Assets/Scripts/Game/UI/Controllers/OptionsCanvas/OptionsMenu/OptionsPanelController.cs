@@ -1,9 +1,11 @@
 using TMPro;
+using Steamworks;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Game.UI.Components;
+using Assets.Scripts.Framework.Utilities;
 using Assets.Scripts.Game.UI.Controllers.OptionsCanvas.SettingsMenu;
 
 namespace Assets.Scripts.Game.UI.Controllers.OptionsCanvas.OptionsMenu
@@ -11,12 +13,11 @@ namespace Assets.Scripts.Game.UI.Controllers.OptionsCanvas.OptionsMenu
     public class OptionsPanelController : MonoBehaviour
     {
         [Header("UI Components")]
-        [SerializeField] private RectTransform shadowRectTransform;
         [SerializeField] private RectTransform sidePanelRectTransform;
         [SerializeField] private Button profileButton;
         [SerializeField] private Button settingsButton;
         [SerializeField] private Button quitButton;
-        [SerializeField] private Image profilePictureImage;
+        [SerializeField] private RawImage profilePictureRawImage;
         [SerializeField] private Image settingsImage;
         [SerializeField] private Image quitImage;
         [SerializeField] private GameObject profileInfoGroup;
@@ -38,15 +39,23 @@ namespace Assets.Scripts.Game.UI.Controllers.OptionsCanvas.OptionsMenu
         private bool isExpanded = false;
         private bool isAnimating = false;
 
+        protected Callback<AvatarImageLoaded_t> avatarImageLoadedCallback;
+
         private void Awake()
         {
             SetCollapsed();
 
-            profileNameText.text = AuthenticationManager.Instance.LocalPlayer.Data["Name"].Value;
-            profileLevelText.text = "Level " + AuthenticationManager.Instance.LocalPlayer.Data["Level"].Value;
-            profileLevelProgressBar.SetProgress(float.Parse(AuthenticationManager.Instance.LocalPlayer.Data["Experience"].Value));
+            avatarImageLoadedCallback = Callback<AvatarImageLoaded_t>.Create(OnAvatarImageLoaded);
 
-            SetFixedWidth(profilePictureImage.rectTransform, true);
+            int imageId = SteamFriends.GetLargeFriendAvatar(SteamUser.GetSteamID());
+            if (imageId != -1)
+                profilePictureRawImage.texture = GetSteamInfo.SteamImageToUnityImage(imageId);
+
+            profileNameText.text = AuthenticationManager.Instance.LocalPlayer.Data["Name"].Value;
+            profileLevelText.text = "Level " + 3; // implement steam level later
+            profileLevelProgressBar.SetProgress(0.3f); // implement steam experience later
+
+            SetFixedWidth(profilePictureRawImage.rectTransform, true);
             SetFixedWidth(settingsImage.rectTransform, true);
             SetFixedWidth(quitImage.rectTransform, true);
             SetFixedWidth(profileInfoGroup.GetComponent<RectTransform>(), false);
@@ -66,6 +75,12 @@ namespace Assets.Scripts.Game.UI.Controllers.OptionsCanvas.OptionsMenu
             profileButton.onClick.RemoveListener(OnProfileClicked);
             settingsButton.onClick.RemoveListener(OnSettingsClicked);
             quitButton.onClick.RemoveListener(OnQuitClicked);
+        }
+
+        private void OnAvatarImageLoaded(AvatarImageLoaded_t callback)
+        {
+            if (callback.m_steamID == SteamUser.GetSteamID())
+                profilePictureRawImage.texture = GetSteamInfo.SteamImageToUnityImage(callback.m_iImage);
         }
 
         public void ExpandPanel()

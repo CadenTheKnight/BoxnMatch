@@ -1,3 +1,5 @@
+using System;
+using Steamworks;
 using UnityEngine;
 using Unity.Services.Core;
 using System.Threading.Tasks;
@@ -10,7 +12,7 @@ using Assets.Scripts.Framework.Utilities;
 namespace Assets.Scripts.Framework.Managers
 {
     /// <summary>
-    /// Manages authentication with Unity Services.
+    /// Manages authentication with Unity Services through steam.
     /// </summary>
     public class AuthenticationManager : Singleton<AuthenticationManager>
     {
@@ -19,8 +21,27 @@ namespace Assets.Scripts.Framework.Managers
         /// </summary>
         public Player LocalPlayer { get; private set; } = null;
 
+        Callback<GetTicketForWebApiResponse_t> m_AuthTicketForWebApiResponseCallback;
+        string m_SessionTicket;
+        string identity = "unityauthenticationservice";
+
+        void SignInWithSteam()
+        {
+            m_AuthTicketForWebApiResponseCallback = Callback<GetTicketForWebApiResponse_t>.Create(OnAuthCallback);
+            SteamUser.GetAuthTicketForWebApi(identity);
+        }
+
+        async void OnAuthCallback(GetTicketForWebApiResponse_t callback)
+        {
+            m_SessionTicket = BitConverter.ToString(callback.m_rgubTicket).Replace("-", string.Empty);
+            m_AuthTicketForWebApiResponseCallback.Dispose();
+            m_AuthTicketForWebApiResponseCallback = null;
+
+            await AuthenticationService.Instance.SignInWithSteamAsync(m_SessionTicket, identity);
+        }
+
         /// <summary>
-        /// Initializes Unity Services and signs in the player anonymously.
+        /// Initializes Unity Services and signs in the player through steam.
         /// </summary>
         /// <returns>An OperationResult indicating the success or failure of the operation.</returns>
         public async Task<OperationResult> InitializeAsync()
@@ -28,24 +49,20 @@ namespace Assets.Scripts.Framework.Managers
             try
             {
                 await UnityServices.InitializeAsync();
-                await AuthenticationService.Instance.SignInAnonymouslyAsync();
+                while (!SteamManager.Initialized)
+                    await Task.Delay(100);
 
-                if (!PlayerPrefs.HasKey("Name"))
-                {
-                    if (LocalPlayer.Data["Name"].Value == null)
-                        PlayerPrefs.SetString("Name", "BoxnPlayer" + Random.Range(1000, 9999).ToString());
-                    else
-                        PlayerPrefs.SetString("Name", LocalPlayer.Data["Name"].Value);
-                    PlayerPrefs.Save();
-                }
+                SignInWithSteam();
+                while (!AuthenticationService.Instance.IsSignedIn)
+                    await Task.Delay(100);
 
                 PlayerData playerData = new();
-                playerData.Initialize(PlayerPrefs.GetString("Name"));
+                playerData.Initialize(SteamFriends.GetPersonaName());
                 LocalPlayer = new Player(id: AuthenticationService.Instance.PlayerId, data: playerData.Serialize());
 
                 return OperationResult.SuccessResult("Initialize", $"Signed in as {LocalPlayer.Data["Name"].Value}");
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 Debug.LogError($"AuthenticationManager: {ex.Message}");
                 return OperationResult.ErrorResult("InitializeError", ex.Message);

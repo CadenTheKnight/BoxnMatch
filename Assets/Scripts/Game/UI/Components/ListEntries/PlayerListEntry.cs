@@ -35,7 +35,7 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             if (player.Data["Status"].Value == PlayerStatus.Ready.ToString() || player.Data["Status"].Value == PlayerStatus.NotReady.ToString())
             {
                 bool isHost = LobbyManager.Instance.Lobby.HostId == player.Id;
-                playerNameText.text = player.Data["Name"].Value + (isHost ? "(Host)" : "");
+                playerNameText.text = player.Data["Name"].Value + (isHost ? " (Host)" : "");
                 playerNameText.color = isHost ? UIColors.greenDefaultColor : player.Data["Status"].Value == PlayerStatus.Ready.ToString() ? UIColors.greenDefaultColor : UIColors.redDefaultColor;
             }
             else if (player.Data["Status"].Value == PlayerStatus.InGame.ToString())
