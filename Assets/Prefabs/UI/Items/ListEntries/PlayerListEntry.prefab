@@ -166,6 +166,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   emptyStatePanel: {fileID: 6341744847988492993}
+  playerStatePanel: {fileID: 8168807518201091045}
   activeStatePanel: {fileID: 8603989044208908215}
   inGameStatePanel: {fileID: 3222479850068005116}
   disconnectedStatePanel: {fileID: 7728276136917787246}
@@ -538,7 +539,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5333707761874944131, guid: 7a557ea8775ed554d9a8a469875607cb, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5944046508361021457, guid: 7a557ea8775ed554d9a8a469875607cb, type: 3}
       propertyPath: m_Color.b
@@ -1015,7 +1016,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5333707761874944131, guid: 7a557ea8775ed554d9a8a469875607cb, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5944046508361021457, guid: 7a557ea8775ed554d9a8a469875607cb, type: 3}
       propertyPath: m_Color.a
@@ -1050,6 +1051,11 @@ PrefabInstance:
 --- !u!224 &131621890227458532 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 4218694940781838978, guid: 7a557ea8775ed554d9a8a469875607cb, type: 3}
+  m_PrefabInstance: {fileID: 4276253449628570470}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &8168807518201091045 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5333707761874944131, guid: 7a557ea8775ed554d9a8a469875607cb, type: 3}
   m_PrefabInstance: {fileID: 4276253449628570470}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &4423274257344132916

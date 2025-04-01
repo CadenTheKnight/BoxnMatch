@@ -15,6 +15,7 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         [Header("UI Components")]
         [SerializeField] private GameObject emptyStatePanel;
+        [SerializeField] private GameObject playerStatePanel;
         [SerializeField] private GameObject activeStatePanel;
         [SerializeField] private GameObject inGameStatePanel;
         [SerializeField] private GameObject disconnectedStatePanel;
@@ -28,16 +29,16 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
         public void SetEmpty()
         {
             emptyStatePanel.SetActive(true);
-            activeStatePanel.SetActive(false);
-            inGameStatePanel.SetActive(false);
-            disconnectedStatePanel.SetActive(false);
+            playerStatePanel.SetActive(false);
         }
 
         public void SetPlayer(Player player)
         {
             this.player = player;
 
+            playerStatePanel.SetActive(true);
             emptyStatePanel.SetActive(false);
+
             activeStatePanel.SetActive(true);
             inGameStatePanel.SetActive(false);
             disconnectedStatePanel.SetActive(false);

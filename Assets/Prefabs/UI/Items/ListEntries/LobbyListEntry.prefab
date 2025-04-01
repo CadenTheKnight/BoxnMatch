@@ -143,7 +143,7 @@ MonoBehaviour:
   nameText: {fileID: 1140030523416037485}
   playerCountText: {fileID: 7565702529180207254}
   gameModeText: {fileID: 1943216076607127562}
-  statusText: {fileID: 1943216076607127562}
+  statusText: {fileID: 2023054094382544986}
   mapImage: {fileID: 7558609676378897266}
   mapSelectionData: {fileID: 11400000, guid: a3b896327c24a0344ab11736f99960c4, type: 2}
 --- !u!114 &6983367283230770158
@@ -446,7 +446,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 228708682379952613, guid: 689c35d4c899df84c9b5e50bbaf3c074, type: 3}
       propertyPath: m_fontSize
-      value: 37.85
+      value: 37.8
       objectReference: {fileID: 0}
     - target: {fileID: 228708682379952613, guid: 689c35d4c899df84c9b5e50bbaf3c074, type: 3}
       propertyPath: m_fontColor.b
@@ -587,7 +587,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 228708682379952613, guid: 689c35d4c899df84c9b5e50bbaf3c074, type: 3}
       propertyPath: m_fontSize
-      value: 67.5
+      value: 67.4
       objectReference: {fileID: 0}
     - target: {fileID: 228708682379952613, guid: 689c35d4c899df84c9b5e50bbaf3c074, type: 3}
       propertyPath: m_fontColor.b
@@ -703,6 +703,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2189828620212728598, guid: 689c35d4c899df84c9b5e50bbaf3c074, type: 3}
   m_PrefabInstance: {fileID: 2251762083661887935}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2023054094382544986 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 228708682379952613, guid: 689c35d4c899df84c9b5e50bbaf3c074, type: 3}
+  m_PrefabInstance: {fileID: 2251762083661887935}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &7769359203654797683
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -717,7 +728,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 228708682379952613, guid: 689c35d4c899df84c9b5e50bbaf3c074, type: 3}
       propertyPath: m_fontSize
-      value: 64.2
+      value: 64.15
       objectReference: {fileID: 0}
     - target: {fileID: 228708682379952613, guid: 689c35d4c899df84c9b5e50bbaf3c074, type: 3}
       propertyPath: m_fontColor.b
