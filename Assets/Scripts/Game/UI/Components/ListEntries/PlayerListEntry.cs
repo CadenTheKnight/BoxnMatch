@@ -36,7 +36,8 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         private Player player;
         private bool isLocalPlayer = false;
-        private bool isHost = false;
+        private bool isLocalHost = false;
+        private bool optionsOpen = false;
 
         private void OnEnable()
         {
@@ -69,7 +70,7 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             this.player = player;
 
             isLocalPlayer = AuthenticationManager.Instance.LocalPlayer.Id == player.Id;
-            isHost = LobbyManager.Instance.Lobby.HostId == player.Id;
+            isLocalHost = AuthenticationManager.Instance.LocalPlayer.Id == LobbyManager.Instance.Lobby.HostId;
 
             emptyStatePanel.SetActive(false);
             activeStatePanel.SetActive(true);
@@ -93,13 +94,13 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
                     break;
             }
 
-            nameText.text = SteamFriends.GetFriendPersonaName((CSteamID)ulong.Parse(player.Data["Id"].Value)) + (isHost ? " (Host)" : "");
+            nameText.text = SteamFriends.GetFriendPersonaName((CSteamID)ulong.Parse(player.Data["Id"].Value)) + (player.Id == LobbyManager.Instance.Lobby.HostId ? " (Host)" : "");
 
             UpdateTeamColors(int.Parse(player.Data["Team"].Value));
 
-            changeTeamButton.gameObject.SetActive(isLocalPlayer || isHost);
-            teamIndicatorImage.gameObject.SetActive(!isLocalPlayer && !isHost);
-            optionsButton.gameObject.SetActive(!isLocalPlayer);
+            changeTeamButton.gameObject.SetActive(isLocalPlayer || isLocalHost);
+            teamIndicatorImage.gameObject.SetActive(!isLocalPlayer && !isLocalHost);
+            optionsButton.gameObject.SetActive(!isLocalPlayer && !optionsOpen);
 
             avatarImageLoadedCallback = Callback<AvatarImageLoaded_t>.Create(OnAvatarImageLoaded);
             int imageHandle = SteamFriends.GetLargeFriendAvatar((CSteamID)ulong.Parse(player.Data["Id"].Value));
@@ -150,15 +151,18 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         private void OnChangeTeamButtonClicked()
         {
-
+            Debug.Log("Change team button clicked for player: " + player.Data["Id"].Value.ToString());
         }
 
         private void OnOptionsButtonClicked()
         {
-            kickButton.gameObject.SetActive(!isLocalPlayer && isHost);
-            nameText.GetComponent<RectTransform>().anchorMax = new Vector2(!isLocalPlayer && isHost ? 0.5f : 0.8f, 1f);
-            steamProfileButton.GetComponent<RectTransform>().anchorMin = new Vector2(!isLocalPlayer && isHost ? 0.5f : 0.8f, 0f);
-            steamProfileButton.GetComponent<RectTransform>().anchorMax = new Vector2(!isLocalPlayer && isHost ? 0.7f : 1f, 1f);
+            optionsOpen = true;
+            optionsButton.gameObject.SetActive(false);
+
+            kickButton.gameObject.SetActive(!isLocalPlayer && isLocalHost);
+            nameText.GetComponent<RectTransform>().anchorMax = new Vector2(!isLocalPlayer && isLocalHost ? 0.5f : 0.8f, 1f);
+            steamProfileButton.GetComponent<RectTransform>().anchorMin = new Vector2(!isLocalPlayer && isLocalHost ? 0.5f : 0.8f, 0f);
+            steamProfileButton.GetComponent<RectTransform>().anchorMax = new Vector2(!isLocalPlayer && isLocalHost ? 0.7f : 1f, 1f);
 
             optionsPanel.SetActive(true);
         }
@@ -166,9 +170,12 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         private void OnBackButtonClicked()
         {
+            optionsOpen = false;
+            optionsPanel.SetActive(false);
+
             nameText.GetComponent<RectTransform>().anchorMax = new Vector2(0.7f, 1f);
 
-            optionsPanel.SetActive(false);
+            optionsButton.gameObject.SetActive(true);
         }
 
         private void OnSteamProfileButtonClicked()
@@ -178,8 +185,10 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         private void OnKickButtonClicked()
         {
-            Debug.Log("Kick button clicked for player: " + player.Id);
             GameLobbyManager.Instance.KickPlayer(player.Id);
+
+            SetEmpty();
+            player = null;
         }
     }
 }
