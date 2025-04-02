@@ -1,8 +1,7 @@
-using UnityEngine;
+using Steamworks;
 using Assets.Scripts.Game.Types;
 using System.Collections.Generic;
 using Unity.Services.Lobbies.Models;
-using Steamworks;
 
 namespace Assets.Scripts.Game.Data
 {

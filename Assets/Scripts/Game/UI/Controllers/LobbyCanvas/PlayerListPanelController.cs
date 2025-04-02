@@ -4,7 +4,7 @@ using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Framework.Utilities;
-using Assets.Scripts.Game.UI.Components.ListEntries.PlayerEntry;
+using Assets.Scripts.Game.UI.Components.ListEntries;
 
 namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 {

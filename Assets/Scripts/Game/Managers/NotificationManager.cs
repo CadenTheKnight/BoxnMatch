@@ -9,6 +9,9 @@ namespace Assets.Scripts.Game.Managers
 {
     public class NotificationManager : Singleton<NotificationManager>
     {
+        [Header("Debug Options")]
+        [SerializeField] private bool showDebugMessages = false;
+
         [Header("UI Components")]
         [SerializeField] private ErrorPopup errorPopup;
         [SerializeField] private ResultNotification resultNotification;
@@ -55,11 +58,13 @@ namespace Assets.Scripts.Game.Managers
 
         private void ShowNotification(OperationResult result)
         {
+            if (showDebugMessages) Debug.Log($"{result.Code} - {result.Message}");
             resultNotification.ShowNotification(result);
         }
 
         private void ShowErrorPopup(OperationResult result, Action retryAction)
         {
+            if (showDebugMessages) Debug.Log($"{result.Code} - {result.Message}");
             errorPopup.ShowError(result, retryAction);
         }
     }

@@ -6,8 +6,11 @@ using Assets.Scripts.Game.Data;
 using Assets.Scripts.Game.Types;
 using Unity.Services.Lobbies.Models;
 
-namespace Assets.Scripts.Game.UI.Components.ListEntries.LobbyEntry
+namespace Assets.Scripts.Game.UI.Components.ListEntries
 {
+    /// <summary>
+    /// Represents a lobby list entry in the join UI.
+    /// /// </summary>
     public class LobbyListEntry : MonoBehaviour
     {
         [Header("UI Components")]

@@ -1,11 +1,12 @@
 using UnityEngine;
+using Unity.Netcode;
 
 namespace Assets.Scripts.Framework.Core
 {
     /// <summary>
-    /// Base class for all singleton classes.
+    /// Base class for all singleton classes that require network functionality.
     /// </summary>
-    public abstract class Singleton<T> : MonoBehaviour where T : Component
+    public abstract class NetworkSingleton<T> : NetworkBehaviour where T : Component
     {
         public static T Instance { get; private set; }
 

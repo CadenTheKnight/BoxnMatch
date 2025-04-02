@@ -39,8 +39,6 @@ namespace Assets.Scripts.Game.UI.Controllers.NotificationCanvas
         /// <param name="result">The result of the operation.</param>
         public void ShowNotification(OperationResult result)
         {
-            Debug.Log($"{result.Code} - {result.Message}");
-
             notificationText.text = result.Message;
             ApplyTheme(result.Status);
 

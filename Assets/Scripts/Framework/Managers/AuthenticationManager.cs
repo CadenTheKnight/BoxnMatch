@@ -40,31 +40,61 @@ namespace Assets.Scripts.Framework.Managers
         }
 
         /// <summary>
-        /// Initializes Unity Services and signs in the player through steam.
+        /// Initializes Unity Services.
         /// </summary>
         /// <returns>An OperationResult indicating the success or failure of the operation.</returns>
-        public async Task<OperationResult> InitializeAsync()
+        public async Task<OperationResult> InitializeUnityServices()
         {
             try
             {
                 await UnityServices.InitializeAsync();
 
+                return OperationResult.SuccessResult("InitializeUnityServices", "Unity Services initialized successfully.");
+            }
+            catch (Exception ex)
+            {
+                return OperationResult.ErrorResult("InitializeUnityServicesError", ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Initializes Steam API.
+        /// </summary>
+        /// <returns>An OperationResult indicating the success or failure of the operation.</returns>
+        public async Task<OperationResult> InitializeSteam()
+        {
+            try
+            {
                 while (!SteamManager.Initialized) await Task.Delay(100);
 
-                SignInWithSteam();
+                return OperationResult.SuccessResult("InitializeSteam", "Steam initialized successfully.");
+            }
+            catch (Exception ex)
+            {
+                return OperationResult.ErrorResult("InitializeSteamError", ex.Message);
+            }
+        }
 
+        /// <summary>
+        /// Authenticates the player with Unity Services using Steam.
+        /// </summary>
+        /// <returns>An OperationResult indicating the success or failure of the operation.</returns>
+        public async Task<OperationResult> Authenticate()
+        {
+            try
+            {
+                SignInWithSteam();
                 while (!AuthenticationService.Instance.IsSignedIn) await Task.Delay(100);
 
                 PlayerData playerData = new();
                 playerData.Initialize(SteamUser.GetSteamID());
                 LocalPlayer = new Player(id: AuthenticationService.Instance.PlayerId, data: playerData.Serialize());
 
-                return OperationResult.SuccessResult("Initialize", $"Signed in as {SteamFriends.GetPersonaName()}");
+                return OperationResult.SuccessResult("Authenticated", $"Signed in as {SteamFriends.GetPersonaName()}");
             }
             catch (Exception ex)
             {
-                Debug.LogError($"AuthenticationManager: {ex.Message}");
-                return OperationResult.ErrorResult("InitializeError", ex.Message);
+                return OperationResult.ErrorResult("AuthenticationError", ex.Message);
             }
         }
     }

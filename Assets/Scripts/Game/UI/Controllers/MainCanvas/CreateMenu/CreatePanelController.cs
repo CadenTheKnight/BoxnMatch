@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Threading.Tasks;
 using Assets.Scripts.Game.Managers;
 using System.Text.RegularExpressions;
 using Assets.Scripts.Game.UI.Components;
@@ -82,11 +83,12 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.CreateMenu
                 OnCreateClicked();
         }
 
-        private void OnCreateClicked()
+        private async void OnCreateClicked()
         {
             createButton.interactable = false;
             createText.text = "Creating...";
 
+            await Task.Delay(1500);
             GameLobbyManager.Instance.CreateLobby(lobbyName, isPrivate, maxPlayers);
 
             createText.text = "Create";

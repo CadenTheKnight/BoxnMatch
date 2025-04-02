@@ -54,7 +54,7 @@ namespace Assets.Scripts.Game.Managers
             int playersReady = 0;
 
             foreach (Player player in LobbyManager.Instance.Lobby.Players)
-                if (player.Data["Status"].Value == PlayerStatus.Ready.ToString() || player.Id == LobbyManager.Instance.Lobby.HostId)
+                if (player.Data["Status"].Value == PlayerStatus.Ready.ToString())
                     playersReady++;
 
             if (playersReady == LobbyManager.Instance.Lobby.MaxPlayers)
@@ -77,7 +77,7 @@ namespace Assets.Scripts.Game.Managers
             LobbyData lobbyData = new();
             lobbyData.Initialize();
 
-            AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value = PlayerStatus.NotReady.ToString();
+            AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value = PlayerStatus.Ready.ToString();
 
             LobbyManager.Instance.CreateLobby(lobbyName, isPrivate, maxPlayers, lobbyData.Serialize());
         }
@@ -152,7 +152,7 @@ namespace Assets.Scripts.Game.Managers
         /// </summary>
         public void SetAllPlayersUnready()
         {
-            foreach (Player player in LobbyManager.Instance.Lobby.Players)
+            foreach (Player player in LobbyManager.Instance.Lobby.Players) // ????
             {
                 if (player.Id == AuthenticationManager.Instance.LocalPlayer.Id) continue;
 
@@ -506,20 +506,12 @@ namespace Assets.Scripts.Game.Managers
         #region Event Handlers
         private void OnLobbyUpdated()
         {
-            // // Handle relay join code - only if not already in game
-            // if (!LobbyManager.Instance.IsLobbyHost && lobbyData.RelayJoinCode != default && !inGame)
-            // {
-            //     await JoinRelayServer(lobbyData.RelayJoinCode);
-            // }
-
-            // if (!LobbyManager.Instance.IsLobbyHost && inGame && lobbyData.GameStarted)
-            // {
-            //     if (loadingPanelController != null)
-            //     {
-            //         loadingPanelController.SetStatus("Game is starting...");
-            //         Debug.Log("Client waiting for NetworkManager to load scene");
-            //     }
-            // }
+            if (LobbyManager.Instance.Lobby.HostId == AuthenticationManager.Instance.LocalPlayer.Id &&
+                AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value == PlayerStatus.NotReady.ToString())
+            {
+                AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value = PlayerStatus.Ready.ToString();
+                LobbyManager.Instance.UpdatePlayerData(AuthenticationManager.Instance.LocalPlayer.Id, AuthenticationManager.Instance.LocalPlayer.Data);
+            }
         }
     }
     #endregion
