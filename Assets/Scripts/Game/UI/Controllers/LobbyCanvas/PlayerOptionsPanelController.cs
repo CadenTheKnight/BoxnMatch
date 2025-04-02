@@ -83,15 +83,18 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             readyUnreadyButton.gameObject.SetActive(!isHost);
         }
 
-        private void OnLeaveClicked()
+        private async void OnLeaveClicked()
         {
             leaveButton.interactable = false;
             leaveLoadingBar.StartLoading();
 
-            GameLobbyManager.Instance.LeaveLobby();
+            await GameLobbyManager.Instance.LeaveLobby();
 
-            leaveLoadingBar.StopLoading();
-            leaveButton.interactable = true;
+            if (LobbyManager.Instance.Lobby != null)
+            {
+                leaveButton.interactable = true;
+                leaveLoadingBar.StopLoading();
+            }
         }
 
         private async void OnStartClicked()

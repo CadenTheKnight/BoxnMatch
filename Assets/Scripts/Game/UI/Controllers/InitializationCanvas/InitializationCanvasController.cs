@@ -94,7 +94,7 @@ namespace Assets.Scripts.Game.UI.Controllers.InitializationCanvas
             if (joinedLobbyIds.Count > 0)
             {
                 loadingStatusPanel.UpdateStatus("Rejoining lobby...");
-                GameLobbyManager.Instance.RejoinLobby(joinedLobbyIds);
+                await GameLobbyManager.Instance.RejoinLobby(joinedLobbyIds);
                 return true;
             }
             else

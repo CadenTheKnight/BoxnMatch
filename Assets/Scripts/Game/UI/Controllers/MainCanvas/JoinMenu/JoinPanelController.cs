@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using Assets.Scripts.Game.Managers;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Game.UI.Components;
+using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Game.UI.Components.ListEntries;
+
 
 namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.JoinMenu
 {
@@ -97,16 +99,25 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.JoinMenu
         public async void OnJoinButtonClicked()
         {
             joinButton.interactable = false;
+            lobbyCodeInput.interactable = false;
+            refreshButton.interactable = false;
             joinText.text = "Joining...";
 
             await Task.Delay(1500);
             if (!string.IsNullOrEmpty(lobbyCodeInput.text) && lobbyCodeInput.text.Length == 6)
-                GameLobbyManager.Instance.JoinLobbyByCode(lobbyCodeInput.text);
+                await GameLobbyManager.Instance.JoinLobbyByCode(lobbyCodeInput.text);
             else
-                GameLobbyManager.Instance.JoinLobbyById(currentSelectedId);
+                await GameLobbyManager.Instance.JoinLobbyById(currentSelectedId);
 
-            joinText.text = "Join";
-            UpdateJoinButtonState();
+            if (LobbyManager.Instance.Lobby != null)
+                joinText.text = "Joined!";
+            else
+            {
+                joinText.text = "Join";
+                lobbyCodeInput.interactable = true;
+                refreshButton.interactable = true;
+                UpdateJoinButtonState();
+            }
         }
 
 

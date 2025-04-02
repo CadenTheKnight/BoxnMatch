@@ -17,20 +17,21 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private void OnEnable()
         {
-            LobbyEvents.OnLobbyRefreshed += OnLobbyRefreshed;
+            LobbyEvents.OnPlayerJoined += OnPlayerJoined;
             LobbyEvents.OnPlayerDataUpdated += OnPlayerDataUpdated;
+            LobbyEvents.OnPlayerLeft += OnPlayerLeft;
         }
 
         private void OnDisable()
         {
-            LobbyEvents.OnLobbyRefreshed -= OnLobbyRefreshed;
+            LobbyEvents.OnPlayerJoined -= OnPlayerJoined;
             LobbyEvents.OnPlayerDataUpdated -= OnPlayerDataUpdated;
+            LobbyEvents.OnPlayerLeft -= OnPlayerLeft;
         }
 
-        private void OnLobbyRefreshed()
+        private void Start()
         {
             List<Player> players = LobbyManager.Instance.Lobby.Players;
-
             for (int i = 0; i < _playerListEntries.Count; i++)
             {
                 _playerListEntries[i].gameObject.SetActive(true);
@@ -43,9 +44,26 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             }
         }
 
+        private void OnPlayerJoined(Player player)
+        {
+            PlayerListEntry newEntry = Instantiate(_playerListEntries[LobbyManager.Instance.Lobby.Players.Count], transform);
+            newEntry.SetPlayer(player);
+            _playerListEntries.Add(newEntry);
+        }
+
         private void OnPlayerDataUpdated(OperationResult result)
         {
+            Debug.Log($"Could update player entry here");
+        }
 
+        private void OnPlayerLeft(Player player)
+        {
+            PlayerListEntry entryToRemove = _playerListEntries.Find(entry => entry.Player.Id == player.Id);
+            if (entryToRemove != null)
+            {
+                entryToRemove.SetEmpty();
+                _playerListEntries.Remove(entryToRemove);
+            }
         }
     }
 }

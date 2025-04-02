@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using Assets.Scripts.Framework.Core;
+using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Utilities;
 using Assets.Scripts.Game.UI.Controllers.NotificationCanvas;
@@ -27,13 +28,14 @@ namespace Assets.Scripts.Game.Managers
             LobbyEvents.OnLobbyJoined += ShowNotification;
             LobbyEvents.OnLobbyLeft += ShowNotification;
             LobbyEvents.OnLobbyKicked += ShowNotification;
-            LobbyEvents.OnPlayerJoined += ShowNotification;
-            LobbyEvents.OnPlayerLeft += ShowNotification;
-            LobbyEvents.OnPlayerKicked += ShowNotification;
+            // LobbyEvents.OnPlayerJoined += ShowNotification;
+            // LobbyEvents.OnPlayerLeft += ShowNotification;
+            // LobbyEvents.OnPlayerKicked += ShowNotification;
             LobbyEvents.OnLobbyQueryResponse += ShowNotification;
             LobbyEvents.OnLobbyError += ShowNotification;
 
             LobbyEvents.OnLobbyDataUpdated += ShowNotification;
+
         }
 
         private void OnDestroy()
@@ -47,9 +49,9 @@ namespace Assets.Scripts.Game.Managers
             LobbyEvents.OnLobbyJoined -= ShowNotification;
             LobbyEvents.OnLobbyLeft -= ShowNotification;
             LobbyEvents.OnLobbyKicked -= ShowNotification;
-            LobbyEvents.OnPlayerJoined -= ShowNotification;
-            LobbyEvents.OnPlayerLeft -= ShowNotification;
-            LobbyEvents.OnPlayerKicked -= ShowNotification;
+            // LobbyEvents.OnPlayerJoined -= ShowNotification;
+            // LobbyEvents.OnPlayerLeft -= ShowNotification;
+            // LobbyEvents.OnPlayerKicked -= ShowNotification;
             LobbyEvents.OnLobbyQueryResponse -= ShowNotification;
             LobbyEvents.OnLobbyError -= ShowNotification;
 

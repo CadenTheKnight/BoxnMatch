@@ -72,63 +72,63 @@ namespace Assets.Scripts.Game.Managers
         /// <param name="lobbyName">Name of the lobby.</param>
         /// <param name="isPrivate">True if the lobby is private, false if public.</param>
         /// <param name="maxPlayers">Maximum number of players in the lobby.</param>
-        public void CreateLobby(string lobbyName, bool isPrivate, int maxPlayers)
+        public async Task CreateLobby(string lobbyName, bool isPrivate, int maxPlayers)
         {
             LobbyData lobbyData = new();
             lobbyData.Initialize();
 
             AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value = PlayerStatus.Ready.ToString();
 
-            LobbyManager.Instance.CreateLobby(lobbyName, isPrivate, maxPlayers, lobbyData.Serialize());
+            await LobbyManager.Instance.CreateLobby(lobbyName, isPrivate, maxPlayers, lobbyData.Serialize());
         }
 
         /// <summary>
         /// Joins a lobby using the lobby code.
         /// </summary>
         /// <param name="lobbyCode">The lobby code to join.</param>
-        public void JoinLobbyByCode(string lobbyCode)
+        public async Task JoinLobbyByCode(string lobbyCode)
         {
             AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value = PlayerStatus.NotReady.ToString();
 
-            LobbyManager.Instance.JoinLobbyByCode(lobbyCode);
+            await LobbyManager.Instance.JoinLobbyByCode(lobbyCode);
         }
 
         /// <summary>
         /// Joins the selected lobby using the lobby ID.
         /// </summary>
         /// <param name="lobbyId">The lobby ID to join.</param>
-        public void JoinLobbyById(string lobbyId)
+        public async Task JoinLobbyById(string lobbyId)
         {
             AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value = PlayerStatus.NotReady.ToString();
 
-            LobbyManager.Instance.JoinLobbyById(lobbyId);
+            await LobbyManager.Instance.JoinLobbyById(lobbyId);
         }
 
         /// <summary>
         /// Rejoins the first lobby in the list of joined lobbies.
         /// </summary>
-        public void RejoinLobby(List<string> joinedLobbyIds)
+        public async Task RejoinLobby(List<string> joinedLobbyIds)
         {
             AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value = PlayerStatus.NotReady.ToString();
 
-            LobbyManager.Instance.RejoinLobby(joinedLobbyIds);
+            await LobbyManager.Instance.RejoinLobby(joinedLobbyIds);
         }
 
         /// <summary>
         /// Leaves the current lobby.
         /// </summary>
-        public void LeaveLobby()
+        public async Task LeaveLobby()
         {
-            LobbyManager.Instance.LeaveLobby();
+            await LobbyManager.Instance.LeaveLobby();
         }
 
         /// <summary>
         /// Kicks a player from the lobby.
         /// </summary>
-        /// <param name="playerId">The ID of the player to kick.</param>
-        public void KickPlayer(string playerId)
+        /// <param name="player">The player to kick.</param>
+        public async Task KickPlayer(Player player)
         {
-            LobbyManager.Instance.KickPlayer(playerId);
+            await LobbyManager.Instance.KickPlayer(player);
         }
         #endregion
 

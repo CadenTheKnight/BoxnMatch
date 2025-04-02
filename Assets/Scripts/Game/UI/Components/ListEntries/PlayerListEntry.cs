@@ -34,7 +34,7 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         protected Callback<AvatarImageLoaded_t> avatarImageLoadedCallback;
 
-        private Player player;
+        public Player Player { get; private set; } = null;
         private bool isLocalPlayer = false;
         private bool isLocalHost = false;
         private bool optionsOpen = false;
@@ -59,7 +59,7 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         public void SetEmpty()
         {
-            player = null;
+            Player = null;
 
             emptyStatePanel.SetActive(true);
             activeStatePanel.SetActive(false);
@@ -67,7 +67,7 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         public void SetPlayer(Player player)
         {
-            this.player = player;
+            this.Player = player;
 
             isLocalPlayer = AuthenticationManager.Instance.LocalPlayer.Id == player.Id;
             isLocalHost = AuthenticationManager.Instance.LocalPlayer.Id == LobbyManager.Instance.Lobby.HostId;
@@ -94,7 +94,6 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
                     break;
             }
 
-            nameText.text = SteamFriends.GetFriendPersonaName((CSteamID)ulong.Parse(player.Data["Id"].Value)) + (player.Id == LobbyManager.Instance.Lobby.HostId ? " (Host)" : "");
 
             UpdateTeamColors(int.Parse(player.Data["Team"].Value));
 
@@ -102,14 +101,42 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             teamIndicatorImage.gameObject.SetActive(!isLocalPlayer && !isLocalHost);
             optionsButton.gameObject.SetActive(!isLocalPlayer && !optionsOpen);
 
-            avatarImageLoadedCallback = Callback<AvatarImageLoaded_t>.Create(OnAvatarImageLoaded);
-            int imageHandle = SteamFriends.GetLargeFriendAvatar((CSteamID)ulong.Parse(player.Data["Id"].Value));
-            if (imageHandle != -1) profilePictureRawImage.texture = GetSteamInfo.SteamImageToUnityImage(imageHandle);
+            CSteamID steamId = new(ulong.Parse(player.Data["Id"].Value));
+            nameText.text = "Loading..." + (player.Id == LobbyManager.Instance.Lobby.HostId ? " (Host)" : "");
+            if (steamId == SteamUser.GetSteamID())
+            {
+                nameText.text = SteamFriends.GetPersonaName() + (player.Id == LobbyManager.Instance.Lobby.HostId ? " (Host)" : "");
+                profilePictureRawImage.texture = GetSteamInfo.SteamImageToUnityImage(SteamFriends.GetLargeFriendAvatar(steamId));
+            }
+            else
+            {
+                bool nameRequested = SteamFriends.RequestUserInformation(steamId, false);
+                if (nameRequested) avatarImageLoadedCallback = Callback<AvatarImageLoaded_t>.Create(OnAvatarImageLoaded);
+                else
+                {
+                    nameText.text = SteamFriends.GetFriendPersonaName(steamId) + (player.Id == LobbyManager.Instance.Lobby.HostId ? " (Host)" : "");
+                    int imageHandle = SteamFriends.GetLargeFriendAvatar(steamId);
+                    if (imageHandle > 0) profilePictureRawImage.texture = GetSteamInfo.SteamImageToUnityImage(imageHandle);
+                }
+            }
         }
 
         private void OnAvatarImageLoaded(AvatarImageLoaded_t callback)
         {
-            profilePictureRawImage.texture = GetSteamInfo.SteamImageToUnityImage(callback.m_iImage);
+            if (Player.Data.TryGetValue("Id", out PlayerDataObject idObject) &&
+                ulong.TryParse(idObject.Value, out ulong playerId) &&
+                callback.m_steamID.m_SteamID == playerId)
+            {
+                int imageHandle = callback.m_iImage;
+                if (imageHandle > 0) profilePictureRawImage.texture = GetSteamInfo.SteamImageToUnityImage(imageHandle);
+
+                string updatedName = SteamFriends.GetFriendPersonaName(callback.m_steamID);
+                if (updatedName != "[unknown]" && nameText.text.StartsWith("Loading"))
+                {
+                    bool isHost = LobbyManager.Instance.Lobby.HostId == Player.Id;
+                    nameText.text = updatedName + (isHost ? " (Host)" : "");
+                }
+            }
         }
 
         private void UpdateTeamColors(int team)
@@ -133,7 +160,7 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         private void OnChangeTeamButtonClicked()
         {
-            Debug.Log("Change team button clicked for player: " + player.Data["Id"].Value.ToString());
+            Debug.Log("Change team button clicked for player: " + Player.Data["Id"].Value.ToString());
         }
 
         private void OnOptionsButtonClicked()
@@ -162,15 +189,15 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         private void OnSteamProfileButtonClicked()
         {
-            Application.OpenURL("https://steamcommunity.com/profiles/" + player.Data["Id"].Value.ToString());
+            Application.OpenURL("https://steamcommunity.com/profiles/" + Player.Data["Id"].Value.ToString());
         }
 
-        private void OnKickButtonClicked()
+        private async void OnKickButtonClicked()
         {
-            GameLobbyManager.Instance.KickPlayer(player.Id);
+            await GameLobbyManager.Instance.KickPlayer(Player);
 
             SetEmpty();
-            player = null;
+            Player = null;
         }
     }
 }

@@ -17,6 +17,12 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private bool isCopied = false;
 
+        private void Start()
+        {
+            lobbyNameText.text = $"{LobbyManager.Instance.Lobby.Name}" + (LobbyManager.Instance.Lobby.IsPrivate ? " (PRIVATE)" : "");
+            lobbyCodeText.text = $"Code: {LobbyManager.Instance.Lobby.LobbyCode}";
+        }
+
         private void OnEnable()
         {
             lobbyCodeButton.onClick.AddListener(OnLobbyCodeClicked);

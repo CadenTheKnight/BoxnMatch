@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using Assets.Scripts.Game.UI.Components;
 using Assets.Scripts.Game.UI.Components.Options;
 using Assets.Scripts.Game.UI.Components.Options.ToggleSwitch;
+using Assets.Scripts.Framework.Managers;
 
 namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.CreateMenu
 {
@@ -89,10 +90,15 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.CreateMenu
             createText.text = "Creating...";
 
             await Task.Delay(1500);
-            GameLobbyManager.Instance.CreateLobby(lobbyName, isPrivate, maxPlayers);
+            await GameLobbyManager.Instance.CreateLobby(lobbyName, isPrivate, maxPlayers);
 
-            createText.text = "Create";
-            createButton.interactable = true;
+            if (LobbyManager.Instance.Lobby != null)
+                createText.text = "Created!";
+            else
+            {
+                createText.text = "Create";
+                createButton.interactable = true;
+            }
         }
     }
 }
