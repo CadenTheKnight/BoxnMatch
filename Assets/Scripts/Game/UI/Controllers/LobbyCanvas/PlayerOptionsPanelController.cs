@@ -125,9 +125,9 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             readyUnreadyButton.interactable = true;
         }
 
-        private void OnPlayerDataChanged(string playerId)
+        private void OnPlayerDataChanged(Player player)
         {
-            SetReadyUnreadyButton(AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value == PlayerStatus.Ready.ToString());
+            SetReadyUnreadyButton(player.Data["Status"].Value == PlayerStatus.Ready.ToString());
         }
 
         private void OnNewLobbyHost(Player player)

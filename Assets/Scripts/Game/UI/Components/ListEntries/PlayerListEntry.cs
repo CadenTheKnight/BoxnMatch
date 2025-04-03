@@ -151,13 +151,19 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             disconnectedStatePanel.SetActive(true);
         }
 
+        public void SetHost()
+        {
+            nameText.text += " (Host)";
+            isLocalHost = true;
+        }
+
         private void SetSteamInfo()
         {
             CSteamID steamId = new(ulong.Parse(Player.Data["Id"].Value));
-            nameText.text = "Loading..." + (Player.Id == LobbyManager.Instance.Lobby.HostId ? " (Host)" : "");
+            nameText.text = "Loading...";
             if (steamId == SteamUser.GetSteamID())
             {
-                nameText.text = SteamFriends.GetPersonaName() + (Player.Id == LobbyManager.Instance.Lobby.HostId ? " (Host)" : "");
+                nameText.text = SteamFriends.GetPersonaName();
                 profilePictureRawImage.texture = GetSteamInfo.SteamImageToUnityImage(SteamFriends.GetLargeFriendAvatar(steamId));
             }
             else

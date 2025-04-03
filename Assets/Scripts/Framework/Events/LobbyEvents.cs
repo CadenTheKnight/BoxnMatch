@@ -131,8 +131,8 @@ namespace Assets.Scripts.Framework.Events
         /// <summary>
         /// Triggered when the player data is changed.
         /// </summary>
-        /// <param name="playerId">The ID of the player whose data has changed.</param>
-        public delegate void PlayerDataChangedHandler(string playerId);
+        /// <param name="player">The player whose data has changed.</param>
+        public delegate void PlayerDataChangedHandler(Player player);
         public static event PlayerDataChangedHandler OnPlayerDataChanged;
 
         /// <summary>
@@ -191,7 +191,7 @@ namespace Assets.Scripts.Framework.Events
         public static void InvokeLobbyRoundTimeChanged(int time) => OnLobbyRoundTimeChanged?.Invoke(time);
         public static void InvokeLobbyGameModeChanged(GameMode mode) => OnLobbyGameModeChanged?.Invoke(mode);
         public static void InvokeLobbyStatusChanged(LobbyStatus status) => OnLobbyStatusChanged?.Invoke(status);
-        public static void InvokePlayerDataChanged(string playerId) => OnPlayerDataChanged?.Invoke(playerId);
+        public static void InvokePlayerDataChanged(Player player) => OnPlayerDataChanged?.Invoke(player);
         public static void InvokePlayerStatusChanged(Player player, PlayerStatus newStatus) => OnPlayerStatusChanged?.Invoke(player, newStatus);
         public static void InvokePlayerTeamChanged(Player player, Team newTeam) => OnPlayerTeamChanged?.Invoke(player, newTeam);
         public static void InvokePlayerConnecting(Player player) => OnPlayerConnecting?.Invoke(player);

@@ -25,6 +25,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             LobbyEvents.OnPlayerConnecting += OnPlayerConnecting;
             LobbyEvents.OnPlayerConnected += OnPlayerConnect;
             LobbyEvents.OnPlayerDisconnected += OnPlayerDisconnect;
+            LobbyEvents.OnNewLobbyHost += OnNewLobbyHost;
         }
 
         private void OnDisable()
@@ -37,6 +38,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             LobbyEvents.OnPlayerConnecting -= OnPlayerConnecting;
             LobbyEvents.OnPlayerConnected -= OnPlayerConnect;
             LobbyEvents.OnPlayerDisconnected -= OnPlayerDisconnect;
+            LobbyEvents.OnNewLobbyHost -= OnNewLobbyHost;
         }
 
         private void Start()
@@ -70,9 +72,9 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             ReorganizePlayerList();
         }
 
-        private void OnPlayerDataChanged(string playerId)
+        private void OnPlayerDataChanged(Player player)
         {
-            _playerListEntries.Find(entry => entry.Player.Id == playerId).SetButtons();
+            _playerListEntries.Find(entry => entry.Player.Id == player.Id).SetButtons();
         }
 
         private void OnPlayerTeamChanged(Player player, Team team)
@@ -98,6 +100,11 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
         private void OnPlayerDisconnect(Player player)
         {
             _playerListEntries.Find(entry => entry.Player.Id == player.Id).SetDisconnected();
+        }
+
+        private void OnNewLobbyHost(Player player)
+        {
+            _playerListEntries.Find(entry => entry.Player.Id == player.Id).SetHost();
         }
     }
 }

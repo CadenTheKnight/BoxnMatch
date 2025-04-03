@@ -239,7 +239,6 @@ namespace Assets.Scripts.Framework.Managers
             try
             {
                 lobby = await LobbyService.Instance.UpdatePlayerAsync(lobby.Id, playerId, updatePlayerOptions);
-                LobbyEvents.InvokePlayerDataChanged(playerId);
             }
             catch (LobbyServiceException e)
             {
@@ -261,8 +260,6 @@ namespace Assets.Scripts.Framework.Managers
             try
             {
                 lobby = await LobbyService.Instance.UpdateLobbyAsync(lobby.Id, updateLobbyOptions);
-                LobbyEvents.InvokeLobbyDataChanged(OperationResult.SuccessResult("UpdateLobbyData", $"Updated lobby data for {lobby.Name}"));
-
             }
             catch (LobbyServiceException e)
             {
@@ -405,6 +402,7 @@ namespace Assets.Scripts.Framework.Managers
                 else if (kvp.Key == "Status")
                     LobbyEvents.InvokeLobbyStatusChanged((LobbyStatus)int.Parse(kvp.Value.Value.Value));
             }
+            LobbyEvents.InvokeLobbyDataChanged(OperationResult.SuccessResult("UpdateLobbyData", $"Updated lobby data for {lobby.Name}"));
         }
 
         private void OnPlayerDataChanged(Dictionary<int, Dictionary<string, ChangedOrRemovedLobbyValue<PlayerDataObject>>> changes)
@@ -429,6 +427,7 @@ namespace Assets.Scripts.Framework.Managers
                     else if (dataChange.Key == "Team")
                         LobbyEvents.InvokePlayerTeamChanged(changedPlayer, (Team)int.Parse(dataChange.Value.Value.Value));
                 }
+                LobbyEvents.InvokePlayerDataChanged(changedPlayer);
             }
         }
 
