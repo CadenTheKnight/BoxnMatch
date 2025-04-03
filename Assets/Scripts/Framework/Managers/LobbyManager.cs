@@ -81,7 +81,7 @@ namespace Assets.Scripts.Framework.Managers
         }
         #endregion
 
-        #region Lobby Management
+        #region Local Lobby Management
         /// <summary>
         /// Creates a new lobby with the specified parameters.
         /// </summary>
@@ -128,6 +128,7 @@ namespace Assets.Scripts.Framework.Managers
                 lobby = await LobbyService.Instance.JoinLobbyByCodeAsync(lobbyCode, joinLobbyByCodeOptions);
                 SubscribeToLobbyEvents(lobby.Id);
                 await GameLobbyManager.Instance.TogglePlayerReady(AuthenticationManager.Instance.LocalPlayer, setUnready: true);
+                LobbyEvents.InvokeLobbyJoined(OperationResult.SuccessResult("JoinLobbyByCode", $"Joined lobby: {lobby.Name}"));
             }
             catch (LobbyServiceException e)
             {
@@ -151,6 +152,7 @@ namespace Assets.Scripts.Framework.Managers
                 lobby = await LobbyService.Instance.JoinLobbyByIdAsync(lobbyId, joinLobbyByIdOptions);
                 SubscribeToLobbyEvents(lobby.Id);
                 await GameLobbyManager.Instance.TogglePlayerReady(AuthenticationManager.Instance.LocalPlayer, setUnready: true);
+                LobbyEvents.InvokeLobbyJoined(OperationResult.SuccessResult("JoinLobbyById", $"Joined lobby: {lobby.Name}"));
             }
             catch (LobbyServiceException e)
             {
@@ -216,7 +218,7 @@ namespace Assets.Scripts.Framework.Managers
         }
         #endregion
 
-        #region Data Management
+        #region Local Data Management
         /// <summary>
         /// Updates the player data with the provided dictionary.
         /// </summary>
@@ -331,6 +333,12 @@ namespace Assets.Scripts.Framework.Managers
                 {
                     if (showDebugMessages) Debug.Log("Local player is now host - setting to Ready");
                     LobbyEvents.InvokeNewLobbyHost(AuthenticationManager.Instance.LocalPlayer);
+
+                    if (_heartbeatCoroutine == null)
+                    {
+                        _heartbeatCoroutine = StartCoroutine(HeartbeatCoroutine(lobby.Id, 6f));
+                        if (showDebugMessages) Debug.Log("Started heartbeat coroutine as new host");
+                    }
                 }
             }
 
@@ -357,16 +365,8 @@ namespace Assets.Scripts.Framework.Managers
             foreach (LobbyPlayerJoined playerJoined in playersJoined)
             {
                 cachedPlayersList.Add(playerJoined.Player);
-                if (playerJoined.Player.Id == AuthenticationManager.Instance.LocalPlayer.Id)
-                {
-                    if (showDebugMessages) Debug.Log($"Local player joined the lobby: {playerJoined.Player.Id}");
-                    LobbyEvents.InvokeLobbyJoined(OperationResult.SuccessResult("PlayerJoined", $"You joined lobby {lobby.Name}"));
-                }
-                else
-                {
-                    if (showDebugMessages) Debug.Log($"Player {playerJoined.Player.Id} joined the lobby");
-                    LobbyEvents.InvokePlayerJoined(playerJoined.Player);
-                }
+                if (showDebugMessages) Debug.Log($"Player {playerJoined.Player.Id} joined the lobby");
+                LobbyEvents.InvokePlayerJoined(playerJoined.Player);
             }
         }
 
@@ -374,10 +374,9 @@ namespace Assets.Scripts.Framework.Managers
         {
             foreach (int playerIndex in playerIndices)
             {
-                Player leftPlayer = cachedPlayersList[playerIndex];
-                cachedPlayersList.Remove(leftPlayer);
-                if (showDebugMessages) Debug.Log($"Player left: {leftPlayer.Id} (index: {playerIndex})");
+                if (showDebugMessages) Debug.Log($"Player {cachedPlayersList[playerIndex].Id} left the lobby");
                 LobbyEvents.InvokePlayerLeft(cachedPlayersList[playerIndex]);
+                cachedPlayersList.Remove(cachedPlayersList[playerIndex]);
             }
         }
 
@@ -421,12 +420,24 @@ namespace Assets.Scripts.Framework.Managers
         private void OnKickedFromLobby()
         {
             if (isVoluntarilyLeaving)
-                LobbyEvents.InvokeLobbyLeft(OperationResult.SuccessResult("LeaveLobby", $"Left lobby: {lobby.Name}"));
+            {
+                if (lobby.Players.Count > 1)
+                {
+                    if (showDebugMessages) Debug.Log($"Left lobby: {lobby.Name}");
+                    LobbyEvents.InvokeLobbyLeft(OperationResult.SuccessResult("LeaveLobby", $"Left lobby: {lobby.Name}"));
+                }
+                else
+                {
+                    if (showDebugMessages) Debug.Log($"Left and deleted lobby: {lobby.Name}");
+                    LobbyEvents.InvokeLobbyLeft(OperationResult.SuccessResult("LeaveLobby", $"Left and deleted lobby: {lobby.Name}"));
+                }
+            }
             else
             {
-                Debug.Log($"Kicked from lobby: {lobby.Name}");
-                LobbyEvents.InvokeLobbyKicked(OperationResult.SuccessResult("KickedFromLobby", $"You were kicked from lobby {lobby.Name}"));
+                if (showDebugMessages) Debug.Log($"Kicked from lobby: {lobby.Name}");
+                LobbyEvents.InvokeLobbyKicked(OperationResult.ErrorResult("KickedFromLobby", $"Kicked from lobby: {lobby.Name}"));
             }
+
             ClearLobby();
         }
 

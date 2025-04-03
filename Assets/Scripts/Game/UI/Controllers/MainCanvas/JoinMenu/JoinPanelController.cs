@@ -161,7 +161,7 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.JoinMenu
         {
             LobbyListEntry lobbyEntry = Instantiate(lobbyListEntry, lobbyListContainer);
             LayoutElement item = lobbyEntry.GetComponent<LayoutElement>();
-            item.preferredHeight = item.minHeight = Screen.height * 0.15f;
+            item.preferredHeight = item.minHeight = Screen.height * 0.07f;
             lobbyEntry.SetLobby(lobby);
 
             lobbyEntry.lobbySingleClicked += SelectLobby;

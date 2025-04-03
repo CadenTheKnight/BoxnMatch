@@ -4,6 +4,8 @@ using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Core;
 using Assets.Scripts.Framework.Managers;
 
+using UnityEngine;
+
 namespace Assets.Scripts.Game.Managers
 {
     /// <summary>
@@ -21,8 +23,12 @@ namespace Assets.Scripts.Game.Managers
             int playersReady = 0;
 
             foreach (Player player in LobbyManager.Instance.Lobby.Players)
+            {
+
+                Debug.Log($"Player {player.Id} status: {player.Data["Status"].Value}");
                 if (player.Data["Status"].Value == PlayerStatus.Ready.ToString())
                     playersReady++;
+            }
 
             if (playersReady == LobbyManager.Instance.Lobby.MaxPlayers)
                 Events.LobbyEvents.InvokeLobbyReady();
