@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Managers;
-using Assets.Scripts.Framework.Utilities;
 using Assets.Scripts.Game.UI.Components.ListEntries;
 
 namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
@@ -18,14 +17,14 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
         private void OnEnable()
         {
             LobbyEvents.OnPlayerJoined += OnPlayerJoined;
-            LobbyEvents.OnPlayerDataUpdated += OnPlayerDataUpdated;
+            // LobbyEvents.OnPlayerDataUpdated += OnPlayerDataUpdated;
             LobbyEvents.OnPlayerLeft += OnPlayerLeft;
         }
 
         private void OnDisable()
         {
             LobbyEvents.OnPlayerJoined -= OnPlayerJoined;
-            LobbyEvents.OnPlayerDataUpdated -= OnPlayerDataUpdated;
+            // LobbyEvents.OnPlayerDataUpdated -= OnPlayerDataUpdated;
             LobbyEvents.OnPlayerLeft -= OnPlayerLeft;
         }
 
@@ -51,9 +50,11 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             _playerListEntries.Add(newEntry);
         }
 
-        private void OnPlayerDataUpdated(OperationResult result)
+        private void OnPlayerDataUpdated(Player player)
         {
-            Debug.Log($"Could update player entry here");
+            PlayerListEntry entryToUpdate = _playerListEntries.Find(entry => entry.Player.Id == player.Id);
+            if (entryToUpdate != null)
+                entryToUpdate.SetPlayer(player);
         }
 
         private void OnPlayerLeft(Player player)

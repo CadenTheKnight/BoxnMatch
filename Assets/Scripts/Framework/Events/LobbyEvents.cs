@@ -37,9 +37,6 @@ namespace Assets.Scripts.Framework.Events
         public delegate void LobbyKickedHandler(OperationResult result);
         public static event LobbyKickedHandler OnLobbyKicked;
 
-
-
-
         /// <summary>
         /// Triggered when a player joins the lobby.
         /// </summary>
@@ -61,8 +58,6 @@ namespace Assets.Scripts.Framework.Events
         public delegate void PlayerKickedHandler(Player player);
         public static event PlayerKickedHandler OnPlayerKicked;
 
-
-
         /// <summary>
         /// Triggered when a lobby query is successfully completed.
         /// </summary>
@@ -76,12 +71,6 @@ namespace Assets.Scripts.Framework.Events
         /// <param name="result">The result of the lobby operation.</param>
         public delegate void LobbyErrorHandler(OperationResult result);
         public static event LobbyErrorHandler OnLobbyError;
-
-        /// <summary>
-        /// Triggered when the lobby is refreshed by coroutine.
-        /// </summary>
-        public delegate void LobbyRefreshedHandler();
-        public static event LobbyRefreshedHandler OnLobbyRefreshed;
 
         /// <summary>
         /// Triggered when the player data is updated.
@@ -106,14 +95,11 @@ namespace Assets.Scripts.Framework.Events
         public static void InvokeLobbyJoined(OperationResult result) => OnLobbyJoined?.Invoke(result);
         public static void InvokeLobbyLeft(OperationResult result) => OnLobbyLeft?.Invoke(result);
         public static void InvokeLobbyKicked(OperationResult result) => OnLobbyKicked?.Invoke(result);
-
         public static void InvokePlayerJoined(Player player) => OnPlayerJoined?.Invoke(player);
         public static void InvokePlayerLeft(Player player) => OnPlayerLeft?.Invoke(player);
         public static void InvokePlayerKicked(Player player) => OnPlayerKicked?.Invoke(player);
-
         public static void InvokeLobbyQueryResponse(OperationResult result) => OnLobbyQueryResponse?.Invoke(result);
         public static void InvokeLobbyError(OperationResult result) => OnLobbyError?.Invoke(result);
-        public static void InvokeLobbyRefreshed() => OnLobbyRefreshed?.Invoke();
         public static void InvokePlayerDataUpdated(OperationResult result) => OnPlayerDataUpdated?.Invoke(result);
         public static void InvokeLobbyDataUpdated(OperationResult result) => OnLobbyDataUpdated?.Invoke(result);
         public static void InvokeLobbyDeleted(OperationResult result) => OnLobbyDeleted?.Invoke(result);

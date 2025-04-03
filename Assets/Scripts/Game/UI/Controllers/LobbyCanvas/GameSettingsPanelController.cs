@@ -34,7 +34,6 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
             editUpdateButton.onClick.AddListener(OnEditUpdateClicked);
 
-            LobbyEvents.OnLobbyRefreshed += OnLobbyRefreshed;
             LobbyEvents.OnLobbyDataUpdated += OnLobbyDataUpdated;
         }
 
@@ -42,7 +41,6 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
         {
             editUpdateButton.onClick.RemoveListener(OnEditUpdateClicked);
 
-            LobbyEvents.OnLobbyRefreshed -= OnLobbyRefreshed;
             LobbyEvents.OnLobbyDataUpdated -= OnLobbyDataUpdated;
         }
 

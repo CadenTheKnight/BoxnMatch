@@ -1,4 +1,5 @@
 using TMPro;
+using System;
 using Steamworks;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,6 +9,7 @@ using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Game.UI.Colors;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Framework.Utilities;
+using Assets.Scripts.Game.UI.Components.Options;
 
 namespace Assets.Scripts.Game.UI.Components.ListEntries
 {
@@ -31,17 +33,26 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
         [SerializeField] private Button kickButton;
         [SerializeField] private TextMeshProUGUI nameText;
         [SerializeField] private Button optionsButton;
+        [SerializeField] private GameObject teamPanel;
+        [SerializeField] private Selector teamSelector;
+        [SerializeField] private Button redTeamButton;
+        [SerializeField] private Button blueTeamButton;
+        [SerializeField] private Button greenTeamButton;
+        [SerializeField] private Button yellowTeamButton;
 
         protected Callback<AvatarImageLoaded_t> avatarImageLoadedCallback;
 
         public Player Player { get; private set; } = null;
         private bool isLocalPlayer = false;
         private bool isLocalHost = false;
-        private bool optionsOpen = false;
 
         private void OnEnable()
         {
             changeTeamButton.onClick.AddListener(OnChangeTeamButtonClicked);
+            redTeamButton.onClick.AddListener(() => ChangeTeam(Team.Red));
+            blueTeamButton.onClick.AddListener(() => ChangeTeam(Team.Blue));
+            greenTeamButton.onClick.AddListener(() => ChangeTeam(Team.Green));
+            yellowTeamButton.onClick.AddListener(() => ChangeTeam(Team.Yellow));
             backButton.onClick.AddListener(OnBackButtonClicked);
             steamProfileButton.onClick.AddListener(OnSteamProfileButtonClicked);
             kickButton.onClick.AddListener(OnKickButtonClicked);
@@ -51,10 +62,30 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
         private void OnDisable()
         {
             changeTeamButton.onClick.RemoveListener(OnChangeTeamButtonClicked);
+            redTeamButton.onClick.RemoveListener(() => ChangeTeam(Team.Red));
+            blueTeamButton.onClick.RemoveListener(() => ChangeTeam(Team.Blue));
+            greenTeamButton.onClick.RemoveListener(() => ChangeTeam(Team.Green));
+            yellowTeamButton.onClick.RemoveListener(() => ChangeTeam(Team.Yellow));
             backButton.onClick.RemoveListener(OnBackButtonClicked);
             steamProfileButton.onClick.RemoveListener(OnSteamProfileButtonClicked);
             kickButton.onClick.RemoveListener(OnKickButtonClicked);
             optionsButton.onClick.RemoveListener(OnOptionsButtonClicked);
+        }
+
+        public void SetPlayer(Player player)
+        {
+            Player = player;
+
+            emptyStatePanel.SetActive(false);
+            activeStatePanel.SetActive(true);
+
+            isLocalPlayer = AuthenticationManager.Instance.LocalPlayer.Id == player.Id;
+            isLocalHost = AuthenticationManager.Instance.LocalPlayer.Id == LobbyManager.Instance.Lobby.HostId;
+
+            SetStatusPanel((PlayerStatus)int.Parse(player.Data["Status"].Value));
+            SetTeamColor((Team)int.Parse(Player.Data["Team"].Value));
+            SetButtons();
+            SetSteamInfo();
         }
 
         public void SetEmpty()
@@ -65,47 +96,54 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             activeStatePanel.SetActive(false);
         }
 
-        public void SetPlayer(Player player)
+        private void SetStatusPanel(PlayerStatus status)
         {
-            this.Player = player;
-
-            isLocalPlayer = AuthenticationManager.Instance.LocalPlayer.Id == player.Id;
-            isLocalHost = AuthenticationManager.Instance.LocalPlayer.Id == LobbyManager.Instance.Lobby.HostId;
-
-            emptyStatePanel.SetActive(false);
-            activeStatePanel.SetActive(true);
-            inGameStatePanel.SetActive(false);
-            disconnectedStatePanel.SetActive(false);
-
-            switch (player.Data["Status"].Value)
+            switch (status)
             {
-                case string status when status == PlayerStatus.Ready.ToString():
+                case PlayerStatus.Ready:
                     nameText.color = UIColors.greenDefaultColor;
                     break;
-                case string status when status == PlayerStatus.NotReady.ToString():
+                case PlayerStatus.NotReady:
                     nameText.color = UIColors.redDefaultColor;
                     break;
-                case string status when status == PlayerStatus.InGame.ToString():
+                case PlayerStatus.InGame:
                     nameText.color = UIColors.yellowDefaultColor;
                     inGameStatePanel.SetActive(true);
                     break;
-                case string status when status == PlayerStatus.Disconnected.ToString():
+                case PlayerStatus.Disconnected:
                     disconnectedStatePanel.SetActive(true);
                     break;
             }
+        }
 
+        private void SetTeamColor(Team team)
+        {
+            teamIndicatorImage.color = TeamColors.GetColor(team);
 
-            UpdateTeamColors(int.Parse(player.Data["Team"].Value));
+            ColorBlock colors = changeTeamButton.colors;
+            colors.normalColor = TeamColors.GetColor(team);
+            colors.highlightedColor = TeamColors.GetHoverColor(team);
+            colors.pressedColor = TeamColors.GetHoverColor(team);
+            colors.selectedColor = TeamColors.GetHoverColor(team);
+            changeTeamButton.colors = colors;
 
+            teamSelector.SetSelection((int)team, changeTeamButton.colors.normalColor, UIColors.primaryDisabledColor);
+        }
+
+        private void SetButtons()
+        {
             changeTeamButton.gameObject.SetActive(isLocalPlayer || isLocalHost);
             teamIndicatorImage.gameObject.SetActive(!isLocalPlayer && !isLocalHost);
-            optionsButton.gameObject.SetActive(!isLocalPlayer && !optionsOpen);
+            optionsButton.gameObject.SetActive(!isLocalPlayer);
+        }
 
-            CSteamID steamId = new(ulong.Parse(player.Data["Id"].Value));
-            nameText.text = "Loading..." + (player.Id == LobbyManager.Instance.Lobby.HostId ? " (Host)" : "");
+        private void SetSteamInfo()
+        {
+            CSteamID steamId = new(ulong.Parse(Player.Data["Id"].Value));
+            nameText.text = "Loading..." + (Player.Id == LobbyManager.Instance.Lobby.HostId ? " (Host)" : "");
             if (steamId == SteamUser.GetSteamID())
             {
-                nameText.text = SteamFriends.GetPersonaName() + (player.Id == LobbyManager.Instance.Lobby.HostId ? " (Host)" : "");
+                nameText.text = SteamFriends.GetPersonaName() + (Player.Id == LobbyManager.Instance.Lobby.HostId ? " (Host)" : "");
                 profilePictureRawImage.texture = GetSteamInfo.SteamImageToUnityImage(SteamFriends.GetLargeFriendAvatar(steamId));
             }
             else
@@ -114,11 +152,50 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
                 if (nameRequested) avatarImageLoadedCallback = Callback<AvatarImageLoaded_t>.Create(OnAvatarImageLoaded);
                 else
                 {
-                    nameText.text = SteamFriends.GetFriendPersonaName(steamId) + (player.Id == LobbyManager.Instance.Lobby.HostId ? " (Host)" : "");
+                    nameText.text = SteamFriends.GetFriendPersonaName(steamId) + (Player.Id == LobbyManager.Instance.Lobby.HostId ? " (Host)" : "");
                     int imageHandle = SteamFriends.GetLargeFriendAvatar(steamId);
                     if (imageHandle > 0) profilePictureRawImage.texture = GetSteamInfo.SteamImageToUnityImage(imageHandle);
                 }
             }
+        }
+
+        private void OnChangeTeamButtonClicked()
+        {
+            teamPanel.SetActive(true);
+        }
+
+        private void ChangeTeam(Team team)
+        {
+            SetTeamColor(team);
+            GameLobbyManager.Instance.UpdatePlayerData(Player, (CSteamID)ulong.Parse(Player.Data["Id"].Value), team, (PlayerStatus)int.Parse(Player.Data["Status"].Value));
+            teamPanel.SetActive(false);
+        }
+
+        private void OnOptionsButtonClicked()
+        {
+            kickButton.gameObject.SetActive(!isLocalPlayer && isLocalHost);
+            nameText.GetComponent<RectTransform>().anchorMax = new Vector2(!isLocalPlayer && isLocalHost ? 0.5f : 0.8f, 1f);
+            steamProfileButton.GetComponent<RectTransform>().anchorMin = new Vector2(!isLocalPlayer && isLocalHost ? 0.5f : 0.8f, 0f);
+            steamProfileButton.GetComponent<RectTransform>().anchorMax = new Vector2(!isLocalPlayer && isLocalHost ? 0.7f : 1f, 1f);
+
+            optionsPanel.SetActive(true);
+        }
+
+        private void OnBackButtonClicked()
+        {
+            optionsPanel.SetActive(false);
+
+            nameText.GetComponent<RectTransform>().anchorMax = new Vector2(0.7f, 1f);
+        }
+
+        private void OnSteamProfileButtonClicked()
+        {
+            Application.OpenURL("https://steamcommunity.com/profiles/" + Player.Data["Id"].Value.ToString());
+        }
+
+        private async void OnKickButtonClicked()
+        {
+            await GameLobbyManager.Instance.KickPlayer(Player);
         }
 
         private void OnAvatarImageLoaded(AvatarImageLoaded_t callback)
@@ -137,67 +214,6 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
                     nameText.text = updatedName + (isHost ? " (Host)" : "");
                 }
             }
-        }
-
-        private void UpdateTeamColors(int team)
-        {
-            teamIndicatorImage.color = team == 0 ? UIColors.redDefaultColor : team == 1 ? UIColors.blueDefaultColor
-                : team == 2 ? UIColors.greenDefaultColor : UIColors.yellowDefaultColor;
-
-            ColorBlock colors = changeTeamButton.colors;
-
-            colors.normalColor = team == 0 ? UIColors.redDefaultColor : team == 1 ? UIColors.blueDefaultColor
-                : team == 2 ? UIColors.greenDefaultColor : UIColors.yellowDefaultColor;
-
-            colors.highlightedColor = team == 0 ? UIColors.redHoverColor : team == 1 ? UIColors.blueHoverColor
-                : team == 2 ? UIColors.greenHoverColor : UIColors.yellowHoverColor;
-
-            colors.pressedColor = colors.highlightedColor;
-            colors.selectedColor = colors.highlightedColor;
-
-            changeTeamButton.colors = colors;
-        }
-
-        private void OnChangeTeamButtonClicked()
-        {
-            Debug.Log("Change team button clicked for player: " + Player.Data["Id"].Value.ToString());
-        }
-
-        private void OnOptionsButtonClicked()
-        {
-            optionsOpen = true;
-            optionsButton.gameObject.SetActive(false);
-
-            kickButton.gameObject.SetActive(!isLocalPlayer && isLocalHost);
-            nameText.GetComponent<RectTransform>().anchorMax = new Vector2(!isLocalPlayer && isLocalHost ? 0.5f : 0.8f, 1f);
-            steamProfileButton.GetComponent<RectTransform>().anchorMin = new Vector2(!isLocalPlayer && isLocalHost ? 0.5f : 0.8f, 0f);
-            steamProfileButton.GetComponent<RectTransform>().anchorMax = new Vector2(!isLocalPlayer && isLocalHost ? 0.7f : 1f, 1f);
-
-            optionsPanel.SetActive(true);
-        }
-
-
-        private void OnBackButtonClicked()
-        {
-            optionsOpen = false;
-            optionsPanel.SetActive(false);
-
-            nameText.GetComponent<RectTransform>().anchorMax = new Vector2(0.7f, 1f);
-
-            optionsButton.gameObject.SetActive(true);
-        }
-
-        private void OnSteamProfileButtonClicked()
-        {
-            Application.OpenURL("https://steamcommunity.com/profiles/" + Player.Data["Id"].Value.ToString());
-        }
-
-        private async void OnKickButtonClicked()
-        {
-            await GameLobbyManager.Instance.KickPlayer(Player);
-
-            SetEmpty();
-            Player = null;
         }
     }
 }

@@ -1,9 +1,9 @@
 using System;
 using Steamworks;
-using UnityEngine;
 using Unity.Services.Core;
 using System.Threading.Tasks;
 using Assets.Scripts.Game.Data;
+using Assets.Scripts.Game.Types;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Core;
 using Unity.Services.Authentication;
@@ -87,7 +87,7 @@ namespace Assets.Scripts.Framework.Managers
                 while (!AuthenticationService.Instance.IsSignedIn) await Task.Delay(100);
 
                 PlayerData playerData = new();
-                playerData.Initialize(SteamUser.GetSteamID());
+                playerData.Initialize(SteamUser.GetSteamID(), Team.Blue, PlayerStatus.NotReady);
                 LocalPlayer = new Player(id: AuthenticationService.Instance.PlayerId, data: playerData.Serialize());
 
                 return OperationResult.SuccessResult("Authenticated", $"Signed in as {SteamFriends.GetPersonaName()}");

@@ -48,6 +48,28 @@ namespace Assets.Scripts.Game.UI.Components.Options
             else if (!selected && index == Selection) ClearSelection();
         }
 
+        // used for team selectors that need different selection colors
+        public void SetSelection(int index, Color selectedColor, Color unselectedColor)
+        {
+            if (index < 0 || index >= selectionButtons.Count) return;
+            Selection = index;
+            UpdateButtonAppearance();
+            onSelectionChanged?.Invoke(Selection);
+
+            foreach (Button selectionButton in selectionButtons)
+            {
+                ColorBlock colors = selectionButton.colors;
+
+                bool isSelected = selectionButtons.IndexOf(selectionButton) == Selection;
+
+                colors.normalColor = isSelected ? selectedColor : unselectedColor;
+                colors.selectedColor = isSelected ? selectedColor : colors.highlightedColor;
+                colors.disabledColor = isSelected ? selectedColor : unselectedColor;
+
+                selectionButton.colors = colors;
+            }
+        }
+
         private void OnButtonClicked(int index)
         {
             if (index == Selection) ClearSelection();

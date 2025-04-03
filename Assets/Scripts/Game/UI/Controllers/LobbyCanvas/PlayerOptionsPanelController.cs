@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Assets.Scripts.Game.Types;
 using Assets.Scripts.Game.Managers;
 using Assets.Scripts.Game.UI.Colors;
-using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Game.UI.Components;
 
@@ -31,7 +30,6 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             startButton.onClick.AddListener(OnStartClicked);
             readyUnreadyButton.onClick.AddListener(OnReadyUnreadyClicked);
 
-            LobbyEvents.OnLobbyRefreshed += OnLobbyRefreshed;
             Events.LobbyEvents.OnLobbyReady += OnLobbyReady;
             Events.LobbyEvents.OnLobbyNotReady += OnLobbyNotReady;
 
@@ -44,7 +42,6 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             startButton.onClick.RemoveListener(OnStartClicked);
             readyUnreadyButton.onClick.RemoveListener(OnReadyUnreadyClicked);
 
-            LobbyEvents.OnLobbyRefreshed -= OnLobbyRefreshed;
             Events.LobbyEvents.OnLobbyReady -= OnLobbyReady;
             Events.LobbyEvents.OnLobbyNotReady -= OnLobbyNotReady;
         }
@@ -143,7 +140,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             readyUnreadyButton.interactable = false;
             readyUnreadyLoadingBar.StartLoading();
 
-            GameLobbyManager.Instance.TogglePlayerReady();
+            GameLobbyManager.Instance.TogglePlayerReady(AuthenticationManager.Instance.LocalPlayer);
             SetReadyUnreadyButton(AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value == PlayerStatus.Ready.ToString());
 
             await Task.Delay(1500);

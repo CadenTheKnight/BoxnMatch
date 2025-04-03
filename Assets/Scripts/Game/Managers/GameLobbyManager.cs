@@ -6,6 +6,7 @@ using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Core;
 using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Managers;
+using Steamworks;
 
 namespace Assets.Scripts.Game.Managers
 {
@@ -14,16 +15,6 @@ namespace Assets.Scripts.Game.Managers
     /// </summary>
     public class GameLobbyManager : Singleton<GameLobbyManager>
     {
-        private void Start()
-        {
-            LobbyEvents.OnLobbyRefreshed += OnLobbyUpdated;
-        }
-
-        private void OnDestroy()
-        {
-            LobbyEvents.OnLobbyRefreshed -= OnLobbyUpdated;
-        }
-
         /// <summary>
         /// Returns list of lobbies based on the provided filters and maximum results.
         /// </summary>
@@ -77,7 +68,7 @@ namespace Assets.Scripts.Game.Managers
             LobbyData lobbyData = new();
             lobbyData.Initialize();
 
-            AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value = PlayerStatus.Ready.ToString();
+            AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value = ((int)PlayerStatus.Ready).ToString();
 
             await LobbyManager.Instance.CreateLobby(lobbyName, isPrivate, maxPlayers, lobbyData.Serialize());
         }
@@ -88,7 +79,7 @@ namespace Assets.Scripts.Game.Managers
         /// <param name="lobbyCode">The lobby code to join.</param>
         public async Task JoinLobbyByCode(string lobbyCode)
         {
-            AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value = PlayerStatus.NotReady.ToString();
+            AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value = ((int)PlayerStatus.NotReady).ToString();
 
             await LobbyManager.Instance.JoinLobbyByCode(lobbyCode);
         }
@@ -99,7 +90,7 @@ namespace Assets.Scripts.Game.Managers
         /// <param name="lobbyId">The lobby ID to join.</param>
         public async Task JoinLobbyById(string lobbyId)
         {
-            AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value = PlayerStatus.NotReady.ToString();
+            AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value = ((int)PlayerStatus.NotReady).ToString();
 
             await LobbyManager.Instance.JoinLobbyById(lobbyId);
         }
@@ -109,7 +100,7 @@ namespace Assets.Scripts.Game.Managers
         /// </summary>
         public async Task RejoinLobby(List<string> joinedLobbyIds)
         {
-            AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value = PlayerStatus.NotReady.ToString();
+            AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value = ((int)PlayerStatus.NotReady).ToString();
 
             await LobbyManager.Instance.RejoinLobby(joinedLobbyIds);
         }
@@ -136,15 +127,20 @@ namespace Assets.Scripts.Game.Managers
         /// <summary>
         /// Toggle the ready status of the current player.
         /// </summary>
-        public void TogglePlayerReady()
+        /// <param name="player">The player to toggle.</param>
+        /// <param name="setReady">True to set the player as ready.</param>
+        /// <param name="setUnready">True to set the player as not ready.</param>
+        public void TogglePlayerReady(Player player, bool setReady = false, bool setUnready = false)
         {
-            AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value =
-                (AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value == PlayerStatus.NotReady.ToString()) ?
-                    PlayerStatus.Ready.ToString() : PlayerStatus.NotReady.ToString();
+            if (setReady)
+                player.Data["Status"].Value = ((int)PlayerStatus.Ready).ToString();
+            else if (setUnready)
+                player.Data["Status"].Value = ((int)PlayerStatus.NotReady).ToString();
+            else
+                player.Data["Status"].Value = player.Data["Status"].Value == ((int)PlayerStatus.Ready).ToString()
+                ? ((int)PlayerStatus.NotReady).ToString() : ((int)PlayerStatus.Ready).ToString();
 
-            LobbyManager.Instance.UpdatePlayerData(AuthenticationManager.Instance.LocalPlayer.Id, AuthenticationManager.Instance.LocalPlayer.Data);
-
-            GetPlayersReady();
+            LobbyManager.Instance.UpdatePlayerData(player.Id, player.Data);
         }
 
         /// <summary>
@@ -152,38 +148,24 @@ namespace Assets.Scripts.Game.Managers
         /// </summary>
         public void SetAllPlayersUnready()
         {
-            foreach (Player player in LobbyManager.Instance.Lobby.Players) // ????
-            {
-                if (player.Id == AuthenticationManager.Instance.LocalPlayer.Id) continue;
-
-                player.Data["Status"].Value = PlayerStatus.NotReady.ToString();
-                LobbyManager.Instance.UpdatePlayerData(player.Id, player.Data);
-            }
-
-            GetPlayersReady();
-        }
-
-        /// <summary>
-        /// Updates the connection status of the local player.
-        /// </summary>
-        /// <param name="isConnected">True if the player is connected, false otherwise.</param>
-        private void UpdateConnectionStatus(bool isConnected)
-        {
-            if (!isConnected) AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value = PlayerStatus.Disconnected.ToString();
-            LobbyManager.Instance.UpdatePlayerData(AuthenticationManager.Instance.LocalPlayer.Id, AuthenticationManager.Instance.LocalPlayer.Data);
+            foreach (Player player in LobbyManager.Instance.Lobby.Players)
+                TogglePlayerReady(player, setUnready: true);
         }
         #endregion
 
         #region Data Management
 
-        // public void UpdatePlayerData(string playerId, string playerData)
-        // {
-        //     PlayerData playerData = new();
-        //     playerData.Initialize();
+        /// <summary>
+        /// Updates the player data in the lobby.
+        /// </summary>
+        /// <param name="player">The player to update.</param>
+        public void UpdatePlayerData(Player player, CSteamID steamId, Team team, PlayerStatus status)
+        {
+            PlayerData playerData = new();
+            playerData.Initialize(steamId, team, status);
 
-        //     LobbyManager.Instance.UpdatePlayerData(playerId, playerData.Serialize());
-        // }
-
+            LobbyManager.Instance.UpdatePlayerData(player.Id, playerData.Serialize());
+        }
 
         /// <summary>
         /// Sets the selected map for the game.
@@ -503,16 +485,5 @@ namespace Assets.Scripts.Game.Managers
 
         #endregion
 
-        #region Event Handlers
-        private void OnLobbyUpdated()
-        {
-            if (LobbyManager.Instance.Lobby.HostId == AuthenticationManager.Instance.LocalPlayer.Id &&
-                AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value == PlayerStatus.NotReady.ToString())
-            {
-                AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value = PlayerStatus.Ready.ToString();
-                LobbyManager.Instance.UpdatePlayerData(AuthenticationManager.Instance.LocalPlayer.Id, AuthenticationManager.Instance.LocalPlayer.Data);
-            }
-        }
     }
-    #endregion
 }
