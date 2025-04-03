@@ -62,14 +62,14 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
                 LobbyData lobbyData = new() { MapIndex = mapChanger.Value, RoundCount = roundCountIncrementer.Value, RoundTime = roundTimeIncrementer.Value, GameMode = (GameMode)gameModeSelector.Selection };
                 await LobbyManager.Instance.UpdateLobbyData(lobbyData.Serialize());
+                isEditing = !isEditing;
 
                 await Task.Delay(1000);
 
                 editUpdateButton.interactable = true;
             }
 
-            UpdateEditUpdateButton(!isEditing);
-            isEditing = !isEditing;
+            UpdateEditUpdateButton(isEditing);
         }
 
         private void OnNewLobbyHost(Player player)

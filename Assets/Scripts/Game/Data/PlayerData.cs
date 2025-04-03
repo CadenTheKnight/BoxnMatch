@@ -19,8 +19,8 @@ namespace Assets.Scripts.Game.Data
             return new Dictionary<string, PlayerDataObject>
             {
                 { "Id", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, Id.ToString()) },
-                { "Team", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)Team).ToString()) },
-                { "Status", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)Status).ToString()) }
+                { "Team", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, Team.ToString()) },
+                { "Status", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, Status.ToString()) }
             };
         }
     }

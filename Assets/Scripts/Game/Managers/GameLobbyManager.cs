@@ -31,9 +31,15 @@ namespace Assets.Scripts.Game.Managers
             }
 
             if (playersReady == LobbyManager.Instance.Lobby.MaxPlayers)
+            {
                 Events.LobbyEvents.InvokeLobbyReady();
+                Debug.Log("All players are ready!");
+            }
             else
+            {
                 Events.LobbyEvents.InvokeLobbyNotReady(playersReady, LobbyManager.Instance.Lobby.MaxPlayers);
+                Debug.Log($"Not all players are ready! {playersReady}/{LobbyManager.Instance.Lobby.MaxPlayers}");
+            }
 
             return playersReady;
         }
@@ -47,13 +53,19 @@ namespace Assets.Scripts.Game.Managers
         /// <param name="setUnready">True to set the player as not ready.</param>
         public async Task TogglePlayerReady(Player player, bool setReady = false, bool setUnready = false)
         {
+            Debug.Log($"Before toggle - Player {player.Id} team: {player.Data["Team"].Value}, status: {player.Data["Status"].Value}");
+
+
             if (setReady)
-                player.Data["Status"].Value = ((int)PlayerStatus.Ready).ToString();
+                player.Data["Status"].Value = PlayerStatus.Ready.ToString();
             else if (setUnready)
-                player.Data["Status"].Value = ((int)PlayerStatus.NotReady).ToString();
+                player.Data["Status"].Value = PlayerStatus.NotReady.ToString();
             else
-                player.Data["Status"].Value = player.Data["Status"].Value == ((int)PlayerStatus.Ready).ToString()
-                ? ((int)PlayerStatus.NotReady).ToString() : ((int)PlayerStatus.Ready).ToString();
+                player.Data["Status"].Value = player.Data["Status"].Value == PlayerStatus.Ready.ToString()
+                ? PlayerStatus.NotReady.ToString() : PlayerStatus.Ready.ToString();
+
+            Debug.Log($"After toggle - Player {player.Id} team: {player.Data["Team"].Value}, status: {player.Data["Status"].Value}");
+
 
             await LobbyManager.Instance.UpdatePlayerData(player.Id, player.Data);
         }

@@ -10,6 +10,7 @@ using Assets.Scripts.Game.UI.Colors;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Framework.Utilities;
 using Assets.Scripts.Game.UI.Components.Options;
+using System;
 
 namespace Assets.Scripts.Game.UI.Components.ListEntries
 {
@@ -80,8 +81,8 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             emptyStatePanel.SetActive(false);
             activeStatePanel.SetActive(true);
 
-            SetTeam((Team)int.Parse(Player.Data["Team"].Value));
-            SetStatus((PlayerStatus)int.Parse(player.Data["Status"].Value));
+            SetTeam(Enum.Parse<Team>(Player.Data["Team"].Value));
+            SetStatus(Enum.Parse<PlayerStatus>(Player.Data["Status"].Value));
             SetButtons();
             SetSteamInfo();
         }
