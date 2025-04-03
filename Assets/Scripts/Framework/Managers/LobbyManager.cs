@@ -222,7 +222,7 @@ namespace Assets.Scripts.Framework.Managers
         /// <param name="playerData">The dictionary containing the player data to update.</param>
         /// <param name="allocationId">The allocation ID for the player.</param>
         /// <param name="connectionData">The connection data for the player.</param>
-        public async void UpdatePlayerData(string playerId, Dictionary<string, PlayerDataObject> playerData, string allocationId = default, string connectionData = default)
+        public async Task UpdatePlayerData(string playerId, Dictionary<string, PlayerDataObject> playerData, string allocationId = default, string connectionData = default)
         {
             UpdatePlayerOptions updatePlayerOptions = new()
             {
@@ -247,7 +247,7 @@ namespace Assets.Scripts.Framework.Managers
         /// Updates the lobby data with the provided dictionary.
         /// </summary>
         /// <param name="lobbyData">The dictionary containing the lobby data to update.</param>
-        public async void UpdateLobbyData(Dictionary<string, DataObject> lobbyData)
+        public async Task UpdateLobbyData(Dictionary<string, DataObject> lobbyData)
         {
             UpdateLobbyOptions updateLobbyOptions = new()
             {
@@ -356,7 +356,7 @@ namespace Assets.Scripts.Framework.Managers
                 if (showDebugMessages) Debug.Log($"Lobby name changed to {lobbyChanges.Name.Value}");
             }
 
-            // LobbyEvents.InvokeLobbyRefreshed();
+            LobbyEvents.InvokeLobbyChanged();
         }
 
         private void OnPlayerJoined(List<LobbyPlayerJoined> playersJoined)
@@ -386,76 +386,70 @@ namespace Assets.Scripts.Framework.Managers
         {
             if (showDebugMessages) Debug.Log($"Lobby data changed: {dataChanges.Count} fields");
             foreach (var kvp in dataChanges)
+            {
                 if (showDebugMessages) Debug.Log($"- {kvp.Key}: {kvp.Value.Value.Value}");
-
-            LobbyEvents.InvokeLobbyDataUpdated(OperationResult.SuccessResult("LobbyDataChanged", "Lobby data was updated"));
+                LobbyEvents.InvokeLobbyDataChanged(kvp.Key, kvp.Value.Value.ToString());
+            }
         }
 
         private void OnDataAdded(Dictionary<string, ChangedOrRemovedLobbyValue<DataObject>> addedData)
         {
             if (showDebugMessages) Debug.Log($"Lobby data added: {addedData.Count} fields");
             foreach (var kvp in addedData)
+            {
                 if (showDebugMessages) Debug.Log($"- {kvp.Key}: {kvp.Value.Value.Value}");
-
-            LobbyEvents.InvokeLobbyDataUpdated(OperationResult.SuccessResult("LobbyDataAdded", "New lobby data was added"));
+                LobbyEvents.InvokeLobbyDataAdded(kvp.Key, kvp.Value.Value.ToString());
+            }
         }
 
         private void OnDataRemoved(Dictionary<string, ChangedOrRemovedLobbyValue<DataObject>> removedData)
         {
-            if (removedData == null)
-                if (showDebugMessages) Debug.Log("All lobby data removed");
-                else
-                {
-                    if (showDebugMessages) Debug.Log($"Lobby data removed: {removedData.Count} fields");
-                    foreach (var kvp in removedData)
-                        if (showDebugMessages) Debug.Log($"- {kvp.Key}");
-                }
-
-            LobbyEvents.InvokeLobbyDataUpdated(OperationResult.SuccessResult("LobbyDataRemoved", "Lobby data was removed"));
+            if (showDebugMessages) Debug.Log($"Lobby data removed: {removedData.Count} fields");
+            foreach (var kvp in removedData)
+            {
+                if (showDebugMessages) Debug.Log($"- {kvp.Key}: {kvp.Value.Value.Value}");
+                LobbyEvents.InvokeLobbyDataRemoved(kvp.Key, kvp.Value.Value.ToString());
+            }
         }
 
         private void OnPlayerDataChanged(Dictionary<int, Dictionary<string, ChangedOrRemovedLobbyValue<PlayerDataObject>>> changes)
         {
-            foreach (var playerChange in changes)
+            if (showDebugMessages) Debug.Log($"Player data changed: {changes.Count} players");
+            foreach (var kvp in changes)
             {
-                int playerIndex = playerChange.Key;
-                if (playerIndex >= 0 && playerIndex < lobby.Players.Count)
+                if (showDebugMessages) Debug.Log($"- Player {cachedPlayersList[kvp.Key].Id} data changed: {kvp.Value.Count} fields");
+                foreach (var dataChange in kvp.Value)
                 {
-                    Player player = lobby.Players[playerIndex];
-                    if (player.Id == AuthenticationManager.Instance.LocalPlayer.Id) continue;
-                    if (showDebugMessages) Debug.Log($"Player data changed for {player.Id}");
-                    LobbyEvents.InvokePlayerDataUpdated(OperationResult.SuccessResult("PlayerDataChanged", $"Player {player.Id} data was updated"));
+                    if (showDebugMessages) Debug.Log($"-- {dataChange.Key}: {dataChange.Value.Value.Value}");
+                    LobbyEvents.InvokePlayerDataChanged(cachedPlayersList[kvp.Key], dataChange.Key, dataChange.Value.Value.ToString());
                 }
             }
         }
 
         private void OnPlayerDataAdded(Dictionary<int, Dictionary<string, ChangedOrRemovedLobbyValue<PlayerDataObject>>> added)
         {
-            foreach (var playerChange in added)
+            if (showDebugMessages) Debug.Log($"Player data added: {added.Count} players");
+            foreach (var kvp in added)
             {
-                int playerIndex = playerChange.Key;
-                if (playerIndex >= 0 && playerIndex < lobby.Players.Count)
+                if (showDebugMessages) Debug.Log($"- Player {cachedPlayersList[kvp.Key].Id} data added: {kvp.Value.Count} fields");
+                foreach (var dataAdd in kvp.Value)
                 {
-                    Player player = lobby.Players[playerIndex];
-
-                    if (player.Id == AuthenticationManager.Instance.LocalPlayer.Id) continue;
-                    if (showDebugMessages) Debug.Log($"Player data added for {player.Id}");
-                    LobbyEvents.InvokePlayerDataUpdated(OperationResult.SuccessResult("PlayerDataAdded", $"New data added for player {player.Id}"));
+                    if (showDebugMessages) Debug.Log($"-- {dataAdd.Key}: {dataAdd.Value.Value.Value}");
+                    LobbyEvents.InvokePlayerDataAdded(cachedPlayersList[kvp.Key], dataAdd.Key, dataAdd.Value.Value.ToString());
                 }
             }
         }
 
         private void OnPlayerDataRemoved(Dictionary<int, Dictionary<string, ChangedOrRemovedLobbyValue<PlayerDataObject>>> removed)
         {
-            foreach (var playerChange in removed)
+            if (showDebugMessages) Debug.Log($"Player data removed: {removed.Count} players");
+            foreach (var kvp in removed)
             {
-                int playerIndex = playerChange.Key;
-                if (playerIndex >= 0 && playerIndex < lobby.Players.Count)
+                if (showDebugMessages) Debug.Log($"- Player {cachedPlayersList[kvp.Key].Id} data removed: {kvp.Value.Count} fields");
+                foreach (var dataRemove in kvp.Value)
                 {
-                    Player player = lobby.Players[playerIndex];
-                    if (player.Id == AuthenticationManager.Instance.LocalPlayer.Id) continue;
-                    if (showDebugMessages) Debug.Log($"Player data removed for {player.Id}");
-                    LobbyEvents.InvokePlayerDataUpdated(OperationResult.SuccessResult("PlayerDataRemoved", $"Data removed from player {player.Id}"));
+                    if (showDebugMessages) Debug.Log($"-- {dataRemove.Key}: {dataRemove.Value.Value.Value}");
+                    LobbyEvents.InvokePlayerDataRemoved(cachedPlayersList[kvp.Key], dataRemove.Key, dataRemove.Value.Value.ToString());
                 }
             }
         }

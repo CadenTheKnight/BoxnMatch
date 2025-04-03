@@ -130,7 +130,7 @@ namespace Assets.Scripts.Game.Managers
         /// <param name="player">The player to toggle.</param>
         /// <param name="setReady">True to set the player as ready.</param>
         /// <param name="setUnready">True to set the player as not ready.</param>
-        public void TogglePlayerReady(Player player, bool setReady = false, bool setUnready = false)
+        public async Task TogglePlayerReady(Player player, bool setReady = false, bool setUnready = false)
         {
             if (setReady)
                 player.Data["Status"].Value = ((int)PlayerStatus.Ready).ToString();
@@ -140,16 +140,16 @@ namespace Assets.Scripts.Game.Managers
                 player.Data["Status"].Value = player.Data["Status"].Value == ((int)PlayerStatus.Ready).ToString()
                 ? ((int)PlayerStatus.NotReady).ToString() : ((int)PlayerStatus.Ready).ToString();
 
-            LobbyManager.Instance.UpdatePlayerData(player.Id, player.Data);
+            await LobbyManager.Instance.UpdatePlayerData(player.Id, player.Data);
         }
 
         /// <summary>
         /// Sets all players to not ready.
         /// </summary>
-        public void SetAllPlayersUnready()
+        public async Task SetAllPlayersUnready()
         {
             foreach (Player player in LobbyManager.Instance.Lobby.Players)
-                TogglePlayerReady(player, setUnready: true);
+                await TogglePlayerReady(player, setUnready: true);
         }
         #endregion
 
@@ -159,12 +159,12 @@ namespace Assets.Scripts.Game.Managers
         /// Updates the player data in the lobby.
         /// </summary>
         /// <param name="player">The player to update.</param>
-        public void UpdatePlayerData(Player player, CSteamID steamId, Team team, PlayerStatus status)
+        public async Task UpdatePlayerData(Player player, CSteamID steamId, Team team, PlayerStatus status)
         {
             PlayerData playerData = new();
             playerData.Initialize(steamId, team, status);
 
-            LobbyManager.Instance.UpdatePlayerData(player.Id, playerData.Serialize());
+            await LobbyManager.Instance.UpdatePlayerData(player.Id, playerData.Serialize());
         }
 
         /// <summary>
@@ -174,12 +174,12 @@ namespace Assets.Scripts.Game.Managers
         /// <param name="roundCount">Number of rounds.</param>
         /// <param name="roundTime">Time per round.</param>
         /// <param name="gameMode">Game mode.</param>
-        public void UpdateLobbyData(int mapIndex, int roundCount, int roundTime, GameMode gameMode)
+        public async Task UpdateLobbyData(int mapIndex, int roundCount, int roundTime, GameMode gameMode)
         {
             LobbyData lobbyData = new();
             lobbyData.Initialize(mapIndex, roundCount, roundTime, gameMode);
 
-            LobbyManager.Instance.UpdateLobbyData(lobbyData.Serialize());
+            await LobbyManager.Instance.UpdateLobbyData(lobbyData.Serialize());
         }
         #endregion
 

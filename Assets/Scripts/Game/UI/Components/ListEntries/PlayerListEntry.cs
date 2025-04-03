@@ -1,8 +1,8 @@
 using TMPro;
-using System;
 using Steamworks;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Threading.Tasks;
 using Assets.Scripts.Game.Types;
 using Assets.Scripts.Game.Managers;
 using Unity.Services.Lobbies.Models;
@@ -10,6 +10,7 @@ using Assets.Scripts.Game.UI.Colors;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Framework.Utilities;
 using Assets.Scripts.Game.UI.Components.Options;
+
 
 namespace Assets.Scripts.Game.UI.Components.ListEntries
 {
@@ -164,11 +165,15 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             teamPanel.SetActive(true);
         }
 
-        private void ChangeTeam(Team team)
+        private async void ChangeTeam(Team team)
         {
-            SetTeamColor(team);
-            GameLobbyManager.Instance.UpdatePlayerData(Player, (CSteamID)ulong.Parse(Player.Data["Id"].Value), team, (PlayerStatus)int.Parse(Player.Data["Status"].Value));
+            changeTeamButton.interactable = false;
+
+            await GameLobbyManager.Instance.UpdatePlayerData(Player, (CSteamID)ulong.Parse(Player.Data["Id"].Value), team, (PlayerStatus)int.Parse(Player.Data["Status"].Value));
             teamPanel.SetActive(false);
+            await Task.Delay(1000);
+
+            changeTeamButton.interactable = true;
         }
 
         private void OnOptionsButtonClicked()

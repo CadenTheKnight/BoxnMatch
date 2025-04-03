@@ -35,6 +35,7 @@ namespace Assets.Scripts.Game.Managers
             LobbyEvents.OnLobbyError += ShowNotification;
 
             LobbyEvents.OnLobbyDataUpdated += ShowNotification;
+            LobbyEvents.OnPlayerDataUpdated += ShowNotification;
 
         }
 
@@ -56,6 +57,8 @@ namespace Assets.Scripts.Game.Managers
             LobbyEvents.OnLobbyError -= ShowNotification;
 
             LobbyEvents.OnLobbyDataUpdated -= ShowNotification;
+
+            LobbyEvents.OnPlayerDataUpdated -= ShowNotification;
         }
 
         private void ShowNotification(OperationResult result)

@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using System.Threading.Tasks;
 using Assets.Scripts.Game.UI.Colors;
 using Assets.Scripts.Framework.Managers;
+using Assets.Scripts.Framework.Events;
 
 namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 {
@@ -16,18 +17,27 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private void Start()
         {
-            lobbyNameText.text = $"{LobbyManager.Instance.Lobby.Name}" + (LobbyManager.Instance.Lobby.IsPrivate ? " (PRIVATE)" : "");
+            UpdateLobbyInfo();
             lobbyCodeText.text = $"Code: {LobbyManager.Instance.Lobby.LobbyCode}";
         }
 
         private void OnEnable()
         {
             lobbyCodeButton.onClick.AddListener(OnLobbyCodeClicked);
+
+            LobbyEvents.OnLobbyChanged += UpdateLobbyInfo;
         }
 
         private void OnDisable()
         {
             lobbyCodeButton.onClick.RemoveListener(OnLobbyCodeClicked);
+
+            LobbyEvents.OnLobbyChanged -= UpdateLobbyInfo;
+        }
+
+        private void UpdateLobbyInfo()
+        {
+            lobbyNameText.text = $"{LobbyManager.Instance.Lobby.Name}" + (LobbyManager.Instance.Lobby.IsPrivate ? " (PRIVATE)" : "");
         }
 
         private async void OnLobbyCodeClicked()

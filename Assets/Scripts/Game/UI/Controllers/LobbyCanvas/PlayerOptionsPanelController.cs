@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 using Assets.Scripts.Game.Types;
 using Assets.Scripts.Game.Managers;
 using Assets.Scripts.Game.UI.Colors;
+using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Game.UI.Components;
+using Assets.Scripts.Framework.Utilities;
 
 namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 {
@@ -30,6 +32,8 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             startButton.onClick.AddListener(OnStartClicked);
             readyUnreadyButton.onClick.AddListener(OnReadyUnreadyClicked);
 
+            LobbyEvents.OnPlayerDataUpdated += OnPlayerDataUpdated;
+
             Events.LobbyEvents.OnLobbyReady += OnLobbyReady;
             Events.LobbyEvents.OnLobbyNotReady += OnLobbyNotReady;
 
@@ -42,11 +46,13 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             startButton.onClick.RemoveListener(OnStartClicked);
             readyUnreadyButton.onClick.RemoveListener(OnReadyUnreadyClicked);
 
+            LobbyEvents.OnPlayerDataUpdated -= OnPlayerDataUpdated;
+
             Events.LobbyEvents.OnLobbyReady -= OnLobbyReady;
             Events.LobbyEvents.OnLobbyNotReady -= OnLobbyNotReady;
         }
 
-        private void OnLobbyRefreshed()
+        private void OnPlayerDataUpdated(OperationResult result)
         {
             UpdateButtons();
         }
@@ -116,7 +122,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             leaveButton.interactable = false;
 
             await Task.Delay(500);
-            if (isHost) GameLobbyManager.Instance.SetAllPlayersUnready();
+            if (isHost) await GameLobbyManager.Instance.SetAllPlayersUnready();
             await Task.Delay(500);
 
             leaveButton.interactable = true;
@@ -140,7 +146,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             readyUnreadyButton.interactable = false;
             readyUnreadyLoadingBar.StartLoading();
 
-            GameLobbyManager.Instance.TogglePlayerReady(AuthenticationManager.Instance.LocalPlayer);
+            await GameLobbyManager.Instance.TogglePlayerReady(AuthenticationManager.Instance.LocalPlayer);
             SetReadyUnreadyButton(AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value == PlayerStatus.Ready.ToString());
 
             await Task.Delay(1500);

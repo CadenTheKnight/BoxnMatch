@@ -17,14 +17,14 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
         private void OnEnable()
         {
             LobbyEvents.OnPlayerJoined += OnPlayerJoined;
-            // LobbyEvents.OnPlayerDataUpdated += OnPlayerDataUpdated;
+            LobbyEvents.OnPlayerDataChanged += OnPlayerDataChanged;
             LobbyEvents.OnPlayerLeft += OnPlayerLeft;
         }
 
         private void OnDisable()
         {
             LobbyEvents.OnPlayerJoined -= OnPlayerJoined;
-            // LobbyEvents.OnPlayerDataUpdated -= OnPlayerDataUpdated;
+            LobbyEvents.OnPlayerDataChanged -= OnPlayerDataChanged;
             LobbyEvents.OnPlayerLeft -= OnPlayerLeft;
         }
 
@@ -50,7 +50,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             _playerListEntries.Add(newEntry);
         }
 
-        private void OnPlayerDataUpdated(Player player)
+        private void OnPlayerDataChanged(Player player, string key, string value)
         {
             PlayerListEntry entryToUpdate = _playerListEntries.Find(entry => entry.Player.Id == player.Id);
             if (entryToUpdate != null)

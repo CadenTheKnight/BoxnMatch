@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using System.Threading.Tasks;
 using Assets.Scripts.Game.Types;
 using Assets.Scripts.Game.Managers;
+using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Game.UI.Colors;
 using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Managers;
@@ -26,15 +27,21 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private bool isEditing = false;
 
-        private void OnEnable()
+        private void Start()
         {
             UpdateSelections();
             UpdateInteractable(isEditing);
             UpdateEditUpdateButton(isEditing);
+        }
+
+        private void OnEnable()
+        {
+
 
             editUpdateButton.onClick.AddListener(OnEditUpdateClicked);
 
             LobbyEvents.OnLobbyDataUpdated += OnLobbyDataUpdated;
+            LobbyEvents.OnPlayerDataUpdated += OnPlayerDataUpdated;
         }
 
         private void OnDisable()
@@ -42,9 +49,10 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             editUpdateButton.onClick.RemoveListener(OnEditUpdateClicked);
 
             LobbyEvents.OnLobbyDataUpdated -= OnLobbyDataUpdated;
+            LobbyEvents.OnPlayerDataUpdated -= OnPlayerDataUpdated;
         }
 
-        private void OnLobbyRefreshed()
+        private void OnPlayerDataUpdated(OperationResult result)
         {
             editUpdateButton.gameObject.SetActive(LobbyManager.Instance.Lobby.HostId == AuthenticationManager.Instance.LocalPlayer.Id);
             if (!isEditing) UpdateSelections();
@@ -64,8 +72,8 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
                 editUpdateText.text = "Updating...";
                 editUpdateButton.interactable = false;
 
+                await GameLobbyManager.Instance.UpdateLobbyData(mapChanger.Value, roundCountIncrementer.Value, roundTimeIncrementer.Value, (GameMode)gameModeSelector.Selection);
                 await Task.Delay(1000);
-                GameLobbyManager.Instance.UpdateLobbyData(mapChanger.Value, roundCountIncrementer.Value, roundTimeIncrementer.Value, (GameMode)gameModeSelector.Selection);
 
                 editUpdateButton.interactable = true;
             }
