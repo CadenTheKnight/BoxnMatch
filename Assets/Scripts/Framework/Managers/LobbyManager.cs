@@ -408,7 +408,6 @@ namespace Assets.Scripts.Framework.Managers
             foreach (var kvp in changes)
             {
                 if (showDebugMessages) Debug.Log($"- Player {cachedPlayersList[kvp.Key].Id} data changed: {kvp.Value.Count} fields");
-                cachedPlayersList[kvp.Key] = lobby.Players.Find(p => p.Id == cachedPlayersList[kvp.Key].Id);
                 foreach (var dataChange in kvp.Value)
                 {
                     if (showDebugMessages) Debug.Log($"-- {dataChange.Key}: {dataChange.Value.Value.Value}");
