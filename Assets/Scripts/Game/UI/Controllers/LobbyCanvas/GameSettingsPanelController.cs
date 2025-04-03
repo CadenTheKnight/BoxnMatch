@@ -53,16 +53,16 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
         }
         private async void OnEditUpdateClicked()
         {
+            isEditing = !isEditing;
             if (AuthenticationManager.Instance.LocalPlayer.Id == LobbyManager.Instance.Lobby.HostId)
-                UpdateInteractable(!isEditing);
-            if (isEditing)
+                UpdateInteractable(isEditing);
+            if (!isEditing)
             {
                 editUpdateText.text = "Updating...";
                 editUpdateButton.interactable = false;
 
                 LobbyData lobbyData = new() { MapIndex = mapChanger.Value, RoundCount = roundCountIncrementer.Value, RoundTime = roundTimeIncrementer.Value, GameMode = (GameMode)gameModeSelector.Selection };
                 await LobbyManager.Instance.UpdateLobbyData(lobbyData.Serialize());
-                isEditing = !isEditing;
 
                 await Task.Delay(1000);
 
@@ -79,7 +79,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private void OnLobbyDataChanged(OperationResult result)
         {
-            if (!isEditing) UpdateSelections();
+            UpdateSelections();
         }
 
         public void UpdateSelections()

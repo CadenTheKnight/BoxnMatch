@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 using Assets.Scripts.Game.Types;
 using Assets.Scripts.Game.Managers;
 using Assets.Scripts.Game.UI.Colors;
+using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Game.UI.Components;
-using Assets.Scripts.Framework.Utilities;
 
 namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 {
@@ -38,6 +38,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             readyUnreadyButton.onClick.AddListener(OnReadyUnreadyClicked);
 
             LobbyEvents.OnPlayerDataChanged += OnPlayerDataChanged;
+            LobbyEvents.OnNewLobbyHost += OnNewLobbyHost;
 
             Events.LobbyEvents.OnLobbyReady += OnLobbyReady;
             Events.LobbyEvents.OnLobbyNotReady += OnLobbyNotReady;
@@ -50,6 +51,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             readyUnreadyButton.onClick.RemoveListener(OnReadyUnreadyClicked);
 
             LobbyEvents.OnPlayerDataChanged -= OnPlayerDataChanged;
+            LobbyEvents.OnNewLobbyHost -= OnNewLobbyHost;
 
             Events.LobbyEvents.OnLobbyReady -= OnLobbyReady;
             Events.LobbyEvents.OnLobbyNotReady -= OnLobbyNotReady;
@@ -125,7 +127,12 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private void OnPlayerDataChanged(string playerId)
         {
-            UpdateButtons();
+            SetReadyUnreadyButton(AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value == PlayerStatus.Ready.ToString());
+        }
+
+        private void OnNewLobbyHost(Player player)
+        {
+            UpdateHost();
         }
 
         private void OnLobbyReady()
@@ -146,16 +153,21 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             UpdateButtonColors(startButton, false);
         }
 
-        private void UpdateButtons()
+        private void UpdateHost()
         {
             bool isHost = LobbyManager.Instance.Lobby.HostId == AuthenticationManager.Instance.LocalPlayer.Id;
-
-            int playersReady = GameLobbyManager.Instance.GetPlayersReady();
-            startText.text = $"{playersReady}/{LobbyManager.Instance.Lobby.MaxPlayers} PLAYERS READY";
             startButton.gameObject.SetActive(isHost);
-
-            SetReadyUnreadyButton(AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value == PlayerStatus.Ready.ToString());
             readyUnreadyButton.gameObject.SetActive(!isHost);
+        }
+
+        private void UpdateButtons()
+        {
+            SetStartButton(GameLobbyManager.Instance.GetPlayersReady());
+        }
+
+        private void SetStartButton(int playersReady)
+        {
+            startText.text = $"{playersReady}/{LobbyManager.Instance.Lobby.MaxPlayers} PLAYERS READY";
         }
 
         private void SetReadyUnreadyButton(bool isReady)

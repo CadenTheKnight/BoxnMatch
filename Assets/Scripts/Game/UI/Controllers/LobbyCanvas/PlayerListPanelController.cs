@@ -39,6 +39,11 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             LobbyEvents.OnPlayerDisconnected -= OnPlayerDisconnect;
         }
 
+        private void Start()
+        {
+            ReorganizePlayerList();
+        }
+
         private void ReorganizePlayerList()
         {
             List<Player> players = LobbyManager.Instance.Lobby.Players;
@@ -54,15 +59,9 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             }
         }
 
-        private void Start()
-        {
-            ReorganizePlayerList();
-        }
-
         private void OnPlayerJoined(Player player)
         {
             _playerListEntries.Find(entry => entry.Player == null).SetPlayer(player);
-            ReorganizePlayerList();
         }
 
         private void OnPlayerLeft(Player player)
