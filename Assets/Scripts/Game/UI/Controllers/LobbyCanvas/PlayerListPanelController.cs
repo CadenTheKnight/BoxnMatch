@@ -56,6 +56,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private void OnPlayerJoined(Player player)
         {
+            Debug.Log($"Player {player.Id} getting a list entry.");
             PlayerListEntry newEntry = Instantiate(_playerListEntries[LobbyManager.Instance.Lobby.Players.Count], transform);
             newEntry.SetPlayer(player);
             _playerListEntries.Add(newEntry);
@@ -63,6 +64,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private void OnPlayerLeft(Player player)
         {
+            Debug.Log($"Player {player.Id} leaving the list.");
             PlayerListEntry entryToRemove = _playerListEntries.Find(entry => entry.Player.Id == player.Id);
             entryToRemove.SetEmpty();
             _playerListEntries.Remove(entryToRemove);
@@ -70,36 +72,42 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private void OnPlayerDataChanged(string playerId)
         {
+            Debug.Log($"Player {playerId} list data changed.");
             PlayerListEntry entryToUpdate = _playerListEntries.Find(entry => entry.Player.Id == playerId);
             entryToUpdate.SetButtons();
         }
 
         private void OnPlayerTeamChanged(Player player, Team team)
         {
+            Debug.Log($"Player {player.Id} list team changed to {team}.");
             PlayerListEntry entryToUpdate = _playerListEntries.Find(entry => entry.Player.Id == player.Id);
             entryToUpdate.SetTeam(team);
         }
 
         private void OnPlayerStatusChanged(Player player, PlayerStatus status)
         {
+            Debug.Log($"Player {player.Id} list status changed to {status}.");
             PlayerListEntry entryToUpdate = _playerListEntries.Find(entry => entry.Player.Id == player.Id);
             entryToUpdate.SetStatus(status);
         }
 
         private void OnPlayerConnecting(Player player)
         {
+            Debug.Log($"Player {player.Id} is connecting.");
             PlayerListEntry entryToUpdate = _playerListEntries.Find(entry => entry.Player.Id == player.Id);
             entryToUpdate.SetConnecting();
         }
 
         private void OnPlayerConnect(Player player)
         {
+            Debug.Log($"Player {player.Id} connected.");
             PlayerListEntry entryToUpdate = _playerListEntries.Find(entry => entry.Player.Id == player.Id);
             entryToUpdate.SetConnected();
         }
 
         private void OnPlayerDisconnect(Player player)
         {
+            Debug.Log($"Player {player.Id} disconnected.");
             PlayerListEntry entryToUpdate = _playerListEntries.Find(entry => entry.Player.Id == player.Id);
             entryToUpdate.SetDisconnected();
         }

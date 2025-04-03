@@ -184,8 +184,10 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         private void OnOptionsButtonClicked()
         {
+            optionsButton.gameObject.SetActive(false);
             kickButton.gameObject.SetActive(!isLocalPlayer && isLocalHost);
-            nameText.GetComponent<RectTransform>().anchorMin = new Vector2(0.35f, 1f);
+            nameText.GetComponent<RectTransform>().anchorMin = new Vector2(0.35f, 0f);
+            nameText.GetComponent<RectTransform>().anchorMax = new Vector2(!isLocalPlayer && isLocalHost ? 0.7f : 1f, 1f);
 
             optionsPanel.SetActive(true);
         }
@@ -194,7 +196,10 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
         {
             optionsPanel.SetActive(false);
 
-            nameText.GetComponent<RectTransform>().anchorMin = new Vector2(0.15f, 1f);
+            nameText.GetComponent<RectTransform>().anchorMin = new Vector2(0.15f, 0f);
+            nameText.GetComponent<RectTransform>().anchorMax = new Vector2(0.7f, 1f);
+            optionsButton.gameObject.SetActive(true);
+
         }
 
         private void OnSteamProfileButtonClicked()
