@@ -68,9 +68,9 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             _playerListEntries.Remove(entryToRemove);
         }
 
-        private void OnPlayerDataChanged(Player player, string key, string value)
+        private void OnPlayerDataChanged(string playerId)
         {
-            PlayerListEntry entryToUpdate = _playerListEntries.Find(entry => entry.Player.Id == player.Id);
+            PlayerListEntry entryToUpdate = _playerListEntries.Find(entry => entry.Player.Id == playerId);
             entryToUpdate.SetButtons();
         }
 

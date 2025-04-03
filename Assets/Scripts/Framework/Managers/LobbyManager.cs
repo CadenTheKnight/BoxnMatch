@@ -239,6 +239,7 @@ namespace Assets.Scripts.Framework.Managers
             try
             {
                 lobby = await LobbyService.Instance.UpdatePlayerAsync(lobby.Id, playerId, updatePlayerOptions);
+                LobbyEvents.InvokePlayerDataChanged(playerId);
             }
             catch (LobbyServiceException e)
             {
@@ -260,6 +261,8 @@ namespace Assets.Scripts.Framework.Managers
             try
             {
                 lobby = await LobbyService.Instance.UpdateLobbyAsync(lobby.Id, updateLobbyOptions);
+                LobbyEvents.InvokeLobbyDataChanged(OperationResult.SuccessResult("UpdateLobbyData", $"Updated lobby data for {lobby.Name}"));
+
             }
             catch (LobbyServiceException e)
             {

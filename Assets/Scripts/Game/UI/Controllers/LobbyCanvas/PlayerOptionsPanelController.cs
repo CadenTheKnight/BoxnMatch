@@ -4,11 +4,11 @@ using UnityEngine.UI;
 using System.Threading.Tasks;
 using Assets.Scripts.Game.Types;
 using Assets.Scripts.Game.Managers;
-using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Game.UI.Colors;
 using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Game.UI.Components;
+using Assets.Scripts.Framework.Utilities;
 
 namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 {
@@ -26,6 +26,11 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private bool isStarting = false;
 
+        private void Start()
+        {
+            UpdateButtons();
+        }
+
         private void OnEnable()
         {
             leaveButton.onClick.AddListener(OnLeaveClicked);
@@ -36,8 +41,6 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
             Events.LobbyEvents.OnLobbyReady += OnLobbyReady;
             Events.LobbyEvents.OnLobbyNotReady += OnLobbyNotReady;
-
-            UpdateButtons();
         }
 
         private void OnDisable()
@@ -120,7 +123,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             readyUnreadyButton.interactable = true;
         }
 
-        private void OnPlayerDataChanged(Player player, string key, string value)
+        private void OnPlayerDataChanged(string playerId)
         {
             UpdateButtons();
         }

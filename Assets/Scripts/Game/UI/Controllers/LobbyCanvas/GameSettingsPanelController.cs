@@ -4,11 +4,11 @@ using UnityEngine.UI;
 using System.Threading.Tasks;
 using Assets.Scripts.Game.Data;
 using Assets.Scripts.Game.Types;
-using Assets.Scripts.Game.Managers;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Game.UI.Colors;
 using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Managers;
+using Assets.Scripts.Framework.Utilities;
 using Assets.Scripts.Game.UI.Components.Options;
 
 namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
@@ -41,7 +41,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             editUpdateButton.onClick.AddListener(OnEditUpdateClicked);
 
             LobbyEvents.OnLobbyDataChanged += OnLobbyDataChanged;
-            LobbyEvents.OnPlayerDataChanged += OnPlayerDataChanged;
+            LobbyEvents.OnNewLobbyHost += OnNewLobbyHost;
         }
 
         private void OnDisable()
@@ -49,7 +49,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             editUpdateButton.onClick.RemoveListener(OnEditUpdateClicked);
 
             LobbyEvents.OnLobbyDataChanged -= OnLobbyDataChanged;
-            LobbyEvents.OnPlayerDataChanged -= OnPlayerDataChanged;
+            LobbyEvents.OnNewLobbyHost -= OnNewLobbyHost;
         }
         private async void OnEditUpdateClicked()
         {
@@ -72,20 +72,15 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             isEditing = !isEditing;
         }
 
-        private void OnPlayerDataChanged(Player player, string key, string value)
+        private void OnNewLobbyHost(Player player)
         {
-            Debug.Log($"Player data changed (in controller): {key} = {value}");
-            editUpdateButton.interactable = player.Id == LobbyManager.Instance.Lobby.HostId;
+            editUpdateButton.interactable = true;
+        }
+
+        private void OnLobbyDataChanged(OperationResult result)
+        {
             if (!isEditing) UpdateSelections();
-
         }
-
-        private void OnLobbyDataChanged(string key, string value)
-        {
-            Debug.Log($"Lobby data changed (in controller): {key} = {value}");
-            UpdateSelections();
-        }
-
 
         public void UpdateSelections()
         {

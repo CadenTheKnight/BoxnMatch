@@ -176,24 +176,16 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         private async void ChangeTeam(Team team)
         {
-            changeTeamButton.interactable = false;
-
             PlayerData playerData = new() { Id = (CSteamID)ulong.Parse(Player.Data["Id"].Value), Team = team, Status = (PlayerStatus)int.Parse(Player.Data["Status"].Value) };
             await LobbyManager.Instance.UpdatePlayerData(Player.Id, playerData.Serialize());
 
             teamPanel.SetActive(false);
-
-            await Task.Delay(500);
-
-            changeTeamButton.interactable = true;
         }
 
         private void OnOptionsButtonClicked()
         {
             kickButton.gameObject.SetActive(!isLocalPlayer && isLocalHost);
-            nameText.GetComponent<RectTransform>().anchorMax = new Vector2(!isLocalPlayer && isLocalHost ? 0.5f : 0.8f, 1f);
-            steamProfileButton.GetComponent<RectTransform>().anchorMin = new Vector2(!isLocalPlayer && isLocalHost ? 0.5f : 0.8f, 0f);
-            steamProfileButton.GetComponent<RectTransform>().anchorMax = new Vector2(!isLocalPlayer && isLocalHost ? 0.7f : 1f, 1f);
+            nameText.GetComponent<RectTransform>().anchorMin = new Vector2(0.35f, 1f);
 
             optionsPanel.SetActive(true);
         }
@@ -202,7 +194,7 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
         {
             optionsPanel.SetActive(false);
 
-            nameText.GetComponent<RectTransform>().anchorMax = new Vector2(0.7f, 1f);
+            nameText.GetComponent<RectTransform>().anchorMin = new Vector2(0.15f, 1f);
         }
 
         private void OnSteamProfileButtonClicked()
