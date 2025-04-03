@@ -88,13 +88,13 @@ namespace Assets.Scripts.Game.UI.Controllers.InitializationCanvas
         private async Task<bool> AttemptRejoin()
         {
             loadingStatusPanel.UpdateStatus("Checking for active lobbies...");
-            List<string> joinedLobbyIds = await GameLobbyManager.Instance.GetJoinedLobbies();
+            List<string> joinedLobbyIds = await LobbyManager.Instance.GetJoinedLobbies();
 
             loadingStatusPanel.StopLoading();
             if (joinedLobbyIds.Count > 0)
             {
                 loadingStatusPanel.UpdateStatus("Rejoining lobby...");
-                await GameLobbyManager.Instance.RejoinLobby(joinedLobbyIds);
+                await LobbyManager.Instance.RejoinLobby(joinedLobbyIds);
                 return true;
             }
             else

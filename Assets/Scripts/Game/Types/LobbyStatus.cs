@@ -8,11 +8,11 @@ namespace Assets.Scripts.Game.Types
         /// <summary>
         /// The lobby is currently in the lobby phase, where players can join and prepare for the game.
         /// </summary>
-        InLobby = 0,
+        InLobby,
 
         /// <summary>
         /// The lobby is currently in the game phase, where the actual gameplay is taking place.
         /// </summary>
-        InGame = 1,
+        InGame,
     }
 }

@@ -2,13 +2,13 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Threading.Tasks;
+using Assets.Scripts.Game.Data;
 using Assets.Scripts.Game.Types;
 using Assets.Scripts.Game.Managers;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Game.UI.Colors;
 using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Managers;
-using Assets.Scripts.Framework.Utilities;
 using Assets.Scripts.Game.UI.Components.Options;
 
 namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
@@ -32,37 +32,25 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             UpdateSelections();
             UpdateInteractable(isEditing);
             UpdateEditUpdateButton(isEditing);
+
+            editUpdateButton.interactable = AuthenticationManager.Instance.LocalPlayer.Id == LobbyManager.Instance.Lobby.HostId;
         }
 
         private void OnEnable()
         {
-
-
             editUpdateButton.onClick.AddListener(OnEditUpdateClicked);
 
-            LobbyEvents.OnLobbyDataUpdated += OnLobbyDataUpdated;
-            LobbyEvents.OnPlayerDataUpdated += OnPlayerDataUpdated;
+            LobbyEvents.OnLobbyDataChanged += OnLobbyDataChanged;
+            LobbyEvents.OnPlayerDataChanged += OnPlayerDataChanged;
         }
 
         private void OnDisable()
         {
             editUpdateButton.onClick.RemoveListener(OnEditUpdateClicked);
 
-            LobbyEvents.OnLobbyDataUpdated -= OnLobbyDataUpdated;
-            LobbyEvents.OnPlayerDataUpdated -= OnPlayerDataUpdated;
+            LobbyEvents.OnLobbyDataChanged -= OnLobbyDataChanged;
+            LobbyEvents.OnPlayerDataChanged -= OnPlayerDataChanged;
         }
-
-        private void OnPlayerDataUpdated(OperationResult result)
-        {
-            editUpdateButton.gameObject.SetActive(LobbyManager.Instance.Lobby.HostId == AuthenticationManager.Instance.LocalPlayer.Id);
-            if (!isEditing) UpdateSelections();
-        }
-
-        private void OnLobbyDataUpdated(OperationResult result)
-        {
-            UpdateSelections();
-        }
-
         private async void OnEditUpdateClicked()
         {
             if (AuthenticationManager.Instance.LocalPlayer.Id == LobbyManager.Instance.Lobby.HostId)
@@ -72,7 +60,9 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
                 editUpdateText.text = "Updating...";
                 editUpdateButton.interactable = false;
 
-                await GameLobbyManager.Instance.UpdateLobbyData(mapChanger.Value, roundCountIncrementer.Value, roundTimeIncrementer.Value, (GameMode)gameModeSelector.Selection);
+                LobbyData lobbyData = new() { MapIndex = mapChanger.Value, RoundCount = roundCountIncrementer.Value, RoundTime = roundTimeIncrementer.Value, GameMode = (GameMode)gameModeSelector.Selection };
+                await LobbyManager.Instance.UpdateLobbyData(lobbyData.Serialize());
+
                 await Task.Delay(1000);
 
                 editUpdateButton.interactable = true;
@@ -81,6 +71,21 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             UpdateEditUpdateButton(!isEditing);
             isEditing = !isEditing;
         }
+
+        private void OnPlayerDataChanged(Player player, string key, string value)
+        {
+            Debug.Log($"Player data changed (in controller): {key} = {value}");
+            editUpdateButton.interactable = player.Id == LobbyManager.Instance.Lobby.HostId;
+            if (!isEditing) UpdateSelections();
+
+        }
+
+        private void OnLobbyDataChanged(string key, string value)
+        {
+            Debug.Log($"Lobby data changed (in controller): {key} = {value}");
+            UpdateSelections();
+        }
+
 
         public void UpdateSelections()
         {

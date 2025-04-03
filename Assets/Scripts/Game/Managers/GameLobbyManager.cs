@@ -1,12 +1,8 @@
 using System.Threading.Tasks;
-using Assets.Scripts.Game.Data;
 using Assets.Scripts.Game.Types;
-using System.Collections.Generic;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Core;
-using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Managers;
-using Steamworks;
 
 namespace Assets.Scripts.Game.Managers
 {
@@ -15,26 +11,6 @@ namespace Assets.Scripts.Game.Managers
     /// </summary>
     public class GameLobbyManager : Singleton<GameLobbyManager>
     {
-        /// <summary>
-        /// Returns list of lobbies based on the provided filters and maximum results.
-        /// </summary>
-        /// <param name="filters">Optional filters to apply to the lobby query.</param>
-        /// <param name="maxResults">>Maximum number of lobbies to return.</param>
-        /// <returns>List of lobbies matching the filters.</returns>
-        public async Task<List<Lobby>> GetLobbies(List<QueryFilter> filters = null, int maxResults = 20)
-        {
-            return await LobbyManager.Instance.GetLobbies(filters, maxResults);
-        }
-
-        /// <summary>
-        /// Returns a list of lobby IDs that the player has joined.
-        /// </summary>
-        /// <returns>List of lobby IDs.</returns>
-        public async Task<List<string>> GetJoinedLobbies()
-        {
-            return await LobbyManager.Instance.GetJoinedLobbies();
-        }
-
         /// <summary>
         /// Returns the number of players that are ready in the lobby.
         /// Invokes events to notify if the lobby is ready or not.
@@ -55,73 +31,6 @@ namespace Assets.Scripts.Game.Managers
 
             return playersReady;
         }
-
-        #region Lobby Management
-        /// <summary>
-        /// Creates a new lobby with the given parameters.
-        /// </summary>
-        /// <param name="lobbyName">Name of the lobby.</param>
-        /// <param name="isPrivate">True if the lobby is private, false if public.</param>
-        /// <param name="maxPlayers">Maximum number of players in the lobby.</param>
-        public async Task CreateLobby(string lobbyName, bool isPrivate, int maxPlayers)
-        {
-            LobbyData lobbyData = new();
-            lobbyData.Initialize();
-
-            AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value = ((int)PlayerStatus.Ready).ToString();
-
-            await LobbyManager.Instance.CreateLobby(lobbyName, isPrivate, maxPlayers, lobbyData.Serialize());
-        }
-
-        /// <summary>
-        /// Joins a lobby using the lobby code.
-        /// </summary>
-        /// <param name="lobbyCode">The lobby code to join.</param>
-        public async Task JoinLobbyByCode(string lobbyCode)
-        {
-            AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value = ((int)PlayerStatus.NotReady).ToString();
-
-            await LobbyManager.Instance.JoinLobbyByCode(lobbyCode);
-        }
-
-        /// <summary>
-        /// Joins the selected lobby using the lobby ID.
-        /// </summary>
-        /// <param name="lobbyId">The lobby ID to join.</param>
-        public async Task JoinLobbyById(string lobbyId)
-        {
-            AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value = ((int)PlayerStatus.NotReady).ToString();
-
-            await LobbyManager.Instance.JoinLobbyById(lobbyId);
-        }
-
-        /// <summary>
-        /// Rejoins the first lobby in the list of joined lobbies.
-        /// </summary>
-        public async Task RejoinLobby(List<string> joinedLobbyIds)
-        {
-            AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value = ((int)PlayerStatus.NotReady).ToString();
-
-            await LobbyManager.Instance.RejoinLobby(joinedLobbyIds);
-        }
-
-        /// <summary>
-        /// Leaves the current lobby.
-        /// </summary>
-        public async Task LeaveLobby()
-        {
-            await LobbyManager.Instance.LeaveLobby();
-        }
-
-        /// <summary>
-        /// Kicks a player from the lobby.
-        /// </summary>
-        /// <param name="player">The player to kick.</param>
-        public async Task KickPlayer(Player player)
-        {
-            await LobbyManager.Instance.KickPlayer(player);
-        }
-        #endregion
 
         #region Player Management
         /// <summary>
@@ -150,36 +59,6 @@ namespace Assets.Scripts.Game.Managers
         {
             foreach (Player player in LobbyManager.Instance.Lobby.Players)
                 await TogglePlayerReady(player, setUnready: true);
-        }
-        #endregion
-
-        #region Data Management
-
-        /// <summary>
-        /// Updates the player data in the lobby.
-        /// </summary>
-        /// <param name="player">The player to update.</param>
-        public async Task UpdatePlayerData(Player player, CSteamID steamId, Team team, PlayerStatus status)
-        {
-            PlayerData playerData = new();
-            playerData.Initialize(steamId, team, status);
-
-            await LobbyManager.Instance.UpdatePlayerData(player.Id, playerData.Serialize());
-        }
-
-        /// <summary>
-        /// Sets the selected map for the game.
-        /// </summary>
-        /// <param name="mapIndex">Index of the  map.</param>
-        /// <param name="roundCount">Number of rounds.</param>
-        /// <param name="roundTime">Time per round.</param>
-        /// <param name="gameMode">Game mode.</param>
-        public async Task UpdateLobbyData(int mapIndex, int roundCount, int roundTime, GameMode gameMode)
-        {
-            LobbyData lobbyData = new();
-            lobbyData.Initialize(mapIndex, roundCount, roundTime, gameMode);
-
-            await LobbyManager.Instance.UpdateLobbyData(lobbyData.Serialize());
         }
         #endregion
 

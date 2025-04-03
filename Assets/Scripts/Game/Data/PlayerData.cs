@@ -14,13 +14,6 @@ namespace Assets.Scripts.Game.Data
         public Team Team { get; set; } = Team.Blue;
         public PlayerStatus Status { get; set; } = PlayerStatus.NotReady;
 
-        public void Initialize(CSteamID steamId, Team team, PlayerStatus status)
-        {
-            Id = steamId;
-            Team = team;
-            Status = status;
-        }
-
         public Dictionary<string, PlayerDataObject> Serialize()
         {
             return new Dictionary<string, PlayerDataObject>

@@ -8,6 +8,8 @@ using Assets.Scripts.Game.UI.Components;
 using Assets.Scripts.Game.UI.Components.Options;
 using Assets.Scripts.Game.UI.Components.Options.ToggleSwitch;
 using Assets.Scripts.Framework.Managers;
+using Assets.Scripts.Game.Data;
+using Assets.Scripts.Game.Types;
 
 namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.CreateMenu
 {
@@ -89,8 +91,8 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.CreateMenu
             createButton.interactable = false;
             createText.text = "Creating...";
 
-            await Task.Delay(1500);
-            await GameLobbyManager.Instance.CreateLobby(lobbyName, isPrivate, maxPlayers);
+            LobbyData lobbyData = new() { MapIndex = 0, RoundCount = 5, RoundTime = 60, GameMode = GameMode.Teams, Status = LobbyStatus.InLobby };
+            await LobbyManager.Instance.CreateLobby(lobbyName, isPrivate, maxPlayers, lobbyData.Serialize());
 
             if (LobbyManager.Instance.Lobby != null)
                 createText.text = "Created!";

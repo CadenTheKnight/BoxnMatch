@@ -3,14 +3,13 @@ using Steamworks;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Threading.Tasks;
+using Assets.Scripts.Game.Data;
 using Assets.Scripts.Game.Types;
-using Assets.Scripts.Game.Managers;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Game.UI.Colors;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Framework.Utilities;
 using Assets.Scripts.Game.UI.Components.Options;
-
 
 namespace Assets.Scripts.Game.UI.Components.ListEntries
 {
@@ -26,6 +25,7 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
         [SerializeField] private RawImage profilePictureRawImage;
         [SerializeField] private Button changeTeamButton;
         [SerializeField] private Image teamIndicatorImage;
+        [SerializeField] private GameObject connectingStatePanel;
         [SerializeField] private GameObject inGameStatePanel;
         [SerializeField] private GameObject disconnectedStatePanel;
         [SerializeField] private GameObject optionsPanel;
@@ -77,14 +77,8 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
         {
             Player = player;
 
-            emptyStatePanel.SetActive(false);
-            activeStatePanel.SetActive(true);
-
-            isLocalPlayer = AuthenticationManager.Instance.LocalPlayer.Id == player.Id;
-            isLocalHost = AuthenticationManager.Instance.LocalPlayer.Id == LobbyManager.Instance.Lobby.HostId;
-
-            SetStatusPanel((PlayerStatus)int.Parse(player.Data["Status"].Value));
-            SetTeamColor((Team)int.Parse(Player.Data["Team"].Value));
+            SetTeam((Team)int.Parse(Player.Data["Team"].Value));
+            SetStatus((PlayerStatus)int.Parse(player.Data["Status"].Value));
             SetButtons();
             SetSteamInfo();
         }
@@ -97,27 +91,7 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             activeStatePanel.SetActive(false);
         }
 
-        private void SetStatusPanel(PlayerStatus status)
-        {
-            switch (status)
-            {
-                case PlayerStatus.Ready:
-                    nameText.color = UIColors.greenDefaultColor;
-                    break;
-                case PlayerStatus.NotReady:
-                    nameText.color = UIColors.redDefaultColor;
-                    break;
-                case PlayerStatus.InGame:
-                    nameText.color = UIColors.yellowDefaultColor;
-                    inGameStatePanel.SetActive(true);
-                    break;
-                case PlayerStatus.Disconnected:
-                    disconnectedStatePanel.SetActive(true);
-                    break;
-            }
-        }
-
-        private void SetTeamColor(Team team)
+        public void SetTeam(Team team)
         {
             teamIndicatorImage.color = TeamColors.GetColor(team);
 
@@ -131,11 +105,46 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             teamSelector.SetSelection((int)team, changeTeamButton.colors.normalColor, UIColors.primaryDisabledColor);
         }
 
-        private void SetButtons()
+        public void SetStatus(PlayerStatus status)
         {
+            switch (status)
+            {
+                case PlayerStatus.Ready:
+                    nameText.color = UIColors.greenDefaultColor;
+                    break;
+                case PlayerStatus.NotReady:
+                    nameText.color = UIColors.redDefaultColor;
+                    break;
+                case PlayerStatus.InGame:
+                    nameText.color = UIColors.yellowDefaultColor;
+                    inGameStatePanel.SetActive(true);
+                    break;
+            }
+        }
+
+        public void SetButtons()
+        {
+            isLocalPlayer = AuthenticationManager.Instance.LocalPlayer.Id == Player.Id;
+            isLocalHost = AuthenticationManager.Instance.LocalPlayer.Id == LobbyManager.Instance.Lobby.HostId;
+
             changeTeamButton.gameObject.SetActive(isLocalPlayer || isLocalHost);
             teamIndicatorImage.gameObject.SetActive(!isLocalPlayer && !isLocalHost);
             optionsButton.gameObject.SetActive(!isLocalPlayer);
+        }
+
+        public void SetConnecting()
+        {
+            connectingStatePanel.SetActive(true);
+        }
+
+        public void SetConnected()
+        {
+            connectingStatePanel.SetActive(false);
+        }
+
+        public void SetDisconnected()
+        {
+            disconnectedStatePanel.SetActive(true);
         }
 
         private void SetSteamInfo()
@@ -169,9 +178,12 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
         {
             changeTeamButton.interactable = false;
 
-            await GameLobbyManager.Instance.UpdatePlayerData(Player, (CSteamID)ulong.Parse(Player.Data["Id"].Value), team, (PlayerStatus)int.Parse(Player.Data["Status"].Value));
+            PlayerData playerData = new() { Id = (CSteamID)ulong.Parse(Player.Data["Id"].Value), Team = team, Status = (PlayerStatus)int.Parse(Player.Data["Status"].Value) };
+            await LobbyManager.Instance.UpdatePlayerData(Player.Id, playerData.Serialize());
+
             teamPanel.SetActive(false);
-            await Task.Delay(1000);
+
+            await Task.Delay(500);
 
             changeTeamButton.interactable = true;
         }
@@ -200,7 +212,7 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         private async void OnKickButtonClicked()
         {
-            await GameLobbyManager.Instance.KickPlayer(Player);
+            await LobbyManager.Instance.KickPlayer(Player);
         }
 
         private void OnAvatarImageLoaded(AvatarImageLoaded_t callback)

@@ -3,8 +3,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Threading.Tasks;
 using Assets.Scripts.Game.UI.Colors;
-using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Framework.Events;
+using Assets.Scripts.Framework.Managers;
 
 namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 {

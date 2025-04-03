@@ -1,4 +1,5 @@
 using UnityEngine;
+using Assets.Scripts.Game.Types;
 using System.Collections.Generic;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Events;
@@ -17,15 +18,25 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
         private void OnEnable()
         {
             LobbyEvents.OnPlayerJoined += OnPlayerJoined;
-            LobbyEvents.OnPlayerDataChanged += OnPlayerDataChanged;
             LobbyEvents.OnPlayerLeft += OnPlayerLeft;
+            LobbyEvents.OnPlayerDataChanged += OnPlayerDataChanged;
+            LobbyEvents.OnPlayerTeamChanged += OnPlayerTeamChanged;
+            LobbyEvents.OnPlayerStatusChanged += OnPlayerStatusChanged;
+            LobbyEvents.OnPlayerConnecting += OnPlayerConnecting;
+            LobbyEvents.OnPlayerConnected += OnPlayerConnect;
+            LobbyEvents.OnPlayerDisconnected += OnPlayerDisconnect;
         }
 
         private void OnDisable()
         {
             LobbyEvents.OnPlayerJoined -= OnPlayerJoined;
-            LobbyEvents.OnPlayerDataChanged -= OnPlayerDataChanged;
             LobbyEvents.OnPlayerLeft -= OnPlayerLeft;
+            LobbyEvents.OnPlayerDataChanged -= OnPlayerDataChanged;
+            LobbyEvents.OnPlayerTeamChanged -= OnPlayerTeamChanged;
+            LobbyEvents.OnPlayerStatusChanged -= OnPlayerStatusChanged;
+            LobbyEvents.OnPlayerConnecting -= OnPlayerConnecting;
+            LobbyEvents.OnPlayerConnected -= OnPlayerConnect;
+            LobbyEvents.OnPlayerDisconnected -= OnPlayerDisconnect;
         }
 
         private void Start()
@@ -50,21 +61,47 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             _playerListEntries.Add(newEntry);
         }
 
-        private void OnPlayerDataChanged(Player player, string key, string value)
-        {
-            PlayerListEntry entryToUpdate = _playerListEntries.Find(entry => entry.Player.Id == player.Id);
-            if (entryToUpdate != null)
-                entryToUpdate.SetPlayer(player);
-        }
-
         private void OnPlayerLeft(Player player)
         {
             PlayerListEntry entryToRemove = _playerListEntries.Find(entry => entry.Player.Id == player.Id);
-            if (entryToRemove != null)
-            {
-                entryToRemove.SetEmpty();
-                _playerListEntries.Remove(entryToRemove);
-            }
+            entryToRemove.SetEmpty();
+            _playerListEntries.Remove(entryToRemove);
+        }
+
+        private void OnPlayerDataChanged(Player player, string key, string value)
+        {
+            PlayerListEntry entryToUpdate = _playerListEntries.Find(entry => entry.Player.Id == player.Id);
+            entryToUpdate.SetButtons();
+        }
+
+        private void OnPlayerTeamChanged(Player player, Team team)
+        {
+            PlayerListEntry entryToUpdate = _playerListEntries.Find(entry => entry.Player.Id == player.Id);
+            entryToUpdate.SetTeam(team);
+        }
+
+        private void OnPlayerStatusChanged(Player player, PlayerStatus status)
+        {
+            PlayerListEntry entryToUpdate = _playerListEntries.Find(entry => entry.Player.Id == player.Id);
+            entryToUpdate.SetStatus(status);
+        }
+
+        private void OnPlayerConnecting(Player player)
+        {
+            PlayerListEntry entryToUpdate = _playerListEntries.Find(entry => entry.Player.Id == player.Id);
+            entryToUpdate.SetConnecting();
+        }
+
+        private void OnPlayerConnect(Player player)
+        {
+            PlayerListEntry entryToUpdate = _playerListEntries.Find(entry => entry.Player.Id == player.Id);
+            entryToUpdate.SetConnected();
+        }
+
+        private void OnPlayerDisconnect(Player player)
+        {
+            PlayerListEntry entryToUpdate = _playerListEntries.Find(entry => entry.Player.Id == player.Id);
+            entryToUpdate.SetDisconnected();
         }
     }
 }

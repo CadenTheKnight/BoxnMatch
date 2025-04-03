@@ -16,19 +16,6 @@ namespace Assets.Scripts.Game.Data
         public LobbyStatus Status { get; set; } = LobbyStatus.InLobby;
         public string RelayJoinCode { get; set; } = default;
 
-        public void Initialize(
-            int mapIndex = 0, int roundCount = 3, int roundTime = 90,
-            GameMode gameMode = GameMode.Teams, LobbyStatus status = LobbyStatus.InLobby,
-            string relayJoinCode = default)
-        {
-            MapIndex = mapIndex;
-            RoundCount = roundCount;
-            RoundTime = roundTime;
-            GameMode = gameMode;
-            Status = status;
-            RelayJoinCode = relayJoinCode;
-        }
-
         public Dictionary<string, DataObject> Serialize()
         {
             return new Dictionary<string, DataObject>

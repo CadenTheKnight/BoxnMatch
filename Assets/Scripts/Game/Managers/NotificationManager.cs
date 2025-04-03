@@ -28,14 +28,9 @@ namespace Assets.Scripts.Game.Managers
             LobbyEvents.OnLobbyJoined += ShowNotification;
             LobbyEvents.OnLobbyLeft += ShowNotification;
             LobbyEvents.OnLobbyKicked += ShowNotification;
-            // LobbyEvents.OnPlayerJoined += ShowNotification;
-            // LobbyEvents.OnPlayerLeft += ShowNotification;
-            // LobbyEvents.OnPlayerKicked += ShowNotification;
+
             LobbyEvents.OnLobbyQueryResponse += ShowNotification;
             LobbyEvents.OnLobbyError += ShowNotification;
-
-            LobbyEvents.OnLobbyDataUpdated += ShowNotification;
-            LobbyEvents.OnPlayerDataUpdated += ShowNotification;
 
         }
 
@@ -50,15 +45,9 @@ namespace Assets.Scripts.Game.Managers
             LobbyEvents.OnLobbyJoined -= ShowNotification;
             LobbyEvents.OnLobbyLeft -= ShowNotification;
             LobbyEvents.OnLobbyKicked -= ShowNotification;
-            // LobbyEvents.OnPlayerJoined -= ShowNotification;
-            // LobbyEvents.OnPlayerLeft -= ShowNotification;
-            // LobbyEvents.OnPlayerKicked -= ShowNotification;
+
             LobbyEvents.OnLobbyQueryResponse -= ShowNotification;
             LobbyEvents.OnLobbyError -= ShowNotification;
-
-            LobbyEvents.OnLobbyDataUpdated -= ShowNotification;
-
-            LobbyEvents.OnPlayerDataUpdated -= ShowNotification;
         }
 
         private void ShowNotification(OperationResult result)

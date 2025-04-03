@@ -19,18 +19,11 @@ namespace Assets.Scripts.Game.Events
         /// <param name="maxPlayerCount">The maximum number of players in the lobby.</param>
         public delegate void LobbyNotReadyHandler(int playersReady, int maxPlayerCount);
         public static event LobbyNotReadyHandler OnLobbyNotReady;
-
-        // /// <summary>
-        // /// Triggered when the match has started.
-        // /// </summary>
-        // public delegate void MatchStartedHandler();
-        // public static event MatchStartedHandler OnMatchStarted;
         #endregion
 
         #region Invocations
         public static void InvokeLobbyReady() => OnLobbyReady?.Invoke();
         public static void InvokeLobbyNotReady(int playersReady, int maxPlayerCount) => OnLobbyNotReady?.Invoke(playersReady, maxPlayerCount);
-        // public static void InvokeMatchStarted() => OnMatchStarted?.Invoke();
         #endregion
     }
 }

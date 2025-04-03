@@ -105,9 +105,9 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.JoinMenu
 
             await Task.Delay(1500);
             if (!string.IsNullOrEmpty(lobbyCodeInput.text) && lobbyCodeInput.text.Length == 6)
-                await GameLobbyManager.Instance.JoinLobbyByCode(lobbyCodeInput.text);
+                await LobbyManager.Instance.JoinLobbyByCode(lobbyCodeInput.text);
             else
-                await GameLobbyManager.Instance.JoinLobbyById(currentSelectedId);
+                await LobbyManager.Instance.JoinLobbyById(currentSelectedId);
 
             if (LobbyManager.Instance.Lobby != null)
                 joinText.text = "Joined!";
@@ -135,7 +135,7 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.JoinMenu
             refeshingLoadingBar.StartLoading();
 
             await Task.Delay(1500);
-            List<Lobby> lobbies = await GameLobbyManager.Instance.GetLobbies();
+            List<Lobby> lobbies = await LobbyManager.Instance.GetLobbies();
 
             foreach (LobbyListEntry entry in lobbyListContainer.GetComponentsInChildren<LobbyListEntry>())
                 DeleteLobbyListEntry(entry);
