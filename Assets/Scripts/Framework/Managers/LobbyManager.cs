@@ -294,9 +294,7 @@ namespace Assets.Scripts.Framework.Managers
                 await LobbyService.Instance.SubscribeToLobbyEventsAsync(lobbyId, lobbyEventCallbacks);
                 if (showDebugMessages) Debug.Log($"Successfully subscribed to events for lobby {lobbyId}");
 
-                cachedPlayersList.Clear();
-                foreach (Player player in lobby.Players)
-                    cachedPlayersList.Add(player);
+                UpdateCachedPlayers();
             }
             catch (LobbyServiceException ex)
             {
@@ -323,6 +321,13 @@ namespace Assets.Scripts.Framework.Managers
 
             lobbyEventCallbacks = null;
             cachedPlayersList.Clear();
+        }
+
+        private void UpdateCachedPlayers()
+        {
+            cachedPlayersList.Clear();
+            foreach (Player player in lobby.Players)
+                cachedPlayersList.Add(player);
         }
 
         private void OnLobbyChanged(ILobbyChanges lobbyChanges)
@@ -404,17 +409,25 @@ namespace Assets.Scripts.Framework.Managers
 
         private void OnPlayerDataChanged(Dictionary<int, Dictionary<string, ChangedOrRemovedLobbyValue<PlayerDataObject>>> changes)
         {
+            List<Player> currentPlayers = lobby.Players;
+            List<Player> tempPlayersList = new(cachedPlayersList);
+
+            UpdateCachedPlayers();
+
             if (showDebugMessages) Debug.Log($"Player data changed: {changes.Count} players");
             foreach (var kvp in changes)
             {
-                if (showDebugMessages) Debug.Log($"- Player {cachedPlayersList[kvp.Key].Id} data changed: {kvp.Value.Count} fields");
+                string playerId = tempPlayersList[kvp.Key].Id;
+                Player changedPlayer = currentPlayers.Find(player => player.Id == playerId);
+
+                if (showDebugMessages) Debug.Log($"- Player {playerId} data changed: {kvp.Value.Count} fields");
                 foreach (var dataChange in kvp.Value)
                 {
                     if (showDebugMessages) Debug.Log($"-- {dataChange.Key}: {dataChange.Value.Value.Value}");
                     if (dataChange.Key == "Status")
-                        LobbyEvents.InvokePlayerStatusChanged(cachedPlayersList[kvp.Key], (PlayerStatus)int.Parse(dataChange.Value.Value.Value));
+                        LobbyEvents.InvokePlayerStatusChanged(changedPlayer, (PlayerStatus)int.Parse(dataChange.Value.Value.Value));
                     else if (dataChange.Key == "Team")
-                        LobbyEvents.InvokePlayerTeamChanged(cachedPlayersList[kvp.Key], (Team)int.Parse(dataChange.Value.Value.Value));
+                        LobbyEvents.InvokePlayerTeamChanged(changedPlayer, (Team)int.Parse(dataChange.Value.Value.Value));
                 }
             }
         }

@@ -57,9 +57,9 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
         private void OnPlayerJoined(Player player)
         {
             Debug.Log($"Player {player.Id} getting a list entry.");
-            PlayerListEntry newEntry = Instantiate(_playerListEntries[LobbyManager.Instance.Lobby.Players.Count], transform);
-            newEntry.SetPlayer(player);
-            _playerListEntries.Add(newEntry);
+            PlayerListEntry emptyEntry = _playerListEntries.Find(entry => entry.Player == null);
+            emptyEntry.SetPlayer(player);
+            _playerListEntries.Add(emptyEntry);
         }
 
         private void OnPlayerLeft(Player player)
