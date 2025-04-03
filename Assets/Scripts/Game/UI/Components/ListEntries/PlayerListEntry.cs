@@ -77,6 +77,9 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
         {
             Player = player;
 
+            emptyStatePanel.SetActive(false);
+            activeStatePanel.SetActive(true);
+
             SetTeam((Team)int.Parse(Player.Data["Team"].Value));
             SetStatus((PlayerStatus)int.Parse(player.Data["Status"].Value));
             SetButtons();
