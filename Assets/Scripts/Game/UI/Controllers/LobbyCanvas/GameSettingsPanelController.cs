@@ -40,7 +40,10 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
         {
             editUpdateButton.onClick.AddListener(OnEditUpdateClicked);
 
-            LobbyEvents.OnLobbyDataChanged += OnLobbyDataChanged;
+            LobbyEvents.OnLobbyMapIndexChanged += OnLobbyMapIndexChanged;
+            LobbyEvents.OnLobbyRoundCountChanged += OnLobbyRoundCountChanged;
+            LobbyEvents.OnLobbyRoundTimeChanged += OnLobbyRoundTimeChanged;
+            LobbyEvents.OnLobbyGameModeChanged += OnLobbyGameModeChanged;
             LobbyEvents.OnNewLobbyHost += OnNewLobbyHost;
         }
 
@@ -48,14 +51,17 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
         {
             editUpdateButton.onClick.RemoveListener(OnEditUpdateClicked);
 
-            LobbyEvents.OnLobbyDataChanged -= OnLobbyDataChanged;
+            LobbyEvents.OnLobbyMapIndexChanged -= OnLobbyMapIndexChanged;
+            LobbyEvents.OnLobbyRoundCountChanged -= OnLobbyRoundCountChanged;
+            LobbyEvents.OnLobbyRoundTimeChanged -= OnLobbyRoundTimeChanged;
+            LobbyEvents.OnLobbyGameModeChanged -= OnLobbyGameModeChanged;
             LobbyEvents.OnNewLobbyHost -= OnNewLobbyHost;
         }
         private async void OnEditUpdateClicked()
         {
             isEditing = !isEditing;
-            if (AuthenticationManager.Instance.LocalPlayer.Id == LobbyManager.Instance.Lobby.HostId)
-                UpdateInteractable(isEditing);
+            UpdateInteractable(isEditing);
+
             if (!isEditing)
             {
                 editUpdateText.text = "Updating...";
@@ -64,11 +70,11 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
                 LobbyData lobbyData = new() { MapIndex = mapChanger.Value, RoundCount = roundCountIncrementer.Value, RoundTime = roundTimeIncrementer.Value, GameMode = (GameMode)gameModeSelector.Selection };
                 await LobbyManager.Instance.UpdateLobbyData(lobbyData.Serialize());
 
+                editUpdateText.text = "Updated!";
                 await Task.Delay(1000);
 
                 editUpdateButton.interactable = true;
             }
-
             UpdateEditUpdateButton(isEditing);
         }
 
@@ -77,12 +83,27 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             editUpdateButton.interactable = true;
         }
 
-        private void OnLobbyDataChanged(OperationResult result)
+        private void OnLobbyMapIndexChanged(int mapIndex)
         {
-            UpdateSelections();
+            mapChanger.SetValue(mapIndex);
         }
 
-        public void UpdateSelections()
+        private void OnLobbyRoundCountChanged(int roundCount)
+        {
+            roundCountIncrementer.SetValue(roundCount);
+        }
+
+        private void OnLobbyRoundTimeChanged(int roundTime)
+        {
+            roundTimeIncrementer.SetValue(roundTime);
+        }
+
+        private void OnLobbyGameModeChanged(GameMode gameMode)
+        {
+            gameModeSelector.SetSelection((int)gameMode, true);
+        }
+
+        private void UpdateSelections()
         {
             mapChanger.SetValue(int.Parse(LobbyManager.Instance.Lobby.Data["MapIndex"].Value));
             roundCountIncrementer.SetValue(int.Parse(LobbyManager.Instance.Lobby.Data["RoundCount"].Value));

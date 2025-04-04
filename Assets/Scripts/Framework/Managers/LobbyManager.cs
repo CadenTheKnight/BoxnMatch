@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using System.Collections;
 using System.Threading.Tasks;
@@ -20,11 +21,9 @@ namespace Assets.Scripts.Framework.Managers
         [Header("Debug Options")]
         [SerializeField] private bool showDebugMessages = false;
 
-        private Lobby lobby;
-        public Lobby Lobby => lobby;
+        public Lobby Lobby;
         private LobbyEventCallbacks lobbyEventCallbacks;
         private bool isVoluntarilyLeaving = false;
-        private readonly List<Player> cachedPlayersList = new();
 
         /// <summary>
         /// Retrieves list of all active lobbies.
@@ -100,11 +99,11 @@ namespace Assets.Scripts.Framework.Managers
 
             try
             {
-                lobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, maxPlayers, createLobbyOptions);
-                SubscribeToLobbyEvents(lobby.Id);
+                Lobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, maxPlayers, createLobbyOptions);
+                SubscribeToLobbyEvents(Lobby.Id);
                 await GameLobbyManager.Instance.TogglePlayerReady(AuthenticationManager.Instance.LocalPlayer, setReady: true);
-                _heartbeatCoroutine = StartCoroutine(HeartbeatCoroutine(lobby.Id, 6f));
-                LobbyEvents.InvokeLobbyCreated(OperationResult.SuccessResult("CreateLobby", $"Created lobby: {lobby.Name}"));
+                _heartbeatCoroutine = StartCoroutine(HeartbeatCoroutine(Lobby.Id, 6f));
+                LobbyEvents.InvokeLobbyCreated(OperationResult.SuccessResult("CreateLobby", $"Created lobby: {Lobby.Name}"));
             }
             catch (LobbyServiceException e)
             {
@@ -125,10 +124,10 @@ namespace Assets.Scripts.Framework.Managers
 
             try
             {
-                lobby = await LobbyService.Instance.JoinLobbyByCodeAsync(lobbyCode, joinLobbyByCodeOptions);
-                SubscribeToLobbyEvents(lobby.Id);
+                Lobby = await LobbyService.Instance.JoinLobbyByCodeAsync(lobbyCode, joinLobbyByCodeOptions);
+                SubscribeToLobbyEvents(Lobby.Id);
                 await GameLobbyManager.Instance.TogglePlayerReady(AuthenticationManager.Instance.LocalPlayer, setUnready: true);
-                LobbyEvents.InvokeLobbyJoined(OperationResult.SuccessResult("JoinLobbyByCode", $"Joined lobby: {lobby.Name}"));
+                LobbyEvents.InvokeLobbyJoined(OperationResult.SuccessResult("JoinLobbyByCode", $"Joined lobby: {Lobby.Name}"));
             }
             catch (LobbyServiceException e)
             {
@@ -149,10 +148,10 @@ namespace Assets.Scripts.Framework.Managers
 
             try
             {
-                lobby = await LobbyService.Instance.JoinLobbyByIdAsync(lobbyId, joinLobbyByIdOptions);
-                SubscribeToLobbyEvents(lobby.Id);
+                Lobby = await LobbyService.Instance.JoinLobbyByIdAsync(lobbyId, joinLobbyByIdOptions);
+                SubscribeToLobbyEvents(Lobby.Id);
                 await GameLobbyManager.Instance.TogglePlayerReady(AuthenticationManager.Instance.LocalPlayer, setUnready: true);
-                LobbyEvents.InvokeLobbyJoined(OperationResult.SuccessResult("JoinLobbyById", $"Joined lobby: {lobby.Name}"));
+                LobbyEvents.InvokeLobbyJoined(OperationResult.SuccessResult("JoinLobbyById", $"Joined lobby: {Lobby.Name}"));
             }
             catch (LobbyServiceException e)
             {
@@ -173,9 +172,9 @@ namespace Assets.Scripts.Framework.Managers
                     await LobbyService.Instance.RemovePlayerAsync(lobbyId, AuthenticationManager.Instance.LocalPlayer.Id);
                 }
 
-                lobby = await LobbyService.Instance.ReconnectToLobbyAsync(joinedLobbyIds[0]);
-                SubscribeToLobbyEvents(lobby.Id);
-                AuthenticationEvents.InvokeLobbyRejoined(OperationResult.SuccessResult("RejoinLobby", $"Rejoined lobby: {lobby.Name}"));
+                Lobby = await LobbyService.Instance.ReconnectToLobbyAsync(joinedLobbyIds[0]);
+                SubscribeToLobbyEvents(Lobby.Id);
+                AuthenticationEvents.InvokeLobbyRejoined(OperationResult.SuccessResult("RejoinLobby", $"Rejoined lobby: {Lobby.Name}"));
             }
             catch (System.Exception e)
             {
@@ -191,7 +190,7 @@ namespace Assets.Scripts.Framework.Managers
             try
             {
                 isVoluntarilyLeaving = true;
-                await LobbyService.Instance.RemovePlayerAsync(lobby.Id, AuthenticationManager.Instance.LocalPlayer.Id);
+                await LobbyService.Instance.RemovePlayerAsync(Lobby.Id, AuthenticationManager.Instance.LocalPlayer.Id);
             }
             catch (LobbyServiceException e)
             {
@@ -208,7 +207,7 @@ namespace Assets.Scripts.Framework.Managers
         {
             try
             {
-                await LobbyService.Instance.RemovePlayerAsync(lobby.Id, player.Id);
+                await LobbyService.Instance.RemovePlayerAsync(Lobby.Id, player.Id);
                 LobbyEvents.InvokePlayerKicked(player);
             }
             catch (LobbyServiceException e)
@@ -238,7 +237,8 @@ namespace Assets.Scripts.Framework.Managers
 
             try
             {
-                lobby = await LobbyService.Instance.UpdatePlayerAsync(lobby.Id, playerId, updatePlayerOptions);
+                Lobby = await LobbyService.Instance.UpdatePlayerAsync(Lobby.Id, playerId, updatePlayerOptions);
+                LobbyEvents.InvokePlayerDataChanged(OperationResult.SuccessResult("UpdatePlayerData", $"Updated player data for {playerId}"));
             }
             catch (LobbyServiceException e)
             {
@@ -259,7 +259,8 @@ namespace Assets.Scripts.Framework.Managers
 
             try
             {
-                lobby = await LobbyService.Instance.UpdateLobbyAsync(lobby.Id, updateLobbyOptions);
+                Lobby = await LobbyService.Instance.UpdateLobbyAsync(Lobby.Id, updateLobbyOptions);
+                LobbyEvents.InvokeLobbyDataChanged(OperationResult.SuccessResult("UpdateLobbyData", $"Updated lobby data for {Lobby.Name}"));
             }
             catch (LobbyServiceException e)
             {
@@ -290,8 +291,6 @@ namespace Assets.Scripts.Framework.Managers
             {
                 await LobbyService.Instance.SubscribeToLobbyEventsAsync(lobbyId, lobbyEventCallbacks);
                 if (showDebugMessages) Debug.Log($"Successfully subscribed to events for lobby {lobbyId}");
-
-                UpdateCachedPlayers();
             }
             catch (LobbyServiceException ex)
             {
@@ -304,7 +303,7 @@ namespace Assets.Scripts.Framework.Managers
         /// </summary>
         private void UnsubscribeFromLobbyEvents()
         {
-            if (lobbyEventCallbacks == null || lobby == null) return;
+            if (lobbyEventCallbacks == null || Lobby == null) return;
 
             lobbyEventCallbacks.LobbyChanged -= OnLobbyChanged;
             lobbyEventCallbacks.PlayerJoined -= OnPlayerJoined;
@@ -314,17 +313,9 @@ namespace Assets.Scripts.Framework.Managers
             lobbyEventCallbacks.KickedFromLobby -= OnKickedFromLobby;
             lobbyEventCallbacks.LobbyEventConnectionStateChanged -= OnLobbyEventConnectionStateChanged;
 
-            if (showDebugMessages) Debug.Log($"Unsubscribed from events for lobby {lobby.Id}");
+            if (showDebugMessages) Debug.Log($"Unsubscribed from events for lobby {Lobby.Id}");
 
             lobbyEventCallbacks = null;
-            cachedPlayersList.Clear();
-        }
-
-        private void UpdateCachedPlayers()
-        {
-            cachedPlayersList.Clear();
-            foreach (Player player in lobby.Players)
-                cachedPlayersList.Add(player);
         }
 
         private void OnLobbyChanged(ILobbyChanges lobbyChanges)
@@ -341,7 +332,7 @@ namespace Assets.Scripts.Framework.Managers
 
                     if (_heartbeatCoroutine == null)
                     {
-                        _heartbeatCoroutine = StartCoroutine(HeartbeatCoroutine(lobby.Id, 6f));
+                        _heartbeatCoroutine = StartCoroutine(HeartbeatCoroutine(Lobby.Id, 6f));
                         if (showDebugMessages) Debug.Log("Started heartbeat coroutine as new host");
                     }
                 }
@@ -369,7 +360,6 @@ namespace Assets.Scripts.Framework.Managers
         {
             foreach (LobbyPlayerJoined playerJoined in playersJoined)
             {
-                cachedPlayersList.Add(playerJoined.Player);
                 if (showDebugMessages) Debug.Log($"Player {playerJoined.Player.Id} joined the lobby");
                 LobbyEvents.InvokePlayerJoined(playerJoined.Player);
             }
@@ -379,9 +369,8 @@ namespace Assets.Scripts.Framework.Managers
         {
             foreach (int playerIndex in playerIndices)
             {
-                if (showDebugMessages) Debug.Log($"Player {cachedPlayersList[playerIndex].Id} left the lobby");
-                LobbyEvents.InvokePlayerLeft(cachedPlayersList[playerIndex]);
-                cachedPlayersList.Remove(cachedPlayersList[playerIndex]);
+                if (showDebugMessages) Debug.Log($"Player {Lobby.Players[playerIndex].Id} left the lobby");
+                LobbyEvents.InvokePlayerLeft(Lobby.Players[playerIndex]);
             }
         }
 
@@ -398,36 +387,26 @@ namespace Assets.Scripts.Framework.Managers
                 else if (kvp.Key == "RoundTime")
                     LobbyEvents.InvokeLobbyRoundTimeChanged(int.Parse(kvp.Value.Value.Value));
                 else if (kvp.Key == "GameMode")
-                    LobbyEvents.InvokeLobbyGameModeChanged((GameMode)int.Parse(kvp.Value.Value.Value));
+                    LobbyEvents.InvokeLobbyGameModeChanged(Enum.Parse<GameMode>(kvp.Value.Value.Value));
                 else if (kvp.Key == "Status")
-                    LobbyEvents.InvokeLobbyStatusChanged((LobbyStatus)int.Parse(kvp.Value.Value.Value));
+                    LobbyEvents.InvokeLobbyStatusChanged(Enum.Parse<LobbyStatus>(kvp.Value.Value.Value));
             }
-            LobbyEvents.InvokeLobbyDataChanged(OperationResult.SuccessResult("UpdateLobbyData", $"Updated lobby data for {lobby.Name}"));
         }
 
         private void OnPlayerDataChanged(Dictionary<int, Dictionary<string, ChangedOrRemovedLobbyValue<PlayerDataObject>>> changes)
         {
-            List<Player> currentPlayers = lobby.Players;
-            List<Player> tempPlayersList = new(cachedPlayersList);
-
-            UpdateCachedPlayers();
-
             if (showDebugMessages) Debug.Log($"Player data changed: {changes.Count} players");
             foreach (var kvp in changes)
             {
-                string playerId = tempPlayersList[kvp.Key].Id;
-                Player changedPlayer = currentPlayers.Find(player => player.Id == playerId);
-
-                if (showDebugMessages) Debug.Log($"- Player {playerId} data changed: {kvp.Value.Count} fields");
+                if (showDebugMessages) Debug.Log($"- Player {Lobby.Players[kvp.Key].Id} data changed: {kvp.Value.Count} fields");
                 foreach (var dataChange in kvp.Value)
                 {
                     if (showDebugMessages) Debug.Log($"-- {dataChange.Key}: {dataChange.Value.Value.Value}");
                     if (dataChange.Key == "Status")
-                        LobbyEvents.InvokePlayerStatusChanged(changedPlayer, (PlayerStatus)int.Parse(dataChange.Value.Value.Value));
+                        LobbyEvents.InvokePlayerStatusChanged(Lobby.Players[kvp.Key], Enum.Parse<PlayerStatus>(dataChange.Value.Value.Value));
                     else if (dataChange.Key == "Team")
-                        LobbyEvents.InvokePlayerTeamChanged(changedPlayer, (Team)int.Parse(dataChange.Value.Value.Value));
+                        LobbyEvents.InvokePlayerTeamChanged(Lobby.Players[kvp.Key], Enum.Parse<Team>(dataChange.Value.Value.Value));
                 }
-                LobbyEvents.InvokePlayerDataChanged(changedPlayer);
             }
         }
 
@@ -435,21 +414,21 @@ namespace Assets.Scripts.Framework.Managers
         {
             if (isVoluntarilyLeaving)
             {
-                if (lobby.Players.Count > 1)
+                if (Lobby.Players.Count > 1)
                 {
-                    if (showDebugMessages) Debug.Log($"Left lobby: {lobby.Name}");
-                    LobbyEvents.InvokeLobbyLeft(OperationResult.SuccessResult("LeaveLobby", $"Left lobby: {lobby.Name}"));
+                    if (showDebugMessages) Debug.Log($"Left lobby: {Lobby.Name}");
+                    LobbyEvents.InvokeLobbyLeft(OperationResult.SuccessResult("LeaveLobby", $"Left lobby: {Lobby.Name}"));
                 }
                 else
                 {
-                    if (showDebugMessages) Debug.Log($"Left and deleted lobby: {lobby.Name}");
-                    LobbyEvents.InvokeLobbyLeft(OperationResult.SuccessResult("LeaveLobby", $"Left and deleted lobby: {lobby.Name}"));
+                    if (showDebugMessages) Debug.Log($"Left and deleted lobby: {Lobby.Name}");
+                    LobbyEvents.InvokeLobbyLeft(OperationResult.SuccessResult("LeaveLobby", $"Left and deleted lobby: {Lobby.Name}"));
                 }
             }
             else
             {
-                if (showDebugMessages) Debug.Log($"Kicked from lobby: {lobby.Name}");
-                LobbyEvents.InvokeLobbyKicked(OperationResult.ErrorResult("KickedFromLobby", $"Kicked from lobby: {lobby.Name}"));
+                if (showDebugMessages) Debug.Log($"Kicked from lobby: {Lobby.Name}");
+                LobbyEvents.InvokeLobbyKicked(OperationResult.ErrorResult("KickedFromLobby", $"Kicked from lobby: {Lobby.Name}"));
             }
 
             ClearLobby();
@@ -475,8 +454,7 @@ namespace Assets.Scripts.Framework.Managers
                 StopCoroutine(_heartbeatCoroutine);
                 _heartbeatCoroutine = null;
             }
-            lobby = null;
-            cachedPlayersList.Clear();
+            Lobby = null;
         }
         #endregion
     }

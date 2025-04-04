@@ -1,8 +1,8 @@
 using TMPro;
+using System;
 using Steamworks;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Threading.Tasks;
 using Assets.Scripts.Game.Data;
 using Assets.Scripts.Game.Types;
 using Unity.Services.Lobbies.Models;
@@ -10,7 +10,6 @@ using Assets.Scripts.Game.UI.Colors;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Framework.Utilities;
 using Assets.Scripts.Game.UI.Components.Options;
-using System;
 
 namespace Assets.Scripts.Game.UI.Components.ListEntries
 {
@@ -131,6 +130,7 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             isLocalPlayer = AuthenticationManager.Instance.LocalPlayer.Id == Player.Id;
             isLocalHost = AuthenticationManager.Instance.LocalPlayer.Id == LobbyManager.Instance.Lobby.HostId;
 
+            nameText.text += " (Host)";
             changeTeamButton.gameObject.SetActive(isLocalPlayer || isLocalHost);
             teamIndicatorImage.gameObject.SetActive(!isLocalPlayer && !isLocalHost);
             optionsButton.gameObject.SetActive(!isLocalPlayer);
@@ -149,12 +149,6 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
         public void SetDisconnected()
         {
             disconnectedStatePanel.SetActive(true);
-        }
-
-        public void SetHost()
-        {
-            nameText.text += " (Host)";
-            isLocalHost = true;
         }
 
         private void SetSteamInfo()
@@ -186,7 +180,7 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         private async void ChangeTeam(Team team)
         {
-            PlayerData playerData = new() { Id = (CSteamID)ulong.Parse(Player.Data["Id"].Value), Team = team, Status = (PlayerStatus)int.Parse(Player.Data["Status"].Value) };
+            PlayerData playerData = new() { Id = (CSteamID)ulong.Parse(Player.Data["Id"].Value), Team = team, Status = Enum.Parse<PlayerStatus>(Player.Data["Status"].Value) };
             await LobbyManager.Instance.UpdatePlayerData(Player.Id, playerData.Serialize());
 
             teamPanel.SetActive(false);

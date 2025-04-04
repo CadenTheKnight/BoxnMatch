@@ -37,7 +37,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             startButton.onClick.AddListener(OnStartClicked);
             readyUnreadyButton.onClick.AddListener(OnReadyUnreadyClicked);
 
-            LobbyEvents.OnPlayerDataChanged += OnPlayerDataChanged;
+            LobbyEvents.OnPlayerStatusChanged += OnPlayerStatusChanged;
             LobbyEvents.OnNewLobbyHost += OnNewLobbyHost;
 
             Events.LobbyEvents.OnLobbyReady += OnLobbyReady;
@@ -50,7 +50,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             startButton.onClick.RemoveListener(OnStartClicked);
             readyUnreadyButton.onClick.RemoveListener(OnReadyUnreadyClicked);
 
-            LobbyEvents.OnPlayerDataChanged -= OnPlayerDataChanged;
+            LobbyEvents.OnPlayerStatusChanged -= OnPlayerStatusChanged;
             LobbyEvents.OnNewLobbyHost -= OnNewLobbyHost;
 
             Events.LobbyEvents.OnLobbyReady -= OnLobbyReady;
@@ -125,9 +125,9 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             readyUnreadyButton.interactable = true;
         }
 
-        private void OnPlayerDataChanged(Player player)
+        private void OnPlayerStatusChanged(Player player, PlayerStatus newStatus)
         {
-            SetReadyUnreadyButton(player.Data["Status"].Value == PlayerStatus.Ready.ToString());
+            SetReadyUnreadyButton(newStatus == PlayerStatus.Ready);
         }
 
         private void OnNewLobbyHost(Player player)
