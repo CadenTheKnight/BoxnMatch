@@ -24,6 +24,7 @@ namespace Assets.Scripts.Framework.Managers
         public Lobby Lobby;
         private LobbyEventCallbacks lobbyEventCallbacks;
         private bool isVoluntarilyLeaving = false;
+        private List<Player> cachedPlayersList = new List<Player>();
 
         /// <summary>
         /// Retrieves list of all active lobbies.
@@ -353,6 +354,7 @@ namespace Assets.Scripts.Framework.Managers
                 if (showDebugMessages) Debug.Log($"Lobby name changed to {lobbyChanges.Name.Value}");
             }
 
+            cachedPlayersList = new List<Player>(Lobby.Players);
             LobbyEvents.InvokeLobbyChanged();
         }
 
@@ -360,6 +362,7 @@ namespace Assets.Scripts.Framework.Managers
         {
             foreach (LobbyPlayerJoined playerJoined in playersJoined)
             {
+                cachedPlayersList.Add(playerJoined.Player);
                 if (showDebugMessages) Debug.Log($"Player {playerJoined.Player.Id} joined the lobby");
                 LobbyEvents.InvokePlayerJoined(playerJoined.Player);
             }
@@ -369,14 +372,23 @@ namespace Assets.Scripts.Framework.Managers
         {
             foreach (int playerIndex in playerIndices)
             {
-                if (showDebugMessages) Debug.Log($"Player {Lobby.Players[playerIndex].Id} left the lobby");
-                LobbyEvents.InvokePlayerLeft(Lobby.Players[playerIndex]);
+                if (playerIndex < 0 || playerIndex >= cachedPlayersList.Count)
+                {
+                    Debug.LogError($"Invalid player index: {playerIndex}");
+                    continue;
+                }
+
+                Player leavingPlayer = cachedPlayersList[playerIndex];
+
+                if (showDebugMessages) Debug.Log($"Player {leavingPlayer.Id} left the lobby");
+                LobbyEvents.InvokePlayerLeft(leavingPlayer);
+                cachedPlayersList.RemoveAt(playerIndex);
             }
         }
 
         private void OnDataChanged(Dictionary<string, ChangedOrRemovedLobbyValue<DataObject>> dataChanges)
         {
-            if (showDebugMessages) Debug.Log($"Lobby data changed: {dataChanges.Count} fields");
+            if (showDebugMessages) Debug.Log($"Lobby data changed: {dataChanges.Count} " + (dataChanges.Count == 1 ? "field" : "fields"));
             foreach (var kvp in dataChanges)
             {
                 if (showDebugMessages) Debug.Log($"- {kvp.Key}: {kvp.Value.Value.Value}");
@@ -395,17 +407,26 @@ namespace Assets.Scripts.Framework.Managers
 
         private void OnPlayerDataChanged(Dictionary<int, Dictionary<string, ChangedOrRemovedLobbyValue<PlayerDataObject>>> changes)
         {
-            if (showDebugMessages) Debug.Log($"Player data changed: {changes.Count} players");
+            if (showDebugMessages) Debug.Log($"Player data changed: {changes.Count} " + (changes.Count == 1 ? "player" : "players"));
             foreach (var kvp in changes)
             {
-                if (showDebugMessages) Debug.Log($"- Player {Lobby.Players[kvp.Key].Id} data changed: {kvp.Value.Count} fields");
+                int playerIndex = kvp.Key;
+                if (playerIndex < 0 || playerIndex >= Lobby.Players.Count)
+                {
+                    Debug.LogWarning($"Player index {playerIndex} out of range (max: {Lobby.Players.Count - 1})");
+                    continue;
+                }
+                Player player = Lobby.Players[playerIndex];
+                string playerId = player.Id;
+
+                if (showDebugMessages) Debug.Log($"- Player {kvp.Key} data changed: {kvp.Value.Count} fields");
                 foreach (var dataChange in kvp.Value)
                 {
                     if (showDebugMessages) Debug.Log($"-- {dataChange.Key}: {dataChange.Value.Value.Value}");
                     if (dataChange.Key == "Status")
-                        LobbyEvents.InvokePlayerStatusChanged(Lobby.Players[kvp.Key], Enum.Parse<PlayerStatus>(dataChange.Value.Value.Value));
+                        LobbyEvents.InvokePlayerStatusChanged(player, Enum.Parse<PlayerStatus>(dataChange.Value.Value.Value));
                     else if (dataChange.Key == "Team")
-                        LobbyEvents.InvokePlayerTeamChanged(Lobby.Players[kvp.Key], Enum.Parse<Team>(dataChange.Value.Value.Value));
+                        LobbyEvents.InvokePlayerTeamChanged(player, Enum.Parse<Team>(dataChange.Value.Value.Value));
                 }
             }
         }
