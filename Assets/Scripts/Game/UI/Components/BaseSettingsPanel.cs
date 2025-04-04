@@ -7,7 +7,8 @@ namespace Assets.Scripts.Game.UI.Components
     {
         public event Action OnSettingsChanged;
 
-        protected bool _hasChanges = false;
+        protected bool hasChanges = false;
+        protected bool defaultsLoaded = false;
 
         public abstract void LoadSettings();
 
@@ -17,8 +18,6 @@ namespace Assets.Scripts.Game.UI.Components
 
         public abstract void ApplyChanges();
 
-        public virtual bool HasChanges() => _hasChanges;
-
         protected void NotifySettingsChanged()
         {
             OnSettingsChanged?.Invoke();
@@ -26,7 +25,7 @@ namespace Assets.Scripts.Game.UI.Components
 
         protected virtual void ResetChangeTracking()
         {
-            _hasChanges = false;
+            hasChanges = false;
             NotifySettingsChanged();
         }
     }

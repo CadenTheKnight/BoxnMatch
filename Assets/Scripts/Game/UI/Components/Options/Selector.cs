@@ -14,9 +14,49 @@ namespace Assets.Scripts.Game.UI.Components.Options
         [Header("Selector Settings")]
         [SerializeField] private bool allowDeselection = true;
 
-        [Header("Appearance")]
-        [SerializeField] private Color selectedColor = UIColors.primaryHoverColor;
-        [SerializeField] private Color unselectedColor = UIColors.primaryDefaultColor;
+        [Header("Color Settings")]
+        [SerializeField] private Color selectedColor = UIColors.greenDefaultColor;
+        [SerializeField] private Color selectedHoverColor = UIColors.greenHoverColor;
+        [SerializeField] private Color unselectedColor = UIColors.grayDefaultColor;
+        [SerializeField] private Color unselectedHoverColor = UIColors.primaryPressedColor;
+        [SerializeField] private Color selectedDisabledColor = UIColors.primaryPressedColor;
+        [SerializeField] private Color unselectedDisabledColor = UIColors.secondaryDisabledColor;
+
+        public Color SelectedColor
+        {
+            get => selectedColor;
+            set { selectedColor = value; UpdateButtons(); }
+        }
+
+        public Color SelectedHoverColor
+        {
+            get => selectedHoverColor;
+            set { selectedHoverColor = value; UpdateButtons(); }
+        }
+
+        public Color UnselectedColor
+        {
+            get => unselectedColor;
+            set { unselectedColor = value; UpdateButtons(); }
+        }
+
+        public Color UnselectedHoverColor
+        {
+            get => unselectedHoverColor;
+            set { unselectedHoverColor = value; UpdateButtons(); }
+        }
+
+        public Color SelectedDisabledColor
+        {
+            get => selectedDisabledColor;
+            set { selectedDisabledColor = value; UpdateButtons(); }
+        }
+
+        public Color UnselectedDisabledColor
+        {
+            get => unselectedDisabledColor;
+            set { unselectedDisabledColor = value; UpdateButtons(); }
+        }
 
         public Action<int> onSelectionChanged;
 
@@ -34,66 +74,47 @@ namespace Assets.Scripts.Game.UI.Components.Options
                 selectionButton.onClick.RemoveListener(() => OnButtonClicked(selectionButtons.IndexOf(selectionButton)));
         }
 
-        public void ClearSelection()
+        private void Select(int index)
+        {
+            if (index < 0 || index >= selectionButtons.Count) return;
+            Selection = index;
+        }
+
+        public void Clear()
         {
             if (Selection == -1 || !allowDeselection) return;
             Selection = -1;
-            UpdateButtonAppearance();
-            onSelectionChanged?.Invoke(Selection);
         }
 
         public void SetSelection(int index, bool selected)
         {
-            if (selected && index != Selection) HandleNewSelection(index);
-            else if (!selected && index == Selection) ClearSelection();
-        }
-
-        // used for team selectors that need different selection colors
-        public void SetSelection(int index, Color selectedColor, Color unselectedColor)
-        {
-            if (index < 0 || index >= selectionButtons.Count) return;
-            Selection = index;
-            UpdateButtonAppearance();
+            if (selected && index != Selection) Select(index);
+            else if (!selected && index == Selection) Clear();
+            UpdateButtons();
             onSelectionChanged?.Invoke(Selection);
-
-            foreach (Button selectionButton in selectionButtons)
-            {
-                ColorBlock colors = selectionButton.colors;
-
-                bool isSelected = selectionButtons.IndexOf(selectionButton) == Selection;
-
-                colors.normalColor = isSelected ? selectedColor : unselectedColor;
-                colors.selectedColor = isSelected ? selectedColor : colors.highlightedColor;
-                colors.disabledColor = isSelected ? selectedColor : unselectedColor;
-
-                selectionButton.colors = colors;
-            }
         }
 
         private void OnButtonClicked(int index)
         {
-            if (index == Selection) ClearSelection();
-            else HandleNewSelection(index);
-        }
-
-        private void HandleNewSelection(int index)
-        {
-            if (index < 0 || index >= selectionButtons.Count) return;
-            Selection = index;
-            UpdateButtonAppearance();
+            if (Selection != index) Select(index);
+            else if (allowDeselection) Clear();
+            UpdateButtons();
             onSelectionChanged?.Invoke(Selection);
         }
-        private void UpdateButtonAppearance()
+
+        private void UpdateButtons()
         {
             foreach (Button selectionButton in selectionButtons)
             {
+                bool selected = selectionButtons.IndexOf(selectionButton) == Selection;
+
                 ColorBlock colors = selectionButton.colors;
 
-                bool isSelected = selectionButtons.IndexOf(selectionButton) == Selection;
-
-                colors.normalColor = isSelected ? selectedColor : unselectedColor;
-                colors.selectedColor = isSelected ? selectedColor : colors.highlightedColor;
-                colors.disabledColor = isSelected ? selectedColor : unselectedColor;
+                colors.normalColor = selected ? selectedColor : unselectedColor;
+                colors.selectedColor = selected ? selectedColor : unselectedColor;
+                colors.highlightedColor = selected ? selectedHoverColor : unselectedHoverColor;
+                colors.pressedColor = selected ? selectedHoverColor : unselectedHoverColor;
+                colors.disabledColor = selected ? selectedDisabledColor : unselectedDisabledColor;
 
                 selectionButton.colors = colors;
             }

@@ -19,40 +19,36 @@ namespace Assets.Scripts.Game.UI.Components.Options.ToggleSwitch
         [SerializeField] private Color onHandleColor;
         [SerializeField] private Color offHandleColor;
 
-        private bool _isBackgroundImageNotNull;
-        private bool _isHandleImageNotNull;
-
         private void OnEnable()
         {
-            transitionEffect += ChangeColors;
+            changeColors += ChangeColors;
+            transitionEffect += TransitionColors;
+
         }
 
         private void OnDisable()
         {
-            transitionEffect -= ChangeColors;
+            changeColors -= ChangeColors;
+            transitionEffect -= TransitionColors;
         }
 
-        protected override void Awake()
+        private void ChangeColors(float sliderValue)
         {
-            base.Awake();
-
-            CheckForNull();
-            ChangeColors();
+            handleImage.color = sliderValue == 1 ? onHandleColor : offHandleColor;
+            backgroundImage.color = sliderValue == 1 ? onBackgroundColor : offBackgroundColor;
         }
 
-        private void CheckForNull()
+        private void TransitionColors()
         {
-            _isBackgroundImageNotNull = backgroundImage != null;
-            _isHandleImageNotNull = handleImage != null;
+            handleImage.color = Color.Lerp(offHandleColor, onHandleColor, sliderValue);
+            backgroundImage.color = Color.Lerp(offBackgroundColor, onBackgroundColor, sliderValue);
         }
 
-        private void ChangeColors()
+        public override void UpdateInteractable(bool isInteractable)
         {
-            if (_isBackgroundImageNotNull && changeBackgroundColor)
-                backgroundImage.color = Color.Lerp(offBackgroundColor, onBackgroundColor, sliderValue);
-
-            if (_isHandleImageNotNull && changeHandleColor)
-                handleImage.color = Color.Lerp(offHandleColor, onHandleColor, sliderValue);
+            base.UpdateInteractable(isInteractable);
+            handleImage.color = isInteractable ? sliderValue == 1 ? onHandleColor : offHandleColor : offHandleColor;
+            backgroundImage.color = isInteractable ? sliderValue == 1 ? onBackgroundColor : offBackgroundColor : offBackgroundColor;
         }
     }
 }

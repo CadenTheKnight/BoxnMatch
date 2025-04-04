@@ -71,8 +71,8 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             lobbyId = lobby.Id;
             nameText.text = lobby.Name;
             playerCountText.text = $"{lobby.Players.Count}/{lobby.MaxPlayers}";
-            gameModeText.text = ((GameMode)int.Parse(lobby.Data["GameMode"].Value)).ToString();
-            statusText.text = ((LobbyStatus)int.Parse(lobby.Data["Status"].Value)).ToString();
+            gameModeText.text = Enum.Parse<GameMode>(lobby.Data["GameMode"].Value).ToString();
+            statusText.text = Enum.Parse<LobbyStatus>(lobby.Data["Status"].Value).ToString();
             mapImage.sprite = mapSelectionData.GetMap(int.Parse(lobby.Data["MapIndex"].Value)).Thumbnail;
 
             SetSelected(false);

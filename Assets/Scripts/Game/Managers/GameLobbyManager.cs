@@ -1,10 +1,13 @@
+using System;
+using UnityEngine;
 using System.Threading.Tasks;
 using Assets.Scripts.Game.Types;
+using System.Collections.Generic;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Core;
+using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Managers;
-
-using UnityEngine;
+using Unity.Services.Lobbies;
 
 namespace Assets.Scripts.Game.Managers
 {
@@ -13,6 +16,33 @@ namespace Assets.Scripts.Game.Managers
     /// </summary>
     public class GameLobbyManager : Singleton<GameLobbyManager>
     {
+        [Header("Debug Options")]
+        [SerializeField] private bool showDebugMessages = false;
+
+        private void OnEnable()
+        {
+            LobbyEvents.OnPlayerConnecting += OnPlayerConnecting;
+            LobbyEvents.OnPlayerDisconnected += OnPlayerDisconnect;
+        }
+
+        private void OnDisable()
+        {
+            LobbyEvents.OnPlayerConnecting -= OnPlayerConnecting;
+            LobbyEvents.OnPlayerDisconnected -= OnPlayerDisconnect;
+        }
+
+        private void OnPlayerConnecting(Player player)
+        {
+            if (showDebugMessages) Debug.Log($"Player {player.Id} is connecting to the lobby.");
+            _ = TogglePlayerReady(player, setUnready: true);
+        }
+
+        private void OnPlayerDisconnect(Player player)
+        {
+            if (showDebugMessages) Debug.Log($"Player {player.Id} has disconnected from the lobby.");
+            _ = TogglePlayerReady(player, setUnready: true);
+        }
+
         /// <summary>
         /// Returns the number of players that are ready in the lobby.
         /// Invokes events to notify if the lobby is ready or not.
@@ -24,27 +54,28 @@ namespace Assets.Scripts.Game.Managers
 
             foreach (Player player in LobbyManager.Instance.Lobby.Players)
             {
-
-                Debug.Log($"Player {player.Id} status: {player.Data["Status"].Value}");
-                if (player.Data["Status"].Value == PlayerStatus.Ready.ToString())
+                if (Enum.Parse<PlayerStatus>(player.Data["Status"].Value) == PlayerStatus.Ready)
+                {
+                    if (showDebugMessages) Debug.Log($"Player {player.Id} is ready.");
                     playersReady++;
+                }
+                else if (showDebugMessages) Debug.Log($"Player {player.Id} is not ready.");
             }
 
             if (playersReady == LobbyManager.Instance.Lobby.MaxPlayers)
             {
+                if (showDebugMessages) Debug.Log("All players are ready.");
                 Events.LobbyEvents.InvokeLobbyReady();
-                Debug.Log("All players are ready!");
             }
             else
             {
-                Events.LobbyEvents.InvokeLobbyNotReady(playersReady, LobbyManager.Instance.Lobby.MaxPlayers);
-                Debug.Log($"Not all players are ready! {playersReady}/{LobbyManager.Instance.Lobby.MaxPlayers}");
+                if (showDebugMessages) Debug.Log("Not all players are ready.");
+                Events.LobbyEvents.InvokeLobbyNotReady(playersReady);
             }
 
             return playersReady;
         }
 
-        #region Player Management
         /// <summary>
         /// Toggle the ready status of the current player.
         /// </summary>
@@ -53,21 +84,30 @@ namespace Assets.Scripts.Game.Managers
         /// <param name="setUnready">True to set the player as not ready.</param>
         public async Task TogglePlayerReady(Player player, bool setReady = false, bool setUnready = false)
         {
-            Debug.Log($"Before toggle - Player {player.Id} team: {player.Data["Team"].Value}, status: {player.Data["Status"].Value}");
+            PlayerStatus newStatus;
+            if (setReady) newStatus = PlayerStatus.Ready;
+            else if (setUnready) newStatus = PlayerStatus.NotReady;
+            else newStatus = Enum.Parse<PlayerStatus>(player.Data["Status"].Value) == PlayerStatus.Ready ? PlayerStatus.NotReady : PlayerStatus.Ready;
 
+            if (showDebugMessages) Debug.Log($"Toggling player {player.Id} status to {newStatus}.");
 
-            if (setReady)
-                player.Data["Status"].Value = PlayerStatus.Ready.ToString();
-            else if (setUnready)
-                player.Data["Status"].Value = PlayerStatus.NotReady.ToString();
-            else
-                player.Data["Status"].Value = player.Data["Status"].Value == PlayerStatus.Ready.ToString()
-                ? PlayerStatus.NotReady.ToString() : PlayerStatus.Ready.ToString();
+            Dictionary<string, PlayerDataObject> statusUpdate = new() { ["Status"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, newStatus.ToString()) };
 
-            Debug.Log($"After toggle - Player {player.Id} team: {player.Data["Team"].Value}, status: {player.Data["Status"].Value}");
+            await LobbyManager.Instance.UpdatePlayerData(player.Id, statusUpdate);
+        }
 
+        /// <summary>
+        /// Changes the team of a player.
+        /// </summary>
+        /// <param name="player">The player to change.</param>
+        /// <param name="team">The new team for the player.</param>
+        public async Task ChangePlayerTeam(Player player, Team team)
+        {
+            if (showDebugMessages) Debug.Log($"Changing player {player.Id} team to {team}.");
 
-            await LobbyManager.Instance.UpdatePlayerData(player.Id, player.Data);
+            Dictionary<string, PlayerDataObject> teamUpdate = new() { ["Team"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, team.ToString()) };
+
+            await LobbyManager.Instance.UpdatePlayerData(player.Id, teamUpdate);
         }
 
         /// <summary>
@@ -78,7 +118,6 @@ namespace Assets.Scripts.Game.Managers
             foreach (Player player in LobbyManager.Instance.Lobby.Players)
                 await TogglePlayerReady(player, setUnready: true);
         }
-        #endregion
 
         #region Game Flow
         /// <summary>

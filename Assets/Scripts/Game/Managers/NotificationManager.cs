@@ -50,7 +50,7 @@ namespace Assets.Scripts.Game.Managers
             LobbyEvents.OnLobbyError -= ShowNotification;
         }
 
-        private void ShowNotification(OperationResult result)
+        public void ShowNotification(OperationResult result)
         {
             if (showDebugMessages) Debug.Log($"{result.Code} - {result.Message}");
             resultNotification.ShowNotification(result);

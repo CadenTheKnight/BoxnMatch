@@ -17,34 +17,36 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private void OnEnable()
         {
+            LobbyEvents.OnLobbyHostMigrated += OnLobbyHostMigrated;
             LobbyEvents.OnPlayerJoined += OnPlayerJoined;
             LobbyEvents.OnPlayerLeft += OnPlayerLeft;
+            LobbyEvents.OnPlayerKicked += OnPlayerLeft;
             LobbyEvents.OnPlayerTeamChanged += OnPlayerTeamChanged;
             LobbyEvents.OnPlayerStatusChanged += OnPlayerStatusChanged;
             LobbyEvents.OnPlayerConnecting += OnPlayerConnecting;
             LobbyEvents.OnPlayerConnected += OnPlayerConnect;
             LobbyEvents.OnPlayerDisconnected += OnPlayerDisconnect;
-            LobbyEvents.OnNewLobbyHost += OnNewLobbyHost;
         }
 
         private void OnDisable()
         {
+            LobbyEvents.OnLobbyHostMigrated -= OnLobbyHostMigrated;
             LobbyEvents.OnPlayerJoined -= OnPlayerJoined;
             LobbyEvents.OnPlayerLeft -= OnPlayerLeft;
+            LobbyEvents.OnPlayerKicked -= OnPlayerLeft;
             LobbyEvents.OnPlayerTeamChanged -= OnPlayerTeamChanged;
             LobbyEvents.OnPlayerStatusChanged -= OnPlayerStatusChanged;
             LobbyEvents.OnPlayerConnecting -= OnPlayerConnecting;
             LobbyEvents.OnPlayerConnected -= OnPlayerConnect;
             LobbyEvents.OnPlayerDisconnected -= OnPlayerDisconnect;
-            LobbyEvents.OnNewLobbyHost -= OnNewLobbyHost;
         }
 
         private void Start()
         {
-            ReorganizePlayerList();
+            ResetPlayerList();
         }
 
-        private void ReorganizePlayerList()
+        private void ResetPlayerList()
         {
             List<Player> players = LobbyManager.Instance.Lobby.Players;
             for (int i = 0; i < _playerListEntries.Count; i++)
@@ -59,6 +61,11 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             }
         }
 
+        private void OnLobbyHostMigrated(Player player)
+        {
+            _playerListEntries.Find(entry => entry.Player.Id == player.Id).SetHostName(true);
+        }
+
         private void OnPlayerJoined(Player player)
         {
             _playerListEntries.Find(entry => entry.Player == null).SetPlayer(player);
@@ -66,18 +73,17 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private void OnPlayerLeft(Player player)
         {
-            _playerListEntries.Find(entry => entry.Player.Id == player.Id).SetEmpty();
-            ReorganizePlayerList();
+            ResetPlayerList();
         }
 
-        private void OnPlayerTeamChanged(Player player, Team team)
+        private void OnPlayerTeamChanged(int playerIndex, Team team)
         {
-            _playerListEntries.Find(entry => entry.Player.Id == player.Id).SetTeam(team);
+            _playerListEntries.Find(entry => entry.Player.Id == LobbyManager.Instance.Lobby.Players[playerIndex].Id).SetTeam(team);
         }
 
-        private void OnPlayerStatusChanged(Player player, PlayerStatus status)
+        private void OnPlayerStatusChanged(int playerIndex, PlayerStatus status)
         {
-            _playerListEntries.Find(entry => entry.Player.Id == player.Id).SetStatus(status);
+            _playerListEntries.Find(entry => entry.Player.Id == LobbyManager.Instance.Lobby.Players[playerIndex].Id).SetStatus(status);
         }
 
         private void OnPlayerConnecting(Player player)
@@ -93,11 +99,6 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
         private void OnPlayerDisconnect(Player player)
         {
             _playerListEntries.Find(entry => entry.Player.Id == player.Id).SetDisconnected();
-        }
-
-        private void OnNewLobbyHost(Player player)
-        {
-            _playerListEntries.Find(entry => entry.Player.Id == player.Id).SetButtons();
         }
     }
 }

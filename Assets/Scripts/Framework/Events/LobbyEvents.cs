@@ -24,11 +24,11 @@ namespace Assets.Scripts.Framework.Events
         public static event LobbyChangedHandler OnLobbyChanged;
 
         /// <summary>
-        /// Triggered when a player becomes the new lobby host.
+        /// Triggered when a new host is assigned to the lobby.
         /// </summary>
-        /// <param name="player">The player who is the new host.</param>
-        public delegate void NewLobbyHostHandler(Player player);
-        public static event NewLobbyHostHandler OnNewLobbyHost;
+        /// <param name="player">The new host player.</param>
+        public delegate void LobbyHostMigratedHandler(Player player);
+        public static event LobbyHostMigratedHandler OnLobbyHostMigrated;
 
         /// <summary>
         /// Triggered when successfully joining an existing lobby.
@@ -138,17 +138,17 @@ namespace Assets.Scripts.Framework.Events
         /// <summary>
         /// Triggered when the player's status is changed.
         /// </summary>
-        /// <param name="player">The player whose status has changed.</param>
+        /// <param name="playerIndex"=>The index of the player whose status has changed.</param>
         /// <param name="newStatus">The new status of the player.</param>
-        public delegate void PlayerStatusChangedHandler(Player player, PlayerStatus newStatus);
+        public delegate void PlayerStatusChangedHandler(int playerIndex, PlayerStatus newStatus);
         public static event PlayerStatusChangedHandler OnPlayerStatusChanged;
 
         /// <summary>
         /// Triggered when the player's team is changed.
         /// </summary>
-        /// <param name="player">The player whose team has changed.</param>
+        /// <param name="playerIndex">The index of the player whose team has changed.</param>
         /// <param name="newTeam">The new team of the player.</param>
-        public delegate void PlayerTeamChangedHandler(Player player, Team newTeam);
+        public delegate void PlayerTeamChangedHandler(int playerIndex, Team newTeam);
         public static event PlayerTeamChangedHandler OnPlayerTeamChanged;
 
         /// <summary>
@@ -176,7 +176,7 @@ namespace Assets.Scripts.Framework.Events
         #region Invocations
         public static void InvokeLobbyCreated(OperationResult result) => OnLobbyCreated?.Invoke(result);
         public static void InvokeLobbyChanged() => OnLobbyChanged?.Invoke();
-        public static void InvokeNewLobbyHost(Player player) => OnNewLobbyHost?.Invoke(player);
+        public static void InvokeLobbyHostMigrated(Player player) => OnLobbyHostMigrated?.Invoke(player);
         public static void InvokeLobbyJoined(OperationResult result) => OnLobbyJoined?.Invoke(result);
         public static void InvokeLobbyLeft(OperationResult result) => OnLobbyLeft?.Invoke(result);
         public static void InvokeLobbyKicked(OperationResult result) => OnLobbyKicked?.Invoke(result);
@@ -192,8 +192,8 @@ namespace Assets.Scripts.Framework.Events
         public static void InvokeLobbyGameModeChanged(GameMode mode) => OnLobbyGameModeChanged?.Invoke(mode);
         public static void InvokeLobbyStatusChanged(LobbyStatus status) => OnLobbyStatusChanged?.Invoke(status);
         public static void InvokePlayerDataChanged(OperationResult result) => OnPlayerDataChanged?.Invoke(result);
-        public static void InvokePlayerStatusChanged(Player player, PlayerStatus newStatus) => OnPlayerStatusChanged?.Invoke(player, newStatus);
-        public static void InvokePlayerTeamChanged(Player player, Team newTeam) => OnPlayerTeamChanged?.Invoke(player, newTeam);
+        public static void InvokePlayerStatusChanged(int playerIndex, PlayerStatus newStatus) => OnPlayerStatusChanged?.Invoke(playerIndex, newStatus);
+        public static void InvokePlayerTeamChanged(int playerIndex, Team newTeam) => OnPlayerTeamChanged?.Invoke(playerIndex, newTeam);
         public static void InvokePlayerConnecting(Player player) => OnPlayerConnecting?.Invoke(player);
         public static void InvokePlayerConnected(Player player) => OnPlayerConnected?.Invoke(player);
         public static void InvokePlayerDisconnected(Player player) => OnPlayerDisconnected?.Invoke(player);

@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 using UnityEngine.EventSystems;
 
@@ -22,12 +23,14 @@ namespace Assets.Scripts.Game.UI.Components.Options.ToggleSwitch
         [Header("Events")]
         public Action<bool> onToggle;
         protected Action transitionEffect;
+        protected Action<float> changeColors;
 
         public bool CurrentValue { get; private set; }
         private ToggleSwitchGroupManager _toggleSwitchGroupManager;
         private Coroutine _animationCoroutine;
         private Vector2 _offPosition;
         private Vector2 _onPosition;
+        private bool interactable = true;
 
         private void OnRectTransformDimensionsChange()
         {
@@ -60,7 +63,7 @@ namespace Assets.Scripts.Game.UI.Components.Options.ToggleSwitch
 
         public void OnPointerClick(PointerEventData eventData)
         {
-            Toggle();
+            if (interactable) Toggle();
         }
 
         public void Toggle()
@@ -91,7 +94,12 @@ namespace Assets.Scripts.Game.UI.Components.Options.ToggleSwitch
 
             CurrentValue = state;
             sliderValue = state ? 1f : 0f;
+
+            onToggle?.Invoke(CurrentValue);
+
             UpdateHandlePosition(sliderValue);
+
+            changeColors?.Invoke(sliderValue);
         }
 
         private void SetStateAndStartAnimation(bool state)
@@ -138,8 +146,12 @@ namespace Assets.Scripts.Game.UI.Components.Options.ToggleSwitch
 
         private void UpdateHandlePosition(float value)
         {
-            if (handleRect != null)
-                handleRect.anchoredPosition = Vector2.Lerp(_offPosition, _onPosition, value);
+            handleRect.anchoredPosition = Vector2.Lerp(_offPosition, _onPosition, value);
+        }
+
+        public virtual void UpdateInteractable(bool interactable)
+        {
+            this.interactable = interactable;
         }
     }
 }

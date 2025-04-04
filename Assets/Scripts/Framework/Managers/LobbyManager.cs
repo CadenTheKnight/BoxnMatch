@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Unity.Services.Lobbies;
 using Assets.Scripts.Game.Types;
 using System.Collections.Generic;
-using Assets.Scripts.Game.Managers;
 using Assets.Scripts.Framework.Core;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Events;
@@ -24,7 +23,7 @@ namespace Assets.Scripts.Framework.Managers
         public Lobby Lobby;
         private LobbyEventCallbacks lobbyEventCallbacks;
         private bool isVoluntarilyLeaving = false;
-        private List<Player> cachedPlayersList = new List<Player>();
+        private List<Player> cachedPlayersList = new();
 
         /// <summary>
         /// Retrieves list of all active lobbies.
@@ -101,8 +100,7 @@ namespace Assets.Scripts.Framework.Managers
             try
             {
                 Lobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, maxPlayers, createLobbyOptions);
-                SubscribeToLobbyEvents(Lobby.Id);
-                await GameLobbyManager.Instance.TogglePlayerReady(AuthenticationManager.Instance.LocalPlayer, setReady: true);
+                await SubscribeToLobbyEvents(Lobby.Id);
                 _heartbeatCoroutine = StartCoroutine(HeartbeatCoroutine(Lobby.Id, 6f));
                 LobbyEvents.InvokeLobbyCreated(OperationResult.SuccessResult("CreateLobby", $"Created lobby: {Lobby.Name}"));
             }
@@ -126,8 +124,7 @@ namespace Assets.Scripts.Framework.Managers
             try
             {
                 Lobby = await LobbyService.Instance.JoinLobbyByCodeAsync(lobbyCode, joinLobbyByCodeOptions);
-                SubscribeToLobbyEvents(Lobby.Id);
-                await GameLobbyManager.Instance.TogglePlayerReady(AuthenticationManager.Instance.LocalPlayer, setUnready: true);
+                await SubscribeToLobbyEvents(Lobby.Id);
                 LobbyEvents.InvokeLobbyJoined(OperationResult.SuccessResult("JoinLobbyByCode", $"Joined lobby: {Lobby.Name}"));
             }
             catch (LobbyServiceException e)
@@ -150,8 +147,7 @@ namespace Assets.Scripts.Framework.Managers
             try
             {
                 Lobby = await LobbyService.Instance.JoinLobbyByIdAsync(lobbyId, joinLobbyByIdOptions);
-                SubscribeToLobbyEvents(Lobby.Id);
-                await GameLobbyManager.Instance.TogglePlayerReady(AuthenticationManager.Instance.LocalPlayer, setUnready: true);
+                await SubscribeToLobbyEvents(Lobby.Id);
                 LobbyEvents.InvokeLobbyJoined(OperationResult.SuccessResult("JoinLobbyById", $"Joined lobby: {Lobby.Name}"));
             }
             catch (LobbyServiceException e)
@@ -174,10 +170,10 @@ namespace Assets.Scripts.Framework.Managers
                 }
 
                 Lobby = await LobbyService.Instance.ReconnectToLobbyAsync(joinedLobbyIds[0]);
-                SubscribeToLobbyEvents(Lobby.Id);
+                await SubscribeToLobbyEvents(Lobby.Id);
                 AuthenticationEvents.InvokeLobbyRejoined(OperationResult.SuccessResult("RejoinLobby", $"Rejoined lobby: {Lobby.Name}"));
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 AuthenticationEvents.InvokeLobbyRejoinError(OperationResult.ErrorResult("RejoinLobbyError", e.Message));
             }
@@ -274,7 +270,7 @@ namespace Assets.Scripts.Framework.Managers
         /// <summary>
         /// Sets up and subscribes to Unity's built-in lobby events.
         /// </summary>
-        private async void SubscribeToLobbyEvents(string lobbyId)
+        private async Task SubscribeToLobbyEvents(string lobbyId)
         {
             UnsubscribeFromLobbyEvents();
 
@@ -329,14 +325,13 @@ namespace Assets.Scripts.Framework.Managers
                 if (AuthenticationManager.Instance.LocalPlayer.Id == lobbyChanges.HostId.Value)
                 {
                     if (showDebugMessages) Debug.Log("Local player is now host - setting to Ready");
-                    LobbyEvents.InvokeNewLobbyHost(AuthenticationManager.Instance.LocalPlayer);
-
                     if (_heartbeatCoroutine == null)
                     {
                         _heartbeatCoroutine = StartCoroutine(HeartbeatCoroutine(Lobby.Id, 6f));
                         if (showDebugMessages) Debug.Log("Started heartbeat coroutine as new host");
                     }
                 }
+                LobbyEvents.InvokeLobbyHostMigrated(cachedPlayersList.Find(player => player.Id == lobbyChanges.HostId.Value));
             }
 
             if (lobbyChanges.MaxPlayers.Changed)
@@ -372,7 +367,7 @@ namespace Assets.Scripts.Framework.Managers
         {
             foreach (int playerIndex in playerIndices)
             {
-                if (playerIndex < 0 || playerIndex >= cachedPlayersList.Count)
+                if (playerIndex < 0 || playerIndex > cachedPlayersList.Count)
                 {
                     Debug.LogError($"Invalid player index: {playerIndex}");
                     continue;
@@ -410,23 +405,14 @@ namespace Assets.Scripts.Framework.Managers
             if (showDebugMessages) Debug.Log($"Player data changed: {changes.Count} " + (changes.Count == 1 ? "player" : "players"));
             foreach (var kvp in changes)
             {
-                int playerIndex = kvp.Key;
-                if (playerIndex < 0 || playerIndex >= Lobby.Players.Count)
-                {
-                    Debug.LogWarning($"Player index {playerIndex} out of range (max: {Lobby.Players.Count - 1})");
-                    continue;
-                }
-                Player player = Lobby.Players[playerIndex];
-                string playerId = player.Id;
-
                 if (showDebugMessages) Debug.Log($"- Player {kvp.Key} data changed: {kvp.Value.Count} fields");
                 foreach (var dataChange in kvp.Value)
                 {
                     if (showDebugMessages) Debug.Log($"-- {dataChange.Key}: {dataChange.Value.Value.Value}");
                     if (dataChange.Key == "Status")
-                        LobbyEvents.InvokePlayerStatusChanged(player, Enum.Parse<PlayerStatus>(dataChange.Value.Value.Value));
+                        LobbyEvents.InvokePlayerStatusChanged(kvp.Key, Enum.Parse<PlayerStatus>(dataChange.Value.Value.Value));
                     else if (dataChange.Key == "Team")
-                        LobbyEvents.InvokePlayerTeamChanged(player, Enum.Parse<Team>(dataChange.Value.Value.Value));
+                        LobbyEvents.InvokePlayerTeamChanged(kvp.Key, Enum.Parse<Team>(dataChange.Value.Value.Value));
                 }
             }
         }

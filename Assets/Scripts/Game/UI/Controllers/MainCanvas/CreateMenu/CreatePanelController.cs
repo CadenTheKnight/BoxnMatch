@@ -2,14 +2,13 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Threading.Tasks;
-using Assets.Scripts.Game.Managers;
-using System.Text.RegularExpressions;
-using Assets.Scripts.Game.UI.Components;
-using Assets.Scripts.Game.UI.Components.Options;
-using Assets.Scripts.Game.UI.Components.Options.ToggleSwitch;
-using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Game.Data;
 using Assets.Scripts.Game.Types;
+using System.Text.RegularExpressions;
+using Assets.Scripts.Game.UI.Components;
+using Assets.Scripts.Framework.Managers;
+using Assets.Scripts.Game.UI.Components.Options;
+using Assets.Scripts.Game.UI.Components.Options.ToggleSwitch;
 
 namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.CreateMenu
 {
@@ -23,6 +22,7 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.CreateMenu
         [SerializeField] private ToggleSwitchColorChange isPrivateToggle;
         [SerializeField] private Selector maxPlayersSelector;
         [SerializeField] private Button createButton;
+        [SerializeField] private LoadingBar createLoadingBar;
         [SerializeField] private TextMeshProUGUI createText;
 
         private string lobbyName = string.Empty;
@@ -51,6 +51,11 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.CreateMenu
             createButton.onClick.RemoveListener(OnCreateClicked);
         }
 
+        private void OnDestroy()
+        {
+            createLoadingBar.StopLoading();
+        }
+
         private void OnLobbyNameChanged(string input)
         {
             lobbyName = input;
@@ -60,23 +65,17 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.CreateMenu
         private void OnPrivacyChanged(bool input)
         {
             isPrivate = input;
-            UpdateCreateButtonState();
         }
 
         private void OnMaxPlayersChanged(int selectionIndex)
         {
-            maxPlayers = selectionIndex == 0 ? 2 : 4;
+            maxPlayers = selectionIndex == 0 ? 2 : selectionIndex == 1 ? 4 : 0;
             UpdateCreateButtonState();
-        }
-
-        private bool IsFormValid()
-        {
-            return Regex.IsMatch(lobbyName, @"^[a-zA-Z0-9]{1,14}$") && (maxPlayers == 2 || maxPlayers == 4);
         }
 
         private void UpdateCreateButtonState()
         {
-            createButton.interactable = IsFormValid();
+            createButton.interactable = Regex.IsMatch(lobbyName, @"^[a-zA-Z0-9]{1,14}$") && (maxPlayers == 2 || maxPlayers == 4);
         }
 
         protected override void Update()
@@ -88,18 +87,28 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.CreateMenu
 
         private async void OnCreateClicked()
         {
+            base.UpdateInteractable(false);
+            lobbyNameInput.interactable = false;
+            isPrivateToggle.UpdateInteractable(false);
+            maxPlayersSelector.UpdateInteractable(false);
             createButton.interactable = false;
             createText.text = "Creating...";
+            createLoadingBar.StartLoading();
 
-            LobbyData lobbyData = new() { MapIndex = 0, RoundCount = 5, RoundTime = 60, GameMode = GameMode.Teams, Status = LobbyStatus.InLobby };
+            LobbyData lobbyData = new();
             await LobbyManager.Instance.CreateLobby(lobbyName, isPrivate, maxPlayers, lobbyData.Serialize());
 
             if (LobbyManager.Instance.Lobby != null)
                 createText.text = "Created!";
             else
             {
+                createLoadingBar.StopLoading();
                 createText.text = "Create";
                 createButton.interactable = true;
+                maxPlayersSelector.UpdateInteractable(true);
+                isPrivateToggle.UpdateInteractable(true);
+                lobbyNameInput.interactable = true;
+                base.UpdateInteractable(true);
             }
         }
     }

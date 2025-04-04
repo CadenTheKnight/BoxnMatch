@@ -54,22 +54,24 @@ namespace Assets.Scripts.Game.UI.Controllers.OptionsCanvas.SettingsMenu
 
         public override void ResetToDefaults()
         {
-            CheckForChanges();
+
         }
 
-        public override bool HasChanges()
+        public bool IsDefaults()
         {
-            return _hasChanges;
+            return true;
         }
+
+        public bool HasChanges()
+        {
+            return false;
+        }
+
 
         private void CheckForChanges()
         {
-            bool hasChanges = HasChanges();
-            if (hasChanges != _hasChanges)
-            {
-                _hasChanges = hasChanges;
-                NotifySettingsChanged();
-            }
+            if (HasChanges()) NotifySettingsChanged();
+            if (!IsDefaults()) NotifySettingsChanged();
         }
 
 

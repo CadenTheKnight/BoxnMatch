@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Assets.Scripts.Game.UI.Components;
 
-namespace Assets.Scripts.Game.UI.Controllers.Loading
+namespace Assets.Scripts.Game.UI.Controllers.LoadingCanvas
 {
     public class LoadingPanelController : MonoBehaviour
     {

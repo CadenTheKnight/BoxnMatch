@@ -1,9 +1,10 @@
 using TMPro;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Threading.Tasks;
-using Assets.Scripts.Game.Data;
 using Assets.Scripts.Game.Types;
+using System.Collections.Generic;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Game.UI.Colors;
 using Assets.Scripts.Framework.Events;
@@ -40,23 +41,26 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
         {
             editUpdateButton.onClick.AddListener(OnEditUpdateClicked);
 
+            LobbyEvents.OnLobbyHostMigrated += OnLobbyHostMigrated;
             LobbyEvents.OnLobbyMapIndexChanged += OnLobbyMapIndexChanged;
             LobbyEvents.OnLobbyRoundCountChanged += OnLobbyRoundCountChanged;
             LobbyEvents.OnLobbyRoundTimeChanged += OnLobbyRoundTimeChanged;
             LobbyEvents.OnLobbyGameModeChanged += OnLobbyGameModeChanged;
-            LobbyEvents.OnNewLobbyHost += OnNewLobbyHost;
+            LobbyEvents.OnLobbyDataChanged += OnLobbyDataChanged;
         }
 
         private void OnDisable()
         {
             editUpdateButton.onClick.RemoveListener(OnEditUpdateClicked);
 
+            LobbyEvents.OnLobbyHostMigrated -= OnLobbyHostMigrated;
             LobbyEvents.OnLobbyMapIndexChanged -= OnLobbyMapIndexChanged;
             LobbyEvents.OnLobbyRoundCountChanged -= OnLobbyRoundCountChanged;
             LobbyEvents.OnLobbyRoundTimeChanged -= OnLobbyRoundTimeChanged;
             LobbyEvents.OnLobbyGameModeChanged -= OnLobbyGameModeChanged;
-            LobbyEvents.OnNewLobbyHost -= OnNewLobbyHost;
+            LobbyEvents.OnLobbyDataChanged -= OnLobbyDataChanged;
         }
+
         private async void OnEditUpdateClicked()
         {
             isEditing = !isEditing;
@@ -67,20 +71,28 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
                 editUpdateText.text = "Updating...";
                 editUpdateButton.interactable = false;
 
-                LobbyData lobbyData = new() { MapIndex = mapChanger.Value, RoundCount = roundCountIncrementer.Value, RoundTime = roundTimeIncrementer.Value, GameMode = (GameMode)gameModeSelector.Selection };
-                await LobbyManager.Instance.UpdateLobbyData(lobbyData.Serialize());
+                Dictionary<string, DataObject> changedData = new();
 
-                editUpdateText.text = "Updated!";
-                await Task.Delay(1000);
+                int currentMapIndex = int.Parse(LobbyManager.Instance.Lobby.Data["MapIndex"].Value);
+                if (mapChanger.Value != currentMapIndex) { changedData["MapIndex"] = new DataObject(DataObject.VisibilityOptions.Public, mapChanger.Value.ToString()); }
 
-                editUpdateButton.interactable = true;
+                int currentRoundCount = int.Parse(LobbyManager.Instance.Lobby.Data["RoundCount"].Value);
+                if (roundCountIncrementer.Value != currentRoundCount) { changedData["RoundCount"] = new DataObject(DataObject.VisibilityOptions.Member, roundCountIncrementer.Value.ToString()); }
+
+                int currentRoundTime = int.Parse(LobbyManager.Instance.Lobby.Data["RoundTime"].Value);
+                if (roundTimeIncrementer.Value != currentRoundTime) { changedData["RoundTime"] = new DataObject(DataObject.VisibilityOptions.Member, roundTimeIncrementer.Value.ToString()); }
+
+                int currentGameMode = (int)Enum.Parse<GameMode>(LobbyManager.Instance.Lobby.Data["GameMode"].Value);
+                if (gameModeSelector.Selection != currentGameMode) { changedData["GameMode"] = new DataObject(DataObject.VisibilityOptions.Public, gameModeSelector.Selection.ToString()); }
+
+                if (changedData.Count > 0) await LobbyManager.Instance.UpdateLobbyData(changedData);
             }
-            UpdateEditUpdateButton(isEditing);
+            else UpdateEditUpdateButton(isEditing);
         }
 
-        private void OnNewLobbyHost(Player player)
+        private void OnLobbyHostMigrated(Player player)
         {
-            editUpdateButton.interactable = true;
+            editUpdateButton.interactable = player.Id == AuthenticationManager.Instance.LocalPlayer.Id;
         }
 
         private void OnLobbyMapIndexChanged(int mapIndex)
@@ -103,12 +115,20 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             gameModeSelector.SetSelection((int)gameMode, true);
         }
 
+        private async void OnLobbyDataChanged(OperationResult result)
+        {
+            await Task.Delay(1000);
+
+            UpdateEditUpdateButton(isEditing);
+            editUpdateButton.interactable = AuthenticationManager.Instance.LocalPlayer.Id == LobbyManager.Instance.Lobby.HostId;
+        }
+
         private void UpdateSelections()
         {
             mapChanger.SetValue(int.Parse(LobbyManager.Instance.Lobby.Data["MapIndex"].Value));
             roundCountIncrementer.SetValue(int.Parse(LobbyManager.Instance.Lobby.Data["RoundCount"].Value));
             roundTimeIncrementer.SetValue(int.Parse(LobbyManager.Instance.Lobby.Data["RoundTime"].Value));
-            gameModeSelector.SetSelection(int.Parse(LobbyManager.Instance.Lobby.Data["GameMode"].Value), true);
+            gameModeSelector.SetSelection((int)Enum.Parse<GameMode>(LobbyManager.Instance.Lobby.Data["GameMode"].Value), true);
         }
 
         private void UpdateInteractable(bool isEditing)

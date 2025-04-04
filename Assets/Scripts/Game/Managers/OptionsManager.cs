@@ -18,7 +18,6 @@ namespace Assets.Scripts.Game.Managers.UI.Managers
         protected override void Awake()
         {
             base.Awake();
-            HideAllMenus();
             SceneManager.sceneLoaded += OnSceneLoaded;
         }
 

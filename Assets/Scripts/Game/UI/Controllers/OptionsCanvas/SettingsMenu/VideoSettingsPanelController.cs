@@ -25,25 +25,27 @@ namespace Assets.Scripts.Game.UI.Controllers.OptionsCanvas.SettingsMenu
         {
             _originalFullscreen = PlayerPrefs.GetInt("video_fullscreen") == 1;
             fullscreenToggle.SetState(_originalFullscreen, false);
-
-            ResetChangeTracking();
+            if (!IsDefaults()) NotifySettingsChanged();
         }
 
         public override void DiscardChanges()
         {
-            fullscreenToggle.SetState(_originalFullscreen, false);
+            fullscreenToggle.SetState(_originalFullscreen, true);
 
             ResetChangeTracking();
         }
 
         public override void ResetToDefaults()
         {
-            fullscreenToggle.SetState(false, false);
-
-            CheckForChanges();
+            fullscreenToggle.SetState(false, true);
         }
 
-        public override bool HasChanges()
+        public bool IsDefaults()
+        {
+            return fullscreenToggle.CurrentValue == false;
+        }
+
+        public bool HasChanges()
         {
             return fullscreenToggle.CurrentValue != _originalFullscreen;
         }
@@ -51,6 +53,7 @@ namespace Assets.Scripts.Game.UI.Controllers.OptionsCanvas.SettingsMenu
         private void CheckForChanges()
         {
             if (HasChanges()) NotifySettingsChanged();
+            if (!IsDefaults()) NotifySettingsChanged();
         }
 
         private void OnFullscreenChanged(bool isFullscreen)

@@ -23,8 +23,8 @@ namespace Assets.Scripts.Game.Data
                 { "MapIndex", new DataObject(DataObject.VisibilityOptions.Public, MapIndex.ToString()) },
                 { "RoundCount", new DataObject(DataObject.VisibilityOptions.Member, RoundCount.ToString()) },
                 { "RoundTime", new DataObject(DataObject.VisibilityOptions.Member, RoundTime.ToString()) },
-                { "GameMode", new DataObject(DataObject.VisibilityOptions.Public, ((int)GameMode).ToString()) },
-                { "Status", new DataObject(DataObject.VisibilityOptions.Public, ((int)Status).ToString()) },
+                { "GameMode", new DataObject(DataObject.VisibilityOptions.Public, GameMode.ToString()) },
+                { "Status", new DataObject(DataObject.VisibilityOptions.Public, Status.ToString()) },
                 { "RelayJoinCode", new DataObject(DataObject.VisibilityOptions.Member, RelayJoinCode) }
             };
         }

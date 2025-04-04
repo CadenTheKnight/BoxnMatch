@@ -3,8 +3,8 @@ using System;
 using Steamworks;
 using UnityEngine;
 using UnityEngine.UI;
-using Assets.Scripts.Game.Data;
 using Assets.Scripts.Game.Types;
+using Assets.Scripts.Game.Managers;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Game.UI.Colors;
 using Assets.Scripts.Framework.Managers;
@@ -32,28 +32,26 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
         [SerializeField] private Button backButton;
         [SerializeField] private Button steamProfileButton;
         [SerializeField] private Button kickButton;
+        [SerializeField] private LoadingBar kickLoadingBar;
         [SerializeField] private TextMeshProUGUI nameText;
         [SerializeField] private Button optionsButton;
         [SerializeField] private GameObject teamPanel;
-        [SerializeField] private Selector teamSelector;
-        [SerializeField] private Button redTeamButton;
-        [SerializeField] private Button blueTeamButton;
-        [SerializeField] private Button greenTeamButton;
-        [SerializeField] private Button yellowTeamButton;
+        [SerializeField] private Selector playerTeamSelector;
+        [SerializeField] private LoadingBar playerTeamSelectorLoadingBar;
 
         protected Callback<AvatarImageLoaded_t> avatarImageLoadedCallback;
 
         public Player Player { get; private set; } = null;
-        private bool isLocalPlayer = false;
-        private bool isLocalHost = false;
 
         private void OnEnable()
         {
+            playerTeamSelector.onSelectionChanged += (index) =>
+            {
+                Team team = (Team)index;
+                ChangeTeam(team);
+            };
+
             changeTeamButton.onClick.AddListener(OnChangeTeamButtonClicked);
-            redTeamButton.onClick.AddListener(() => ChangeTeam(Team.Red));
-            blueTeamButton.onClick.AddListener(() => ChangeTeam(Team.Blue));
-            greenTeamButton.onClick.AddListener(() => ChangeTeam(Team.Green));
-            yellowTeamButton.onClick.AddListener(() => ChangeTeam(Team.Yellow));
             backButton.onClick.AddListener(OnBackButtonClicked);
             steamProfileButton.onClick.AddListener(OnSteamProfileButtonClicked);
             kickButton.onClick.AddListener(OnKickButtonClicked);
@@ -62,15 +60,20 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         private void OnDisable()
         {
+            playerTeamSelector.onSelectionChanged -= (index) =>
+            {
+                Team team = (Team)index;
+                ChangeTeam(team);
+            };
+
             changeTeamButton.onClick.RemoveListener(OnChangeTeamButtonClicked);
-            redTeamButton.onClick.RemoveListener(() => ChangeTeam(Team.Red));
-            blueTeamButton.onClick.RemoveListener(() => ChangeTeam(Team.Blue));
-            greenTeamButton.onClick.RemoveListener(() => ChangeTeam(Team.Green));
-            yellowTeamButton.onClick.RemoveListener(() => ChangeTeam(Team.Yellow));
             backButton.onClick.RemoveListener(OnBackButtonClicked);
             steamProfileButton.onClick.RemoveListener(OnSteamProfileButtonClicked);
             kickButton.onClick.RemoveListener(OnKickButtonClicked);
             optionsButton.onClick.RemoveListener(OnOptionsButtonClicked);
+
+            playerTeamSelectorLoadingBar.StopLoading();
+            kickLoadingBar.StopLoading();
         }
 
         public void SetPlayer(Player player)
@@ -82,30 +85,21 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
             SetTeam(Enum.Parse<Team>(Player.Data["Team"].Value));
             SetStatus(Enum.Parse<PlayerStatus>(Player.Data["Status"].Value));
-            SetButtons();
+            SetButtons(player.Id == AuthenticationManager.Instance.LocalPlayer.Id,
+                AuthenticationManager.Instance.LocalPlayer.Id == LobbyManager.Instance.Lobby.HostId);
             SetSteamInfo();
+            SetHostName(player.Id == LobbyManager.Instance.Lobby.HostId);
         }
 
         public void SetEmpty()
         {
             Player = null;
 
+            kickLoadingBar.StopLoading();
+            playerTeamSelectorLoadingBar.StopLoading();
+
             emptyStatePanel.SetActive(true);
             activeStatePanel.SetActive(false);
-        }
-
-        public void SetTeam(Team team)
-        {
-            teamIndicatorImage.color = TeamColors.GetColor(team);
-
-            ColorBlock colors = changeTeamButton.colors;
-            colors.normalColor = TeamColors.GetColor(team);
-            colors.highlightedColor = TeamColors.GetHoverColor(team);
-            colors.pressedColor = TeamColors.GetHoverColor(team);
-            colors.selectedColor = TeamColors.GetHoverColor(team);
-            changeTeamButton.colors = colors;
-
-            teamSelector.SetSelection((int)team, changeTeamButton.colors.normalColor, UIColors.primaryDisabledColor);
         }
 
         public void SetStatus(PlayerStatus status)
@@ -125,14 +119,10 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             }
         }
 
-        public void SetButtons()
+        public void SetButtons(bool isLocalPlayer, bool isHost)
         {
-            isLocalPlayer = AuthenticationManager.Instance.LocalPlayer.Id == Player.Id;
-            isLocalHost = AuthenticationManager.Instance.LocalPlayer.Id == LobbyManager.Instance.Lobby.HostId;
-
-            nameText.text += " (Host)";
-            changeTeamButton.gameObject.SetActive(isLocalPlayer || isLocalHost);
-            teamIndicatorImage.gameObject.SetActive(!isLocalPlayer && !isLocalHost);
+            changeTeamButton.gameObject.SetActive((isLocalPlayer || isHost) && Enum.Parse<PlayerStatus>(Player.Data["Status"].Value) == PlayerStatus.NotReady);
+            teamIndicatorImage.gameObject.SetActive((!isLocalPlayer && !isHost) || Enum.Parse<PlayerStatus>(Player.Data["Status"].Value) != PlayerStatus.NotReady);
             optionsButton.gameObject.SetActive(!isLocalPlayer);
         }
 
@@ -166,11 +156,16 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
                 if (nameRequested) avatarImageLoadedCallback = Callback<AvatarImageLoaded_t>.Create(OnAvatarImageLoaded);
                 else
                 {
-                    nameText.text = SteamFriends.GetFriendPersonaName(steamId) + (Player.Id == LobbyManager.Instance.Lobby.HostId ? " (Host)" : "");
+                    nameText.text = SteamFriends.GetFriendPersonaName(steamId);
                     int imageHandle = SteamFriends.GetLargeFriendAvatar(steamId);
                     if (imageHandle > 0) profilePictureRawImage.texture = GetSteamInfo.SteamImageToUnityImage(imageHandle);
                 }
             }
+        }
+
+        public void SetHostName(bool isHost)
+        {
+            nameText.text += isHost ? " (Host)" : "";
         }
 
         private void OnChangeTeamButtonClicked()
@@ -180,18 +175,39 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         private async void ChangeTeam(Team team)
         {
-            PlayerData playerData = new() { Id = (CSteamID)ulong.Parse(Player.Data["Id"].Value), Team = team, Status = Enum.Parse<PlayerStatus>(Player.Data["Status"].Value) };
-            await LobbyManager.Instance.UpdatePlayerData(Player.Id, playerData.Serialize());
+            playerTeamSelector.UpdateInteractable(false);
+            playerTeamSelectorLoadingBar.StartLoading();
 
+            await GameLobbyManager.Instance.ChangePlayerTeam(Player, team);
+        }
+
+        public void SetTeam(Team team)
+        {
+            playerTeamSelector.SetSelection((int)team, true);
+
+            ColorBlock colors = changeTeamButton.colors;
+            colors.normalColor = TeamColors.GetColor(team);
+            colors.highlightedColor = TeamColors.GetHoverColor(team);
+            colors.pressedColor = TeamColors.GetHoverColor(team);
+            colors.selectedColor = TeamColors.GetHoverColor(team);
+            changeTeamButton.colors = colors;
+
+            teamIndicatorImage.color = TeamColors.GetColor(team);
+
+            playerTeamSelectorLoadingBar.StopLoading();
+            playerTeamSelector.UpdateInteractable(true);
             teamPanel.SetActive(false);
         }
 
         private void OnOptionsButtonClicked()
         {
+            bool kickablePlayer = Player.Id != AuthenticationManager.Instance.LocalPlayer.Id &&
+                AuthenticationManager.Instance.LocalPlayer.Id == LobbyManager.Instance.Lobby.HostId;
+
             optionsButton.gameObject.SetActive(false);
-            kickButton.gameObject.SetActive(!isLocalPlayer && isLocalHost);
+            kickButton.gameObject.SetActive(kickablePlayer);
             nameText.GetComponent<RectTransform>().anchorMin = new Vector2(0.35f, 0f);
-            nameText.GetComponent<RectTransform>().anchorMax = new Vector2(!isLocalPlayer && isLocalHost ? 0.7f : 1f, 1f);
+            nameText.GetComponent<RectTransform>().anchorMax = new Vector2(kickablePlayer ? 0.7f : 1f, 1f);
 
             optionsPanel.SetActive(true);
         }
@@ -203,7 +219,6 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             nameText.GetComponent<RectTransform>().anchorMin = new Vector2(0.15f, 0f);
             nameText.GetComponent<RectTransform>().anchorMax = new Vector2(0.7f, 1f);
             optionsButton.gameObject.SetActive(true);
-
         }
 
         private void OnSteamProfileButtonClicked()
@@ -213,6 +228,9 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         private async void OnKickButtonClicked()
         {
+            kickButton.interactable = false;
+            kickLoadingBar.StartLoading();
+
             await LobbyManager.Instance.KickPlayer(Player);
         }
 
@@ -227,10 +245,7 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
                 string updatedName = SteamFriends.GetFriendPersonaName(callback.m_steamID);
                 if (updatedName != "[unknown]" && nameText.text.StartsWith("Loading"))
-                {
-                    bool isHost = LobbyManager.Instance.Lobby.HostId == Player.Id;
-                    nameText.text = updatedName + (isHost ? " (Host)" : "");
-                }
+                    nameText.text = updatedName;
             }
         }
     }

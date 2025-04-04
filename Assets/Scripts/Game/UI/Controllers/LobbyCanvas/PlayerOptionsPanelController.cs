@@ -1,4 +1,5 @@
 using TMPro;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Threading.Tasks;
@@ -16,45 +17,30 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
     {
         [Header("UI Components")]
         [SerializeField] private Button leaveButton;
-        [SerializeField] private LoadingBar leaveLoadingBar;
-        [SerializeField] private Button startButton;
-        [SerializeField] private LoadingBar startLoadingBar;
         [SerializeField] private Button readyUnreadyButton;
-        [SerializeField] private LoadingBar readyUnreadyLoadingBar;
-        [SerializeField] private TextMeshProUGUI startText;
+        [SerializeField] private LoadingBar leaveLoadingBar;
         [SerializeField] private TextMeshProUGUI readyUnreadyText;
-
-        private bool isStarting = false;
+        [SerializeField] private LoadingBar readyUnreadyLoadingBar;
 
         private void Start()
         {
-            UpdateButtons();
+            SetReadyUnreadyButton(Enum.Parse<PlayerStatus>(AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value));
         }
 
         private void OnEnable()
         {
             leaveButton.onClick.AddListener(OnLeaveClicked);
-            startButton.onClick.AddListener(OnStartClicked);
             readyUnreadyButton.onClick.AddListener(OnReadyUnreadyClicked);
 
             LobbyEvents.OnPlayerStatusChanged += OnPlayerStatusChanged;
-            LobbyEvents.OnNewLobbyHost += OnNewLobbyHost;
-
-            Events.LobbyEvents.OnLobbyReady += OnLobbyReady;
-            Events.LobbyEvents.OnLobbyNotReady += OnLobbyNotReady;
         }
 
         private void OnDisable()
         {
             leaveButton.onClick.RemoveListener(OnLeaveClicked);
-            startButton.onClick.RemoveListener(OnStartClicked);
             readyUnreadyButton.onClick.RemoveListener(OnReadyUnreadyClicked);
 
             LobbyEvents.OnPlayerStatusChanged -= OnPlayerStatusChanged;
-            LobbyEvents.OnNewLobbyHost -= OnNewLobbyHost;
-
-            Events.LobbyEvents.OnLobbyReady -= OnLobbyReady;
-            Events.LobbyEvents.OnLobbyNotReady -= OnLobbyNotReady;
         }
 
         private async void OnLeaveClicked()
@@ -71,116 +57,31 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             }
         }
 
-        private async void OnStartClicked()
-        {
-            if (isStarting) return;
-            isStarting = true;
-
-            bool isHost = LobbyManager.Instance.Lobby.HostId == AuthenticationManager.Instance.LocalPlayer.Id;
-            if (isHost)
-            {
-                startButton.interactable = false;
-                startText.text = "STARTING GAME...";
-                startLoadingBar.StartLoading();
-            }
-            else
-            {
-                readyUnreadyButton.interactable = false;
-                readyUnreadyText.text = "STARTING GAME...";
-                readyUnreadyLoadingBar.StartLoading();
-            }
-
-            leaveButton.interactable = false;
-
-            await Task.Delay(500);
-            if (isHost) await GameLobbyManager.Instance.SetAllPlayersUnready();
-            await Task.Delay(500);
-
-            leaveButton.interactable = true;
-
-            if (isHost)
-            {
-                startButton.interactable = true;
-                startLoadingBar.StopLoading();
-            }
-            else
-            {
-                readyUnreadyButton.interactable = true;
-                readyUnreadyLoadingBar.StopLoading();
-            }
-
-            isStarting = false;
-        }
-
         private async void OnReadyUnreadyClicked()
         {
             readyUnreadyButton.interactable = false;
             readyUnreadyLoadingBar.StartLoading();
 
             await GameLobbyManager.Instance.TogglePlayerReady(AuthenticationManager.Instance.LocalPlayer);
-            SetReadyUnreadyButton(AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value == PlayerStatus.Ready.ToString());
+        }
 
-            await Task.Delay(1500);
+        public async void OnPlayerStatusChanged(int playerIndex, PlayerStatus newStatus)
+        {
+            SetReadyUnreadyButton(newStatus);
+
+            await Task.Delay(1000);
+
             readyUnreadyLoadingBar.StopLoading();
             readyUnreadyButton.interactable = true;
         }
 
-        private void OnPlayerStatusChanged(Player player, PlayerStatus newStatus)
+        private void SetReadyUnreadyButton(PlayerStatus status)
         {
-            SetReadyUnreadyButton(newStatus == PlayerStatus.Ready);
-        }
+            readyUnreadyText.text = status == PlayerStatus.Ready ? "READY" : "NOT READY";
 
-        private void OnNewLobbyHost(Player player)
-        {
-            UpdateHost();
-        }
+            ColorBlock colors = readyUnreadyButton.colors;
 
-        private void OnLobbyReady()
-        {
-            if (isStarting) return;
-
-            startText.text = "START";
-            startButton.interactable = true;
-            UpdateButtonColors(startButton, true);
-        }
-
-        private void OnLobbyNotReady(int playersReady, int maxPlayerCount)
-        {
-            if (isStarting) return;
-
-            startText.text = $"{playersReady}/{maxPlayerCount} PLAYERS READY";
-            startButton.interactable = false;
-            UpdateButtonColors(startButton, false);
-        }
-
-        private void UpdateHost()
-        {
-            bool isHost = LobbyManager.Instance.Lobby.HostId == AuthenticationManager.Instance.LocalPlayer.Id;
-            startButton.gameObject.SetActive(isHost);
-            readyUnreadyButton.gameObject.SetActive(!isHost);
-        }
-
-        private void UpdateButtons()
-        {
-            SetStartButton(GameLobbyManager.Instance.GetPlayersReady());
-        }
-
-        private void SetStartButton(int playersReady)
-        {
-            startText.text = $"{playersReady}/{LobbyManager.Instance.Lobby.MaxPlayers} PLAYERS READY";
-        }
-
-        private void SetReadyUnreadyButton(bool isReady)
-        {
-            readyUnreadyText.text = isReady ? "READY" : "NOT READY";
-            UpdateButtonColors(readyUnreadyButton, isReady);
-        }
-
-        private void UpdateButtonColors(Button button, bool green)
-        {
-            ColorBlock colors = button.colors;
-
-            if (green)
+            if (status == PlayerStatus.Ready)
             {
                 colors.normalColor = UIColors.greenDefaultColor;
                 colors.highlightedColor = UIColors.greenHoverColor;
@@ -195,7 +96,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
                 colors.selectedColor = UIColors.redHoverColor;
             }
 
-            button.colors = colors;
+            readyUnreadyButton.colors = colors;
         }
     }
 }

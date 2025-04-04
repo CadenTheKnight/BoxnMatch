@@ -16,14 +16,13 @@ namespace Assets.Scripts.Game.Events
         /// Triggered when at least one player in the lobby is not ready.
         /// </summary>
         /// <param name="playersReady">The number of players that are ready.</param>
-        /// <param name="maxPlayerCount">The maximum number of players in the lobby.</param>
-        public delegate void LobbyNotReadyHandler(int playersReady, int maxPlayerCount);
+        public delegate void LobbyNotReadyHandler(int playersReady);
         public static event LobbyNotReadyHandler OnLobbyNotReady;
         #endregion
 
         #region Invocations
         public static void InvokeLobbyReady() => OnLobbyReady?.Invoke();
-        public static void InvokeLobbyNotReady(int playersReady, int maxPlayerCount) => OnLobbyNotReady?.Invoke(playersReady, maxPlayerCount);
+        public static void InvokeLobbyNotReady(int playersReady) => OnLobbyNotReady?.Invoke(playersReady);
         #endregion
     }
 }
