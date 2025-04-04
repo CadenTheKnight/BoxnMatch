@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -7,6 +8,7 @@ public class AbilityOrbHandler : MonoBehaviour
     [SerializeField] float swingDepth = 0.1f;     // Depth of the swing
     [SerializeField] float movementSpeed = 1f;    // Speed of movement
     [SerializeField] float fallSpeed = 0.01f;     // How fast the object falls off the screen
+    [SerializeField] private float deleteTime;
 
     public AbilityBinding ability;
     public bool freeze = false;
@@ -17,10 +19,13 @@ public class AbilityOrbHandler : MonoBehaviour
     private bool immediate = true;
 
     public SpriteRenderer r;
+    private AudioSource audiosource;
+    private bool deleting = false;
 
     private void Start()
     {
         r = GetComponent<SpriteRenderer>();
+        audiosource = GetComponent<AudioSource>();
         time = 0;
         startPos = transform.position;
     }
@@ -34,13 +39,13 @@ public class AbilityOrbHandler : MonoBehaviour
         float x = Mathf.PingPong(time, swingWidth*2) - swingWidth;
 
         // Back and forth swing along wide quadratic arc
-        Vector3 currentPosition = new Vector3(x,Mathf.Pow(x,2)/swingWidth * swingDepth,0);
+        Vector3 currentPosition = new(x,Mathf.Pow(x,2)/swingWidth * swingDepth,0);
 
         // Make the orb slowly fall off screen
         currentPosition.y -= fallSpeed * time;
 
         // Delete when off screen (immediate variable is to prevent immediate destroy call upon creation)
-        if (!r.isVisible && !immediate) Destroy(gameObject);
+        if (!r.isVisible && !immediate) StartCoroutine(Delete());
         else immediate = false;
 
         // Update object position
@@ -51,7 +56,7 @@ public class AbilityOrbHandler : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collision)
     {
         
-        if(collision.gameObject.tag == "Player")
+        if(collision.gameObject.CompareTag("Player") && !deleting)
         {
             if ((time - collsionTime) < 0.5) return; // exit if collsions are happening to quickly (multiple colliders in player)
             collsionTime = time;
@@ -115,7 +120,7 @@ public class AbilityOrbHandler : MonoBehaviour
             // try to bind the abilty
             bool success = bindToAvailableInOrder(bindingOrder, collision.gameObject);
 
-            if (success) Destroy(gameObject);
+            if (success) StartCoroutine(Delete());
 
         }
     }
@@ -136,5 +141,15 @@ public class AbilityOrbHandler : MonoBehaviour
         }
 
         return false;
+    }
+
+    private IEnumerator Delete()
+    {
+        audiosource.Play();
+        deleting = true;
+
+        yield return new WaitForSeconds(deleteTime);
+
+        Destroy(gameObject);
     }
 }
