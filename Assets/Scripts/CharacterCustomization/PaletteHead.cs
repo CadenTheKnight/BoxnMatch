@@ -14,6 +14,11 @@ public class PaletteHead : MonoBehaviour
     public delegate void OnColorChangedDel(Color color);
     public event OnColorChangedDel OnColorUpdated;
 
+    private void Start()
+    {
+        SetCurrChannel(channelButtons[0]);
+    }
+
     public void SetColor(Color col)
     {
         selectedColor = col;

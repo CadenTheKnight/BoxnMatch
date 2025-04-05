@@ -7,18 +7,29 @@ public enum CharacterShaderChannel
 {
     _BoxColor, 
     _LineColor,
-    _FaceColor
+    _FaceColor,
+    _Box,
+    _Face
 }
 
 public class ColorChannelButton : MonoBehaviour
 {
     [SerializeField] private PaletteHead palette;
     [SerializeField] private CharacterShaderChannel shaderChannel;
-    [SerializeField] private Material material;
-    private void Start()
+    [SerializeField] private GameObject character;
+    [SerializeField] private Color selectedColor;
+    [SerializeField] private Color deselectedColor;
+
+    private Material material;
+    private Image bgImage;
+    private void Awake()
     {
         Button button = GetComponent<Button>();
         button.onClick.AddListener(EnablePalette);
+
+        bgImage = GetComponent<Image>();
+
+        material = character.GetComponent<SpriteRenderer>().material;
     }
 
     private void UpdateColor(Color col)
@@ -35,11 +46,13 @@ public class ColorChannelButton : MonoBehaviour
     public void SelectChannel()
     {
         palette.OnColorUpdated += UpdateColor;
+        bgImage.color = selectedColor;
     }
 
     public void DeselectChannel()
     {
         palette.OnColorUpdated -= UpdateColor;
+        bgImage.color = deselectedColor;
     }
 
 }
