@@ -947,11 +947,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6580109c02ddf3845ab70f8e0b656c7e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  lobbyNameText: {fileID: 447073619}
+  startButton: {fileID: 1910672558}
+  startText: {fileID: 1910672557}
+  startLoadingBar: {fileID: 604717845}
+  lobbyCodeButton: {fileID: 692682267}
+  lobbyCodeText: {fileID: 692682266}
   leaveButton: {fileID: 1789508458}
   readyUnreadyButton: {fileID: 1508606149}
   leaveLoadingBar: {fileID: 384509103}
   readyUnreadyText: {fileID: 1508606148}
   readyUnreadyLoadingBar: {fileID: 1234109033}
+  playerListPanelController: {fileID: 1367282207}
 --- !u!1001 &369219814
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3390,39 +3397,13 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4218694940781838978, guid: 7a557ea8775ed554d9a8a469875607cb, type: 3}
       insertIndex: -1
       addedObject: {fileID: 777399536}
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 5333707761874944131, guid: 7a557ea8775ed554d9a8a469875607cb, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1053062650}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7a557ea8775ed554d9a8a469875607cb, type: 3}
 --- !u!224 &1053062648 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 4218694940781838978, guid: 7a557ea8775ed554d9a8a469875607cb, type: 3}
   m_PrefabInstance: {fileID: 1053062647}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1053062649 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5333707761874944131, guid: 7a557ea8775ed554d9a8a469875607cb, type: 3}
-  m_PrefabInstance: {fileID: 1053062647}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1053062650
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1053062649}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 90369b2e2137ede499d127dae8e659c2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  lobbyNameText: {fileID: 447073619}
-  startButton: {fileID: 1910672558}
-  startText: {fileID: 1910672557}
-  startLoadingBar: {fileID: 604717845}
-  lobbyCodeButton: {fileID: 692682267}
-  lobbyCodeText: {fileID: 692682266}
 --- !u!1 &1115677511
 GameObject:
   m_ObjectHideFlags: 0
@@ -4295,6 +4276,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3482791722272103984, guid: b4e8b8ef25c558041b724f73abb2406b, type: 3}
+      propertyPath: playerOptionsPanelController
+      value: 
+      objectReference: {fileID: 344237680}
     - target: {fileID: 3917134631559985256, guid: b4e8b8ef25c558041b724f73abb2406b, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -4412,6 +4397,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3482791722272103984, guid: b4e8b8ef25c558041b724f73abb2406b, type: 3}
+      propertyPath: playerOptionsPanelController
+      value: 
+      objectReference: {fileID: 344237680}
     - target: {fileID: 3917134631559985256, guid: b4e8b8ef25c558041b724f73abb2406b, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -4827,6 +4816,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3482791722272103984, guid: b4e8b8ef25c558041b724f73abb2406b, type: 3}
+      propertyPath: playerOptionsPanelController
+      value: 
+      objectReference: {fileID: 344237680}
     - target: {fileID: 3917134631559985256, guid: b4e8b8ef25c558041b724f73abb2406b, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -6730,6 +6723,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3482791722272103984, guid: b4e8b8ef25c558041b724f73abb2406b, type: 3}
+      propertyPath: playerOptionsPanelController
+      value: 
+      objectReference: {fileID: 344237680}
     - target: {fileID: 3917134631559985256, guid: b4e8b8ef25c558041b724f73abb2406b, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5

@@ -1,16 +1,18 @@
 using TMPro;
-using System;
 using Steamworks;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Threading.Tasks;
 using Assets.Scripts.Game.Types;
 using Assets.Scripts.Game.Managers;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Game.UI.Colors;
+using Unity.Services.Authentication;
+using Assets.Scripts.Framework.Types;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Framework.Utilities;
+using Assets.Scripts.Game.UI.Controllers.LobbyCanvas;
 using Assets.Scripts.Game.UI.Components.Options.Selector;
+using System.Threading.Tasks;
 
 namespace Assets.Scripts.Game.UI.Components.ListEntries
 {
@@ -39,6 +41,9 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
         [SerializeField] private GameObject teamPanel;
         [SerializeField] private Selector playerTeamSelector;
         [SerializeField] private LoadingBar playerTeamSelectorLoadingBar;
+
+        [Header("UI References")]
+        [SerializeField] private PlayerOptionsPanelController playerOptionsPanelController;
 
         protected Callback<AvatarImageLoaded_t> avatarImageLoadedCallback;
 
@@ -69,22 +74,22 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             kickLoadingBar.StopLoading();
         }
 
-        public void SetPlayer(Player player)
+        public void SetPlayer(string playerId)
         {
-            PlayerId = player.Id;
+            PlayerId = playerId;
 
             emptyStatePanel.SetActive(false);
             activeStatePanel.SetActive(true);
 
-            SetTeam(Enum.Parse<Team>(player.Data["Team"].Value));
-            SetStatus(Enum.Parse<PlayerStatus>(player.Data["Status"].Value));
-            SetButtons(
-                player.Id == AuthenticationManager.Instance.LocalPlayer.Id,
-                AuthenticationManager.Instance.LocalPlayer.Id == LobbyManager.Instance.Lobby.HostId,
-                Enum.Parse<PlayerStatus>(player.Data["Status"].Value) == PlayerStatus.NotReady
-                );
+            Player player = LobbyManager.Instance.Lobby.Players.Find(player => player.Id == PlayerId);
+
+            SetTeam((Team)int.Parse(player.Data["Team"].Value));
+            SetStatus((PlayerStatus)int.Parse(player.Data["Status"].Value));
+            SetButtons((PlayerStatus)int.Parse(player.Data["Status"].Value) == PlayerStatus.Ready);
             SetSteamInfo(ulong.Parse(player.Data["SteamId"].Value));
             SetHostName(player.Id == LobbyManager.Instance.Lobby.HostId);
+
+            optionsButton.gameObject.SetActive(player.Id != AuthenticationService.Instance.PlayerId);
         }
 
         public void SetEmpty()
@@ -104,9 +109,12 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             {
                 case PlayerStatus.Ready:
                     nameText.color = UIColors.Green.One;
+                    SetButtons(true);
+                    teamPanel.SetActive(false);
                     break;
                 case PlayerStatus.NotReady:
                     nameText.color = UIColors.Red.One;
+                    SetButtons(false);
                     break;
                 case PlayerStatus.InGame:
                     nameText.color = UIColors.Orange.One;
@@ -115,11 +123,13 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             }
         }
 
-        public void SetButtons(bool isLocalPlayer, bool isHost, bool isNotReady)
+        public void SetButtons(bool ready)
         {
-            changeTeamButton.gameObject.SetActive((isLocalPlayer || isHost) && isNotReady);
-            teamIndicatorImage.gameObject.SetActive((!isLocalPlayer && !isHost) || !isNotReady);
-            optionsButton.gameObject.SetActive(!isLocalPlayer);
+            bool isLocalPlayer = PlayerId == AuthenticationService.Instance.PlayerId;
+            bool isHost = PlayerId == LobbyManager.Instance.Lobby.HostId;
+
+            changeTeamButton.gameObject.SetActive((isLocalPlayer || isHost) && !ready);
+            teamIndicatorImage.gameObject.SetActive((!isLocalPlayer && !isHost) || ready);
         }
 
         public void SetConnecting()
@@ -173,17 +183,33 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
         {
             Player player = LobbyManager.Instance.Lobby.Players.Find(player => player.Id == PlayerId);
 
-            if ((Team)team != Enum.Parse<Team>(player.Data["Team"].Value))
+            if ((Team)team != (Team)int.Parse(player.Data["Team"].Value))
             {
                 changeTeamButton.interactable = false;
                 playerTeamSelector.UpdateInteractable(false);
                 playerTeamSelectorLoadingBar.StartLoading();
-                await GameLobbyManager.Instance.ChangePlayerTeam(player, (Team)team);
+                OperationResult result = await GameLobbyManager.Instance.ChangePlayerTeam(player, (Team)team);
+
+                playerTeamSelectorLoadingBar.StopLoading();
+                if (result.Status == ResultStatus.Success)
+                {
+                    changeTeamButton.interactable = false;
+                    playerTeamSelector.UpdateInteractable(false);
+                    playerOptionsPanelController.UpdateInteractable(false);
+
+                    SetTeam((Team)team);
+
+                    await Task.Delay(1000);
+
+                    playerOptionsPanelController.UpdateInteractable(true);
+                    playerTeamSelector.UpdateInteractable(true);
+                    changeTeamButton.interactable = true;
+                }
             }
-            else teamPanel.SetActive(false);
+            teamPanel.SetActive(false);
         }
 
-        public async void SetTeam(Team team)
+        public void SetTeam(Team team)
         {
             playerTeamSelector.SetSelection((int)team, true);
 
@@ -196,20 +222,12 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             changeTeamButton.colors = colors;
 
             teamIndicatorImage.color = TeamColors.GetColor(team);
-
-            playerTeamSelectorLoadingBar.StopLoading();
-            playerTeamSelector.UpdateInteractable(true);
-            teamPanel.SetActive(false);
-
-            await Task.Delay(1500);
-
-            changeTeamButton.interactable = true;
         }
 
         private void OnOptionsButtonClicked()
         {
-            bool kickablePlayer = PlayerId != AuthenticationManager.Instance.LocalPlayer.Id &&
-                AuthenticationManager.Instance.LocalPlayer.Id == LobbyManager.Instance.Lobby.HostId;
+            bool kickablePlayer = PlayerId != AuthenticationService.Instance.PlayerId &&
+                AuthenticationService.Instance.PlayerId == LobbyManager.Instance.Lobby.HostId;
 
             optionsButton.gameObject.SetActive(false);
             kickButton.gameObject.SetActive(kickablePlayer);

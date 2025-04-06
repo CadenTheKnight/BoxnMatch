@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Core;
 using Assets.Scripts.Framework.Managers;
+using Assets.Scripts.Framework.Utilities;
 
 namespace Assets.Scripts.Game.Managers
 {
@@ -18,6 +19,16 @@ namespace Assets.Scripts.Game.Managers
         [SerializeField] private bool showDebugMessages = false;
 
         /// <summary>
+        /// Returns the current player in the lobby with the given id.
+        /// </summary>
+        /// <param name="playerId">The id of the player to find.</param>
+        /// <returns>The player object if found, otherwise null.</returns>
+        public Player GetPlayerById(string playerId)
+        {
+            return LobbyManager.Instance.Lobby.Players.Find(player => player.Id == playerId);
+        }
+
+        /// <summary>
         /// Returns the number of players that are ready in the lobby.
         /// Invokes events to notify if the lobby is ready or not.
         /// </summary>
@@ -27,24 +38,13 @@ namespace Assets.Scripts.Game.Managers
             int playersReady = 0;
 
             foreach (Player player in LobbyManager.Instance.Lobby.Players)
-            {
-                if (Enum.Parse<PlayerStatus>(player.Data["Status"].Value) == PlayerStatus.Ready)
-                {
-                    if (showDebugMessages) Debug.Log($"Player {player.Id} is ready.");
+                if ((PlayerStatus)int.Parse(player.Data["Status"].Value) == PlayerStatus.Ready)
                     playersReady++;
-                }
-                else if (showDebugMessages) Debug.Log($"Player {player.Id} is not ready.");
-            }
+
             if (playersReady == LobbyManager.Instance.Lobby.MaxPlayers)
-            {
-                if (showDebugMessages) Debug.Log("All players are ready.");
                 Events.LobbyEvents.InvokeLobbyReady();
-            }
             else
-            {
-                if (showDebugMessages) Debug.Log("Not all players are ready.");
                 Events.LobbyEvents.InvokeLobbyNotReady(playersReady);
-            }
 
             if (showDebugMessages) Debug.Log($"Total players ready: {playersReady} / {LobbyManager.Instance.Lobby.MaxPlayers}");
             return playersReady;
@@ -56,18 +56,19 @@ namespace Assets.Scripts.Game.Managers
         /// <param name="player">The player to toggle.</param>
         /// <param name="setReady">True to set the player as ready.</param>
         /// <param name="setUnready">True to set the player as not ready.</param>
-        public async Task TogglePlayerReady(Player player, bool setReady = false, bool setUnready = false)
+        /// <returns>OperationResult indicating success or failure.</returns>
+        public async Task<OperationResult> TogglePlayerReady(Player player, bool setReady = false, bool setUnready = false)
         {
             PlayerStatus status;
 
             if (setReady) status = PlayerStatus.Ready;
             else if (setUnready) status = PlayerStatus.NotReady;
-            else status = Enum.Parse<PlayerStatus>(player.Data["Status"].Value) == PlayerStatus.Ready ? PlayerStatus.NotReady : PlayerStatus.Ready;
+            else status = (PlayerStatus)int.Parse(player.Data["Status"].Value) == PlayerStatus.Ready ? PlayerStatus.NotReady : PlayerStatus.Ready;
 
             Dictionary<string, PlayerDataObject> statusUpdate = new() { ["Status"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)status).ToString()) };
 
             if (showDebugMessages) Debug.Log($"Updating player {player.Id} status: {player.Data["Status"].Value} to: {statusUpdate["Status"].Value}");
-            await LobbyManager.Instance.UpdatePlayerData(player.Id, statusUpdate);
+            return await LobbyManager.Instance.UpdatePlayerData(player.Id, statusUpdate);
         }
 
         /// <summary>
@@ -75,22 +76,31 @@ namespace Assets.Scripts.Game.Managers
         /// </summary>
         /// <param name="player">The player to change.</param>
         /// <param name="team">The new team for the player.</param>
-        public async Task ChangePlayerTeam(Player player, Team team)
+        /// <returns>OperationResult indicating success or failure.</returns>
+        public async Task<OperationResult> ChangePlayerTeam(Player player, Team team)
         {
             Dictionary<string, PlayerDataObject> teamUpdate = new() { ["Team"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)team).ToString()) };
 
             if (showDebugMessages) Debug.Log($"Updating player {player.Id} team: {player.Data["Team"].Value} to: {teamUpdate["Team"].Value}");
-            await LobbyManager.Instance.UpdatePlayerData(player.Id, teamUpdate);
+            return await LobbyManager.Instance.UpdatePlayerData(player.Id, teamUpdate);
         }
 
         /// <summary>
         /// Sets all players to not ready.
         /// </summary>
-        public async Task SetAllPlayersUnready()
-        {
-            foreach (Player player in LobbyManager.Instance.Lobby.Players)
-                await TogglePlayerReady(player, setUnready: true);
-        }
+        // public async Task<bool> SetAllPlayersUnready()
+        // {
+        //     bool success = true;
+        //     foreach (Player player in LobbyManager.Instance.Lobby.Players)
+        //     {
+        //         await TogglePlayerReady(player, setUnready: true))
+        //         {
+        //             success = false;
+        //             Debug.LogError($"Failed to set player {player.Id} to not ready.");
+        //         }
+        //     }
+        //     return success;
+        // }
 
         /// <summary>
         /// Updates the game settings in the lobby data.
@@ -99,7 +109,8 @@ namespace Assets.Scripts.Game.Managers
         /// <param name="roundCountValue">The updated round count.</param>
         /// <param name="roundTimeValue">The updated round time.</param>
         /// <param name="gameModeSelection">The updated game mode.</param> 
-        public async void UpdateGameSettings(int mapValue, int roundCountValue, int roundTimeValue, int gameModeSelection)
+        /// /// <returns>OperationResult indicating success or failure.</returns>
+        public async Task<OperationResult> UpdateGameSettings(int mapValue, int roundCountValue, int roundTimeValue, int gameModeSelection)
         {
             Dictionary<string, DataObject> changedData = new()
             {
@@ -110,11 +121,8 @@ namespace Assets.Scripts.Game.Managers
             };
 
             if (showDebugMessages) foreach (var data in changedData) Debug.Log($"Updating game setting: {data.Key} to: {data.Value.Value}");
-            await LobbyManager.Instance.UpdateLobbyData(changedData);
+            return await LobbyManager.Instance.UpdateLobbyData(changedData);
         }
-
-
-
 
 
         #region Game Flow

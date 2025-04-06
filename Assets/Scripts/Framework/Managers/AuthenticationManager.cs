@@ -3,8 +3,6 @@ using Steamworks;
 using UnityEngine;
 using Unity.Services.Core;
 using System.Threading.Tasks;
-using Assets.Scripts.Game.Data;
-using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Core;
 using Unity.Services.Authentication;
 using Assets.Scripts.Framework.Utilities;
@@ -16,11 +14,6 @@ namespace Assets.Scripts.Framework.Managers
     /// </summary>
     public class AuthenticationManager : Singleton<AuthenticationManager>
     {
-        /// <summary>
-        /// The local player as a unity player object.
-        /// </summary>
-        public Player LocalPlayer { get; private set; } = null;
-
         Callback<GetTicketForWebApiResponse_t> m_AuthTicketForWebApiResponseCallback;
         string m_SessionTicket;
 
@@ -42,7 +35,7 @@ namespace Assets.Scripts.Framework.Managers
         /// <summary>
         /// Initializes Unity Services.
         /// </summary>
-        /// <returns>An OperationResult indicating the success or failure of the operation.</returns>
+        /// <returns>OperationResult indicating the success or failure of the operation.</returns>
         public async Task<OperationResult> InitializeUnityServices()
         {
             try
@@ -60,17 +53,15 @@ namespace Assets.Scripts.Framework.Managers
         /// <summary>
         /// Initializes Steam API.
         /// </summary>
-        /// <returns>An OperationResult indicating the success or failure of the operation.</returns>
+        /// <returns>OperationResult indicating the success or failure of the operation.</returns>
         public async Task<OperationResult> InitializeSteam()
         {
             try
             {
                 float startTime = Time.realtimeSinceStartup;
-                float timeoutDuration = 15f;
-
                 while (!SteamManager.Initialized)
                 {
-                    if (Time.realtimeSinceStartup - startTime > timeoutDuration)
+                    if (Time.realtimeSinceStartup - startTime > 10f)
                         return OperationResult.ErrorResult("InitializeSteamTimeout", "Steam failed to initialize within timeout period");
                     await Task.Delay(100);
                 }
@@ -86,7 +77,7 @@ namespace Assets.Scripts.Framework.Managers
         /// <summary>
         /// Authenticates the player with Unity Services using Steam.
         /// </summary>
-        /// <returns>An OperationResult indicating the success or failure of the operation.</returns>
+        /// <returns>OperationResult indicating the success or failure of the operation.</returns>
         public async Task<OperationResult> Authenticate()
         {
             try
@@ -94,17 +85,12 @@ namespace Assets.Scripts.Framework.Managers
                 SignInWithSteam();
 
                 float startTime = Time.realtimeSinceStartup;
-                float timeoutDuration = 15f;
-
                 while (!AuthenticationService.Instance.IsSignedIn)
                 {
-                    if (Time.realtimeSinceStartup - startTime > timeoutDuration)
+                    if (Time.realtimeSinceStartup - startTime > 10f)
                         return OperationResult.ErrorResult("AuthenticateTimeout", "Authentication failed to complete within timeout period");
                     await Task.Delay(100);
                 }
-
-                PlayerData playerData = new() { SteamId = SteamUser.GetSteamID() };
-                LocalPlayer = new Player(id: AuthenticationService.Instance.PlayerId, data: playerData.Serialize());
 
                 return OperationResult.SuccessResult("Authenticated", $"Signed in as {SteamFriends.GetPersonaName()}");
             }

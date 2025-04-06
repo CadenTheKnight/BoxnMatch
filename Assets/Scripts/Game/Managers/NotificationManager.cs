@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 using Assets.Scripts.Framework.Core;
-using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Utilities;
 using Assets.Scripts.Game.UI.Controllers.NotificationCanvas;
 
@@ -16,46 +15,13 @@ namespace Assets.Scripts.Game.Managers
         [SerializeField] private ErrorPopup errorPopup;
         [SerializeField] private ResultNotification resultNotification;
 
-        private void Start()
-        {
-            AuthenticationEvents.OnAuthenticated += ShowNotification;
-            AuthenticationEvents.OnAuthenticationError += ShowErrorPopup;
-            AuthenticationEvents.OnLobbyRejoined += ShowNotification;
-            AuthenticationEvents.OnLobbyRejoinError += ShowNotification;
-
-            LobbyEvents.OnLobbyCreated += ShowNotification;
-            LobbyEvents.OnLobbyJoined += ShowNotification;
-            LobbyEvents.OnLobbyLeft += ShowNotification;
-            LobbyEvents.OnLobbyKicked += ShowNotification;
-
-            LobbyEvents.OnLobbyQueryResponse += ShowNotification;
-            LobbyEvents.OnLobbyError += ShowNotification;
-
-        }
-
-        private void OnDestroy()
-        {
-            AuthenticationEvents.OnAuthenticated -= ShowNotification;
-            AuthenticationEvents.OnAuthenticationError -= ShowErrorPopup;
-            AuthenticationEvents.OnLobbyRejoined -= ShowNotification;
-            AuthenticationEvents.OnLobbyRejoinError -= ShowNotification;
-
-            LobbyEvents.OnLobbyCreated -= ShowNotification;
-            LobbyEvents.OnLobbyJoined -= ShowNotification;
-            LobbyEvents.OnLobbyLeft -= ShowNotification;
-            LobbyEvents.OnLobbyKicked -= ShowNotification;
-
-            LobbyEvents.OnLobbyQueryResponse -= ShowNotification;
-            LobbyEvents.OnLobbyError -= ShowNotification;
-        }
-
         public void ShowNotification(OperationResult result)
         {
             if (showDebugMessages) Debug.Log($"{result.Code} - {result.Message}");
             resultNotification.ShowNotification(result);
         }
 
-        private void ShowErrorPopup(OperationResult result, Action retryAction)
+        public void ShowErrorPopup(OperationResult result, Action retryAction)
         {
             if (showDebugMessages) Debug.Log($"{result.Code} - {result.Message}");
             errorPopup.ShowError(result, retryAction);

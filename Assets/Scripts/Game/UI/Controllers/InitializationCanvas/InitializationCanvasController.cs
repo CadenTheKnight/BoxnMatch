@@ -1,8 +1,9 @@
 using UnityEngine;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
+using Assets.Scripts.Game.Managers;
 using Assets.Scripts.Framework.Types;
-using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Game.UI.Components;
 using Assets.Scripts.Framework.Utilities;
@@ -21,19 +22,26 @@ namespace Assets.Scripts.Game.UI.Controllers.InitializationCanvas
         {
             if (await InitializeUnityServices())
                 if (await InitializeSteam())
-                    await Authenticate();
+                    if (await Authenticate())
+                        await AttemptRejoin();
         }
 
+        /// <summary>
+        /// Initializes Unity Servicess.
+        /// </summary>
+        /// <returns>True if initialization was successful, false otherwise.</returns>
         private async Task<bool> InitializeUnityServices()
         {
             loadingStatusPanel.StartLoading();
             loadingStatusPanel.UpdateStatus("Initializing Unity Services...");
+
             OperationResult result = await AuthenticationManager.Instance.InitializeUnityServices();
+
             loadingStatusPanel.StopLoading();
             if (result.Status == ResultStatus.Error)
             {
                 loadingStatusPanel.UpdateStatus("Initialization failed");
-                AuthenticationEvents.InvokeAuthenticationError(result, async () => await InitializeUnityServices());
+                NotificationManager.Instance.ShowErrorPopup(result, async () => await InitializeUnityServices());
                 return false;
             }
             else
@@ -44,16 +52,22 @@ namespace Assets.Scripts.Game.UI.Controllers.InitializationCanvas
 
         }
 
+        /// <summary>
+        /// Initializes Steam.
+        /// </summary>
+        /// <returns>True if initialization was successful, false otherwise.</returns>
         private async Task<bool> InitializeSteam()
         {
             loadingStatusPanel.StartLoading();
             loadingStatusPanel.UpdateStatus("Initializing Steam...");
+
             OperationResult result = await AuthenticationManager.Instance.InitializeSteam();
+
             loadingStatusPanel.StopLoading();
             if (result.Status == ResultStatus.Error)
             {
                 loadingStatusPanel.UpdateStatus("Steam initialization failed");
-                AuthenticationEvents.InvokeAuthenticationError(result, async () => await InitializeSteam());
+                NotificationManager.Instance.ShowErrorPopup(result, async () => await InitializeSteam());
                 return false;
             }
             else
@@ -63,44 +77,62 @@ namespace Assets.Scripts.Game.UI.Controllers.InitializationCanvas
             }
         }
 
-        private async Task Authenticate()
+        /// <summary>
+        /// Authenticates the user.
+        /// </summary>
+        /// <returns>True if authentication was successful, false otherwise.</returns>
+        private async Task<bool> Authenticate()
         {
             loadingStatusPanel.StartLoading();
             loadingStatusPanel.UpdateStatus("Authenticating...");
+
             OperationResult result = await AuthenticationManager.Instance.Authenticate();
+
             loadingStatusPanel.StopLoading();
             if (result.Status == ResultStatus.Error)
             {
                 loadingStatusPanel.UpdateStatus("Authentication failed");
-                AuthenticationEvents.InvokeAuthenticationError(result, async () => await Authenticate());
+                NotificationManager.Instance.ShowErrorPopup(result, async () => await Authenticate());
+                return false;
             }
             else
             {
                 loadingStatusPanel.UpdateStatus("Authenticated");
-                if (!await AttemptRejoin())
-                {
-                    loadingStatusPanel.UpdateStatus(result.Message);
-                    AuthenticationEvents.InvokeAuthenticated(result);
-                }
+                return true;
             }
         }
 
-        private async Task<bool> AttemptRejoin()
+        /// <summary>
+        /// Attempts to rejoin a lobby if the user was previously in one.
+        /// </summary>
+        private async Task AttemptRejoin()
         {
             loadingStatusPanel.StartLoading();
             loadingStatusPanel.UpdateStatus("Checking for active lobbies...");
+
             List<string> joinedLobbyIds = await LobbyManager.Instance.GetJoinedLobbies();
+
             loadingStatusPanel.StopLoading();
             if (joinedLobbyIds.Count > 0)
             {
                 loadingStatusPanel.UpdateStatus("Rejoining lobby...");
-                await LobbyManager.Instance.RejoinLobby(joinedLobbyIds);
-                return true;
+                OperationResult result = await LobbyManager.Instance.RejoinLobby(joinedLobbyIds);
+                NotificationManager.Instance.ShowNotification(result);
+                if (result.Status == ResultStatus.Success)
+                {
+                    loadingStatusPanel.UpdateStatus("Rejoined lobby successfully");
+                    SceneManager.LoadSceneAsync("Lobby");
+                }
+                else 
+                {
+                    loadingStatusPanel.UpdateStatus("Failed to rejoin lobby");
+                    SceneManager.LoadSceneAsync("Main");
+                }
             }
-            else
+            else 
             {
                 loadingStatusPanel.UpdateStatus("No active lobbies found");
-                return false;
+                SceneManager.LoadSceneAsync("Main");
             }
         }
     }

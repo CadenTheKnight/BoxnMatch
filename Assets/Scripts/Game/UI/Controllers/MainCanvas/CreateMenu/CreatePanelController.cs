@@ -2,9 +2,13 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Assets.Scripts.Game.Data;
+using UnityEngine.SceneManagement;
+using Assets.Scripts.Game.Managers;
+using Assets.Scripts.Framework.Types;
 using System.Text.RegularExpressions;
 using Assets.Scripts.Game.UI.Components;
 using Assets.Scripts.Framework.Managers;
+using Assets.Scripts.Framework.Utilities;
 using Assets.Scripts.Game.UI.Components.Options.Selector;
 using Assets.Scripts.Game.UI.Components.Options.ToggleSwitch;
 
@@ -92,13 +96,13 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.CreateMenu
             createLoadingBar.StartLoading();
 
             LobbyData lobbyData = new();
-            await LobbyManager.Instance.CreateLobby(lobbyName, isPrivate, maxPlayers, lobbyData.Serialize());
+            OperationResult result = await LobbyManager.Instance.CreateLobby(lobbyName, isPrivate, maxPlayers, lobbyData.Serialize());
 
-            if (LobbyManager.Instance.Lobby != null)
-                createText.text = "Created!";
+            createLoadingBar.StopLoading();
+            NotificationManager.Instance.ShowNotification(result);
+            if (result.Status == ResultStatus.Success) SceneManager.LoadSceneAsync("Lobby");
             else
             {
-                createLoadingBar.StopLoading();
                 createText.text = "Create";
                 createButton.interactable = true;
                 maxPlayersSelector.UpdateInteractable(true);

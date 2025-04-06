@@ -9,6 +9,11 @@ using Assets.Scripts.Framework.Core;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Utilities;
+using Assets.Scripts.Game.Managers;
+using UnityEngine.SceneManagement;
+using Unity.Services.Authentication;
+using Assets.Scripts.Game.Data;
+using Steamworks;
 
 namespace Assets.Scripts.Framework.Managers
 {
@@ -20,36 +25,29 @@ namespace Assets.Scripts.Framework.Managers
         [Header("Debug Options")]
         [SerializeField] private bool showDebugMessages = false;
 
-        public Lobby Lobby;
-        private LobbyEventCallbacks lobbyEventCallbacks;
+        public Lobby Lobby { get; private set; } = null;
+        private Coroutine _heartbeatCoroutine = null;
+        private ILobbyEvents lobbyEvents = null;
         private bool isVoluntarilyLeaving = false;
         private List<Player> cachedPlayersList = new();
 
         /// <summary>
         /// Retrieves list of active lobbies matching the filters.
         /// </summary>
+        /// <param name="count">The maximum number of lobbies to retrieve, default 25.</param>
+        /// <param name="order">Optional order to apply to the query.</param>
         /// <param name="filters">Optional filters to apply to the query.</param>
         /// <returns>A list of lobbies matching the query.</returns>
-        public async Task<List<Lobby>> QueryLobbies(List<QueryFilter> filters = null)
+        public async Task<List<Lobby>> QueryLobbies(int count = 25, List<QueryOrder> order = null, List<QueryFilter> filters = null)
         {
-            QueryLobbiesOptions queryLobbiesOptions = new()
-            {
-                // Count = maxResults,
-                Order = new List<QueryOrder> { new(false, QueryOrder.FieldOptions.Created) },
-                Filters = filters,
-            };
+            QueryLobbiesOptions queryLobbiesOptions = new() { Count = count, Order = order, Filters = filters };
 
             try
             {
-                QueryResponse queryResponse = await LobbyService.Instance.QueryLobbiesAsync(queryLobbiesOptions);
-                LobbyEvents.InvokeLobbyQueryResponse(OperationResult.SuccessResult("QueryLobbies", $"Found {queryResponse.Results.Count} " + (queryResponse.Results.Count == 1 ? "lobby" : "lobbies")));
+                QueryResponse queryResponse = await WithTimeout(LobbyService.Instance.QueryLobbiesAsync(queryLobbiesOptions), 5000, "QueryLobbies");
                 return queryResponse.Results;
             }
-            catch (LobbyServiceException e)
-            {
-                LobbyEvents.InvokeLobbyError(OperationResult.ErrorResult("QueryLobbiesError", e.Message));
-                return new List<Lobby>();
-            }
+            catch (Exception) { return new List<Lobby>(); }
         }
 
         /// <summary>
@@ -60,9 +58,6 @@ namespace Assets.Scripts.Framework.Managers
         {
             return await LobbyService.Instance.GetJoinedLobbiesAsync();
         }
-
-        #region Lifecycle Methods
-        private Coroutine _heartbeatCoroutine;
 
         /// <summary>
         /// Handles the lobby heartbeat, sending regular updates to the lobby service.
@@ -78,9 +73,8 @@ namespace Assets.Scripts.Framework.Managers
                 yield return new WaitForSecondsRealtime(waitTimeSeconds);
             }
         }
-        #endregion
 
-        #region Local Lobby Management
+        #region Lobby Management
         /// <summary>
         /// Creates a new lobby with the specified parameters.
         /// </summary>
@@ -88,25 +82,27 @@ namespace Assets.Scripts.Framework.Managers
         /// <param name="isPrivate">Whether the lobby is private or public.</param>
         /// <param name="maxPlayers">The maximum number of players allowed in the lobby.</param>
         /// <param name="lobbyData">A dictionary of additional data to associate with the lobby.</param>
-        public async Task CreateLobby(string lobbyName, bool isPrivate, int maxPlayers, Dictionary<string, DataObject> lobbyData)
+        /// <returns>OperationResult indicating success or failure.</returns>
+        public async Task<OperationResult> CreateLobby(string lobbyName, bool isPrivate, int maxPlayers, Dictionary<string, DataObject> lobbyData)
         {
             CreateLobbyOptions createLobbyOptions = new()
             {
                 IsPrivate = isPrivate,
-                Player = AuthenticationManager.Instance.LocalPlayer,
+                Player = new Player(AuthenticationService.Instance.PlayerId) { Data = new PlayerData(SteamUser.GetSteamID()).Serialize() },
                 Data = lobbyData
             };
 
             try
             {
-                Lobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, maxPlayers, createLobbyOptions);
+                Lobby = await WithTimeout(LobbyService.Instance.CreateLobbyAsync(lobbyName, maxPlayers, createLobbyOptions), 5000, "CreateLobby");
                 await SubscribeToLobbyEvents(Lobby.Id);
                 _heartbeatCoroutine = StartCoroutine(HeartbeatCoroutine(Lobby.Id, 6f));
-                LobbyEvents.InvokeLobbyCreated(OperationResult.SuccessResult("CreateLobby", $"Created lobby: {Lobby.Name}"));
+                return OperationResult.SuccessResult("CreateLobby", $"Created lobby: {Lobby.Name}");
             }
-            catch (LobbyServiceException e)
+            catch (Exception e)
             {
-                LobbyEvents.InvokeLobbyError(OperationResult.ErrorResult("CreateLobbyError", e.Message));
+                await ClearLobby();
+                return OperationResult.ErrorResult("CreateLobbyError", e.Message);
             }
         }
 
@@ -114,22 +110,21 @@ namespace Assets.Scripts.Framework.Managers
         /// Joins a lobby using its code.
         /// </summary>
         /// <param name="lobbyCode">The code of the lobby to join.</param>
-        public async Task JoinLobbyByCode(string lobbyCode)
+        /// <returns>OperationResult indicating success or failure.</returns>
+        public async Task<OperationResult> JoinLobbyByCode(string lobbyCode)
         {
-            JoinLobbyByCodeOptions joinLobbyByCodeOptions = new()
-            {
-                Player = AuthenticationManager.Instance.LocalPlayer
-            };
+            JoinLobbyByCodeOptions joinLobbyByCodeOptions = new() { Player = new Player(AuthenticationService.Instance.PlayerId) { Data = new PlayerData(SteamUser.GetSteamID()).Serialize() } };
 
             try
             {
-                Lobby = await LobbyService.Instance.JoinLobbyByCodeAsync(lobbyCode, joinLobbyByCodeOptions);
+                Lobby = await WithTimeout(LobbyService.Instance.JoinLobbyByCodeAsync(lobbyCode, joinLobbyByCodeOptions), 5000, "JoinLobbyByCode");
                 await SubscribeToLobbyEvents(Lobby.Id);
-                LobbyEvents.InvokeLobbyJoined(OperationResult.SuccessResult("JoinLobbyByCode", $"Joined lobby: {Lobby.Name}"));
+                return OperationResult.SuccessResult("JoinLobbyByCode", $"Joined lobby: {Lobby.Name}");
             }
-            catch (LobbyServiceException e)
+            catch (Exception e)
             {
-                LobbyEvents.InvokeLobbyError(OperationResult.ErrorResult("JoinLobbyByCodeError", e.Message));
+                await ClearLobby();
+                return OperationResult.ErrorResult("JoinLobbyByCodeError", e.Message);
             }
         }
 
@@ -137,56 +132,60 @@ namespace Assets.Scripts.Framework.Managers
         /// Joins a lobby using its ID.
         /// </summary>
         /// <param name="lobbyId">The ID of the lobby to join.</param>
-        public async Task JoinLobbyById(string lobbyId)
+        /// <returns>OperationResult indicating success or failure.</returns>
+        public async Task<OperationResult> JoinLobbyById(string lobbyId)
         {
-            JoinLobbyByIdOptions joinLobbyByIdOptions = new()
-            {
-                Player = AuthenticationManager.Instance.LocalPlayer
-            };
+            JoinLobbyByIdOptions joinLobbyByIdOptions = new() { Player = new Player(AuthenticationService.Instance.PlayerId) { Data = new PlayerData(SteamUser.GetSteamID()).Serialize() } };
 
             try
             {
-                Lobby = await LobbyService.Instance.JoinLobbyByIdAsync(lobbyId, joinLobbyByIdOptions);
+                Lobby = await WithTimeout(LobbyService.Instance.JoinLobbyByIdAsync(lobbyId, joinLobbyByIdOptions), 5000, "JoinLobbyById");
                 await SubscribeToLobbyEvents(Lobby.Id);
-                LobbyEvents.InvokeLobbyJoined(OperationResult.SuccessResult("JoinLobbyById", $"Joined lobby: {Lobby.Name}"));
+                return OperationResult.SuccessResult("JoinLobbyById", $"Joined lobby: {Lobby.Name}");
             }
-            catch (LobbyServiceException e)
+            catch (Exception e)
             {
-                LobbyEvents.InvokeLobbyError(OperationResult.ErrorResult("JoinLobbyByIdError", e.Message));
+                await ClearLobby();
+                return OperationResult.ErrorResult("JoinLobbyByIdError", e.Message);
             }
         }
 
         /// <summary>
         /// Rejoins the first lobby in the list of joined lobbies.
         /// </summary>
-        public async Task RejoinLobby(List<string> joinedLobbyIds)
+        /// <param name="joinedLobbyIds">A list of lobby IDs the player is currently in.</param>
+        /// <returns>OperationResult indicating success or failure.</returns>
+        public async Task<OperationResult> RejoinLobby(List<string> joinedLobbyIds)
         {
             try
             {
-                Lobby = await LobbyService.Instance.ReconnectToLobbyAsync(joinedLobbyIds[0]);
+                Lobby = await WithTimeout(LobbyService.Instance.GetLobbyAsync(joinedLobbyIds[0]), 5000, "RejoinLobby");
                 await SubscribeToLobbyEvents(Lobby.Id);
-                AuthenticationEvents.InvokeLobbyRejoined(OperationResult.SuccessResult("RejoinLobby", $"Rejoined lobby: {Lobby.Name}"));
+                return OperationResult.SuccessResult("RejoinLobby", $"Rejoined lobby: {Lobby.Name}");
             }
             catch (Exception e)
             {
-                AuthenticationEvents.InvokeLobbyRejoinError(OperationResult.ErrorResult("RejoinLobbyError", e.Message));
+                await ClearLobby();
+                return OperationResult.ErrorResult("RejoinLobbyError", e.Message);
             }
         }
 
         /// <summary>
         /// Leaves the current lobby.
         /// </summary>
-        public async Task LeaveLobby()
+        /// <returns>Bool indicating success or failure.</returns>
+        public async Task<bool> LeaveLobby()
         {
             try
             {
                 isVoluntarilyLeaving = true;
-                await LobbyService.Instance.RemovePlayerAsync(Lobby.Id, AuthenticationManager.Instance.LocalPlayer.Id);
+                await LobbyService.Instance.RemovePlayerAsync(Lobby.Id, AuthenticationService.Instance.PlayerId);
+                return true;
             }
-            catch (LobbyServiceException e)
+            catch (Exception)
             {
                 isVoluntarilyLeaving = false;
-                LobbyEvents.InvokeLobbyError(OperationResult.ErrorResult("LeaveLobbyError", e.Message));
+                return false;
             }
         }
 
@@ -194,84 +193,68 @@ namespace Assets.Scripts.Framework.Managers
         /// Kicks a player from the current lobby.
         /// </summary>
         /// <param name="player">The player to kick.</param>
-        public async Task KickPlayer(Player player)
+        /// <returns>OperationResult indicating success or failure.</returns>
+        public async Task<OperationResult> KickPlayer(Player player)
         {
             try
             {
                 await LobbyService.Instance.RemovePlayerAsync(Lobby.Id, player.Id);
-                LobbyEvents.InvokePlayerKicked(player);
+                return OperationResult.SuccessResult("KickPlayer", $"Kicked player: {player.Id} from lobby: {Lobby.Name}");
             }
-            catch (LobbyServiceException e)
-            {
-                LobbyEvents.InvokeLobbyError(OperationResult.ErrorResult("KickPlayerError", e.Message));
-            }
+            catch (Exception e) { return OperationResult.ErrorResult("KickPlayerError", e.Message); }
         }
         #endregion
 
-        #region Local Data Management
+        #region Data Management
         /// <summary>
         /// Updates the player data with the provided dictionary.
         /// </summary>
         /// <param name="playerId">The ID of the player whose data is being updated.</param>
         /// <param name="playerData">The dictionary containing the player data to update.</param>
-        /// <param name="allocationId">The allocation ID for the player.</param>
-        /// <param name="connectionData">The connection data for the player.</param>
-        public async Task UpdatePlayerData(string playerId, Dictionary<string, PlayerDataObject> playerData, string allocationId = default, string connectionData = default)
+        /// <param name="allocationId">The optional allocation ID for the player.</param>
+        /// <param name="connectionData">The optional connection data for the player.</param>
+        /// <returns>OperationResult indicating success or failure.</returns>
+        public async Task<OperationResult> UpdatePlayerData(string playerId, Dictionary<string, PlayerDataObject> playerData, string allocationId = default, string connectionData = default)
         {
-            UpdatePlayerOptions updatePlayerOptions = new()
-            {
-                ConnectionInfo = connectionData,
-                Data = playerData,
-                AllocationId = allocationId
-
-            };
+            UpdatePlayerOptions updatePlayerOptions = new() { ConnectionInfo = connectionData, Data = playerData, AllocationId = allocationId };
 
             try
             {
-                Lobby = await LobbyService.Instance.UpdatePlayerAsync(Lobby.Id, playerId, updatePlayerOptions);
-                LobbyEvents.InvokePlayerDataChanged(OperationResult.SuccessResult("UpdatePlayerData", $"Updated player data for {playerId}"));
+                Lobby = await WithTimeout(LobbyService.Instance.UpdatePlayerAsync(Lobby.Id, playerId, updatePlayerOptions), 5000, "UpdatePlayerData");
+                return OperationResult.SuccessResult("UpdatePlayerData", $"Updated player data for {playerId} in lobby: {Lobby.Name}");
             }
-            catch (LobbyServiceException e)
-            {
-                LobbyEvents.InvokeLobbyError(OperationResult.ErrorResult("UpdatePlayerDataError", e.Message));
-            }
+            catch (Exception e) { return OperationResult.ErrorResult("UpdatePlayerDataError", e.Message); }
         }
 
         /// <summary>
         /// Updates the lobby data with the provided dictionary.
         /// </summary>
         /// <param name="lobbyData">The dictionary containing the lobby data to update.</param>
-        public async Task UpdateLobbyData(Dictionary<string, DataObject> lobbyData)
+        /// <returns>OperationResult indicating success or failure.</returns>
+        public async Task<OperationResult> UpdateLobbyData(Dictionary<string, DataObject> lobbyData)
         {
-            UpdateLobbyOptions updateLobbyOptions = new()
-            {
-                Data = lobbyData
-            };
+            UpdateLobbyOptions updateLobbyOptions = new() { Data = lobbyData };
 
             try
             {
-                Lobby = await LobbyService.Instance.UpdateLobbyAsync(Lobby.Id, updateLobbyOptions);
-                LobbyEvents.InvokeLobbyDataChanged(OperationResult.SuccessResult("UpdateLobbyData", $"Updated lobby data for {Lobby.Name}"));
+                Lobby = await WithTimeout(LobbyService.Instance.UpdateLobbyAsync(Lobby.Id, updateLobbyOptions), 5000, "UpdateLobbyData");
+                return OperationResult.SuccessResult("UpdateLobbyData", $"Updated lobby data in lobby: {Lobby.Name}");
             }
-            catch (LobbyServiceException e)
-            {
-                LobbyEvents.InvokeLobbyError(OperationResult.ErrorResult("UpdateLobbyDataError", e.Message));
-            }
+            catch (Exception e) { return OperationResult.ErrorResult("UpdateLobbyDataError", e.Message); }
         }
 
         /// <summary>
-        /// Refreshes the lobby data.
+        /// Handles the timeout for a given task.
         /// </summary>
-        public async Task RefreshLobbyData()
+        /// <param name="task">The task to wait for.</param>
+        /// <param name="timeoutMs">The timeout in milliseconds.</param>
+        /// <param name="operationName">The name of the operation for logging.</param>
+        /// <returns>The result of the task if completed within the timeout.</returns>
+        /// <exception cref="TimeoutException">Thrown if the task times out.</exception>
+        private async Task<T> WithTimeout<T>(Task<T> task, int timeoutMs = 5000, string operationName = "Operation")
         {
-            try
-            {
-                Lobby = await LobbyService.Instance.GetLobbyAsync(Lobby.Id);
-            }
-            catch (LobbyServiceException e)
-            {
-                LobbyEvents.InvokeLobbyError(OperationResult.ErrorResult("RefreshLobbyDataError", e.Message));
-            }
+            if (await Task.WhenAny(task, Task.Delay(timeoutMs)) == task) return await task;
+            else throw new TimeoutException($"{operationName} timed out");
         }
         #endregion
 
@@ -281,47 +264,31 @@ namespace Assets.Scripts.Framework.Managers
         /// </summary>
         private async Task SubscribeToLobbyEvents(string lobbyId)
         {
-            UnsubscribeFromLobbyEvents();
+            await UnsubscribeFromLobbyEvents();
 
-            lobbyEventCallbacks = new LobbyEventCallbacks();
+            LobbyEventCallbacks callbacks = new();
 
-            lobbyEventCallbacks.LobbyChanged += OnLobbyChanged;
-            lobbyEventCallbacks.PlayerJoined += OnPlayerJoined;
-            lobbyEventCallbacks.PlayerLeft += OnPlayerLeft;
-            lobbyEventCallbacks.DataChanged += OnDataChanged;
-            lobbyEventCallbacks.PlayerDataChanged += OnPlayerDataChanged;
-            lobbyEventCallbacks.KickedFromLobby += OnKickedFromLobby;
-            lobbyEventCallbacks.LobbyEventConnectionStateChanged += OnLobbyEventConnectionStateChanged;
+            callbacks.LobbyChanged += OnLobbyChanged;
+            callbacks.PlayerJoined += OnPlayerJoined;
+            callbacks.PlayerLeft += OnPlayerLeft;
+            callbacks.DataChanged += OnDataChanged;
+            callbacks.PlayerDataChanged += OnPlayerDataChanged;
+            callbacks.KickedFromLobby += OnKickedFromLobby;
+            callbacks.LobbyEventConnectionStateChanged += OnLobbyEventConnectionStateChanged;
 
-            try
-            {
-                await LobbyService.Instance.SubscribeToLobbyEventsAsync(lobbyId, lobbyEventCallbacks);
-                if (showDebugMessages) Debug.Log($"Successfully subscribed to events for lobby {lobbyId}");
-            }
-            catch (LobbyServiceException ex)
-            {
-                if (showDebugMessages) Debug.LogError($"Error subscribing to lobby events: {ex.Message}");
-            }
+            lobbyEvents = await LobbyService.Instance.SubscribeToLobbyEventsAsync(lobbyId, callbacks);
         }
 
         /// <summary>
         /// Unsubscribes from all lobby events.
         /// </summary>
-        private void UnsubscribeFromLobbyEvents()
+        private async Task UnsubscribeFromLobbyEvents()
         {
-            if (lobbyEventCallbacks == null || Lobby == null) return;
+            if (lobbyEvents == null) return;
 
-            lobbyEventCallbacks.LobbyChanged -= OnLobbyChanged;
-            lobbyEventCallbacks.PlayerJoined -= OnPlayerJoined;
-            lobbyEventCallbacks.PlayerLeft -= OnPlayerLeft;
-            lobbyEventCallbacks.DataChanged -= OnDataChanged;
-            lobbyEventCallbacks.PlayerDataChanged -= OnPlayerDataChanged;
-            lobbyEventCallbacks.KickedFromLobby -= OnKickedFromLobby;
-            lobbyEventCallbacks.LobbyEventConnectionStateChanged -= OnLobbyEventConnectionStateChanged;
+            await lobbyEvents.UnsubscribeAsync();
 
-            if (showDebugMessages) Debug.Log($"Unsubscribed from events for lobby {Lobby.Id}");
-
-            lobbyEventCallbacks = null;
+            lobbyEvents = null;
         }
 
         private void OnLobbyChanged(ILobbyChanges lobbyChanges)
@@ -331,7 +298,7 @@ namespace Assets.Scripts.Framework.Managers
             if (lobbyChanges.HostId.Changed)
             {
                 if (showDebugMessages) Debug.Log($"Host changed to {lobbyChanges.HostId.Value}");
-                if (AuthenticationManager.Instance.LocalPlayer.Id == lobbyChanges.HostId.Value)
+                if (AuthenticationService.Instance.PlayerId == lobbyChanges.HostId.Value)
                 {
                     if (showDebugMessages) Debug.Log("Local player is now host - setting to Ready");
                     if (_heartbeatCoroutine == null)
@@ -340,7 +307,7 @@ namespace Assets.Scripts.Framework.Managers
                         if (showDebugMessages) Debug.Log("Started heartbeat coroutine as new host");
                     }
                 }
-                LobbyEvents.InvokeLobbyHostMigrated(cachedPlayersList.Find(player => player.Id == lobbyChanges.HostId.Value));
+                LobbyEvents.InvokeLobbyHostMigrated(lobbyChanges.HostId.Value);
             }
 
             if (lobbyChanges.MaxPlayers.Changed)
@@ -359,7 +326,6 @@ namespace Assets.Scripts.Framework.Managers
             }
 
             cachedPlayersList = new List<Player>(Lobby.Players);
-            LobbyEvents.InvokeLobbyChanged();
         }
 
         private void OnPlayerJoined(List<LobbyPlayerJoined> playersJoined)
@@ -368,7 +334,7 @@ namespace Assets.Scripts.Framework.Managers
             {
                 cachedPlayersList.Add(playerJoined.Player);
                 if (showDebugMessages) Debug.Log($"Player {playerJoined.Player.Id} joined the lobby");
-                LobbyEvents.InvokePlayerJoined(playerJoined.Player);
+                LobbyEvents.InvokePlayerJoined(playerJoined.Player.Id);
             }
         }
 
@@ -377,14 +343,13 @@ namespace Assets.Scripts.Framework.Managers
             foreach (int playerIndex in playerIndices)
             {
                 if (showDebugMessages) Debug.Log($"Player {cachedPlayersList[playerIndex].Id} left the lobby");
-                LobbyEvents.InvokePlayerLeft(cachedPlayersList[playerIndex]);
+                LobbyEvents.InvokePlayerLeft(cachedPlayersList[playerIndex].Id);
                 cachedPlayersList.RemoveAt(playerIndex);
             }
         }
 
-        private async void OnDataChanged(Dictionary<string, ChangedOrRemovedLobbyValue<DataObject>> dataChanges)
+        private void OnDataChanged(Dictionary<string, ChangedOrRemovedLobbyValue<DataObject>> dataChanges)
         {
-            await RefreshLobbyData();
             if (showDebugMessages) Debug.Log($"Lobby data changed: {dataChanges.Count} " + (dataChanges.Count == 1 ? "field" : "fields"));
             foreach (var kvp in dataChanges)
             {
@@ -396,53 +361,29 @@ namespace Assets.Scripts.Framework.Managers
                 else if (kvp.Key == "RoundTime")
                     LobbyEvents.InvokeLobbyRoundTimeChanged(int.Parse(kvp.Value.Value.Value));
                 else if (kvp.Key == "GameMode")
-                    LobbyEvents.InvokeLobbyGameModeChanged(Enum.Parse<GameMode>(kvp.Value.Value.Value));
+                    LobbyEvents.InvokeLobbyGameModeChanged((GameMode)int.Parse(kvp.Value.Value.Value));
                 else if (kvp.Key == "Status")
-                    LobbyEvents.InvokeLobbyStatusChanged(Enum.Parse<LobbyStatus>(kvp.Value.Value.Value));
+                    LobbyEvents.InvokeLobbyStatusChanged((LobbyStatus)int.Parse(kvp.Value.Value.Value));
             }
         }
 
-        private async void OnPlayerDataChanged(Dictionary<int, Dictionary<string, ChangedOrRemovedLobbyValue<PlayerDataObject>>> changes)
+        private void OnPlayerDataChanged(Dictionary<int, Dictionary<string, ChangedOrRemovedLobbyValue<PlayerDataObject>>> changes)
         {
-            await RefreshLobbyData();
             if (showDebugMessages) Debug.Log($"Player data changed: {changes.Count} " + (changes.Count == 1 ? "player" : "players"));
             foreach (var kvp in changes)
-            {
-                Player changedPlayer = Lobby.Players[kvp.Key];
-                if (showDebugMessages) Debug.Log($"- Player {changedPlayer.Id} data changed: {kvp.Value.Count} fields");
                 foreach (var dataChange in kvp.Value)
-                {
-                    if (showDebugMessages) Debug.Log($"-- {dataChange.Key}: {dataChange.Value.Value.Value}");
-                    if (dataChange.Key == "Team")
-                        LobbyEvents.InvokePlayerTeamChanged(changedPlayer);
-                    else if (dataChange.Key == "Status")
-                        LobbyEvents.InvokePlayerStatusChanged(changedPlayer);
-                }
-            }
+                    if (showDebugMessages) Debug.Log($"{Lobby.Players[kvp.Key].Id} - {dataChange.Key}: {dataChange.Value.Value.Value}");
         }
 
-        private void OnKickedFromLobby()
+        private async void OnKickedFromLobby()
         {
-            if (isVoluntarilyLeaving)
-            {
-                if (Lobby.Players.Count > 1)
-                {
-                    if (showDebugMessages) Debug.Log($"Left lobby: {Lobby.Name}");
-                    LobbyEvents.InvokeLobbyLeft(OperationResult.SuccessResult("LeaveLobby", $"Left lobby: {Lobby.Name}"));
-                }
-                else
-                {
-                    if (showDebugMessages) Debug.Log($"Left and deleted lobby: {Lobby.Name}");
-                    LobbyEvents.InvokeLobbyLeft(OperationResult.SuccessResult("LeaveLobby", $"Left and deleted lobby: {Lobby.Name}"));
-                }
-            }
-            else
-            {
-                if (showDebugMessages) Debug.Log($"Kicked from lobby: {Lobby.Name}");
-                LobbyEvents.InvokeLobbyKicked(OperationResult.ErrorResult("KickedFromLobby", $"Kicked from lobby: {Lobby.Name}"));
-            }
+            if (!isVoluntarilyLeaving) NotificationManager.Instance.ShowNotification(OperationResult.WarningResult("KickedFromLobby", "Kicked from lobby"));
+            else if (Lobby.Players.Count > 1) NotificationManager.Instance.ShowNotification(OperationResult.WarningResult("LeftLobby", "Left lobby"));
+            else NotificationManager.Instance.ShowNotification(OperationResult.WarningResult("LeftLobby", "Left and deleted lobby"));
 
-            ClearLobby();
+            SceneManager.LoadSceneAsync("Main");
+
+            await ClearLobby();
         }
 
         private void OnLobbyEventConnectionStateChanged(LobbyEventConnectionState state)
@@ -450,16 +391,29 @@ namespace Assets.Scripts.Framework.Managers
             Debug.Log($"Lobby connection state changed to: {state}");
 
             if (state == LobbyEventConnectionState.Subscribing)
-                LobbyEvents.InvokePlayerConnecting(AuthenticationManager.Instance.LocalPlayer);
+                LobbyEvents.InvokePlayerConnecting(AuthenticationService.Instance.PlayerId);
             else if (state == LobbyEventConnectionState.Subscribed)
-                LobbyEvents.InvokePlayerConnected(AuthenticationManager.Instance.LocalPlayer);
+                LobbyEvents.InvokePlayerConnected(AuthenticationService.Instance.PlayerId);
             else if (state == LobbyEventConnectionState.Unsynced)
-                LobbyEvents.InvokePlayerDisconnected(AuthenticationManager.Instance.LocalPlayer);
+                LobbyEvents.InvokePlayerDisconnected(AuthenticationService.Instance.PlayerId);
+            // else if (state == LobbyEventConnectionState.Unsubscribed)
+            //     LobbyEvents.InvokePlayerDisconnected(AuthenticationService.Instance.PlayerId);
+            // else if (state == LobbyEventConnectionState.Error)
+            //     LobbyEvents.InvokePlayerDisconnected(AuthenticationService.Instance.PlayerId);
         }
 
-        private void ClearLobby()
+        private async void OnApplicationQuit()
         {
-            UnsubscribeFromLobbyEvents();
+            if (Lobby != null)
+            {
+                if (showDebugMessages) Debug.Log("Application quitting - clearing lobby");
+                await ClearLobby();
+            }
+        }
+
+        private async Task ClearLobby()
+        {
+            await UnsubscribeFromLobbyEvents();
             if (_heartbeatCoroutine != null)
             {
                 StopCoroutine(_heartbeatCoroutine);

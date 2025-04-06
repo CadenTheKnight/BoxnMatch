@@ -233,9 +233,9 @@ MonoBehaviour:
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 0.2, g: 0.2, b: 0.25, a: 1}
-    m_HighlightedColor: {r: 0.4, g: 0.4, b: 0.45, a: 1}
+    m_HighlightedColor: {r: 0.3, g: 0.3, b: 0.35, a: 1}
     m_PressedColor: {r: 0.5, g: 0.5, b: 0.55, a: 1}
-    m_SelectedColor: {r: 0.6, g: 0.6, b: 0.65, a: 1}
+    m_SelectedColor: {r: 0.4, g: 0.4, b: 0.45, a: 1}
     m_DisabledColor: {r: 0.8, g: 0.8, b: 0.85, a: 1}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -345,7 +345,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: -40, y: -40}
+  m_SizeDelta: {x: -40, y: -20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &7834001024884414281
 MonoBehaviour:
@@ -435,8 +435,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4292463820
-  m_fontColor: {r: 0.8, g: 0.8, b: 0.85, a: 1}
+    rgba: 4289108377
+  m_fontColor: {r: 0.6, g: 0.6, b: 0.65, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:

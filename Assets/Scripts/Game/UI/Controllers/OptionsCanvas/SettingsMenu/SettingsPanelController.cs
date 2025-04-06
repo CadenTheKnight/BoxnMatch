@@ -88,7 +88,7 @@ namespace Assets.Scripts.Game.UI.Controllers.OptionsCanvas.SettingsMenu
 
         private void ResetToDefaults()
         {
-            if (videoSettingsPanelController.gameObject.activeSelf && videoSettingsPanelController.HasChanges())
+            if (videoSettingsPanelController.gameObject.activeSelf && !videoSettingsPanelController.IsDefaults())
             {
                 videoSettingsPanelController.ResetToDefaults();
                 NotificationManager.Instance.ShowNotification(OperationResult.ErrorResult("VideoSettingsReset", "Video settings reset to default"));
