@@ -78,11 +78,12 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private void OnPlayerJoined(string playerId)
         {
-            _playerListEntries.Find(entry => entry.PlayerId == playerId).SetPlayer(playerId);
+            _playerListEntries.Find(e => e.PlayerId == null).SetPlayer(playerId);
         }
 
         private void OnPlayerLeft(string playerId)
         {
+            _playerListEntries.Find(e => e.PlayerId == playerId).SetEmpty();
             ResetPlayerList();
         }
 
