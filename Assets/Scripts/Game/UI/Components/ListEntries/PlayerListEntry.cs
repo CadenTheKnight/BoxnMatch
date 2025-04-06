@@ -3,13 +3,14 @@ using System;
 using Steamworks;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Threading.Tasks;
 using Assets.Scripts.Game.Types;
 using Assets.Scripts.Game.Managers;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Game.UI.Colors;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Framework.Utilities;
-using Assets.Scripts.Game.UI.Components.Options;
+using Assets.Scripts.Game.UI.Components.Options.Selector;
 
 namespace Assets.Scripts.Game.UI.Components.ListEntries
 {
@@ -41,15 +42,11 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         protected Callback<AvatarImageLoaded_t> avatarImageLoadedCallback;
 
-        public Player Player { get; private set; } = null;
+        public string PlayerId { get; private set; } = null;
 
         private void OnEnable()
         {
-            playerTeamSelector.onSelectionChanged += (index) =>
-            {
-                Team team = (Team)index;
-                ChangeTeam(team);
-            };
+            playerTeamSelector.onSelectionChanged += ChangeTeam;
 
             changeTeamButton.onClick.AddListener(OnChangeTeamButtonClicked);
             backButton.onClick.AddListener(OnBackButtonClicked);
@@ -60,11 +57,7 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         private void OnDisable()
         {
-            playerTeamSelector.onSelectionChanged -= (index) =>
-            {
-                Team team = (Team)index;
-                ChangeTeam(team);
-            };
+            playerTeamSelector.onSelectionChanged -= ChangeTeam;
 
             changeTeamButton.onClick.RemoveListener(OnChangeTeamButtonClicked);
             backButton.onClick.RemoveListener(OnBackButtonClicked);
@@ -78,22 +71,25 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         public void SetPlayer(Player player)
         {
-            Player = player;
+            PlayerId = player.Id;
 
             emptyStatePanel.SetActive(false);
             activeStatePanel.SetActive(true);
 
-            SetTeam(Enum.Parse<Team>(Player.Data["Team"].Value));
-            SetStatus(Enum.Parse<PlayerStatus>(Player.Data["Status"].Value));
-            SetButtons(player.Id == AuthenticationManager.Instance.LocalPlayer.Id,
-                AuthenticationManager.Instance.LocalPlayer.Id == LobbyManager.Instance.Lobby.HostId);
-            SetSteamInfo();
+            SetTeam(Enum.Parse<Team>(player.Data["Team"].Value));
+            SetStatus(Enum.Parse<PlayerStatus>(player.Data["Status"].Value));
+            SetButtons(
+                player.Id == AuthenticationManager.Instance.LocalPlayer.Id,
+                AuthenticationManager.Instance.LocalPlayer.Id == LobbyManager.Instance.Lobby.HostId,
+                Enum.Parse<PlayerStatus>(player.Data["Status"].Value) == PlayerStatus.NotReady
+                );
+            SetSteamInfo(ulong.Parse(player.Data["SteamId"].Value));
             SetHostName(player.Id == LobbyManager.Instance.Lobby.HostId);
         }
 
         public void SetEmpty()
         {
-            Player = null;
+            PlayerId = null;
 
             kickLoadingBar.StopLoading();
             playerTeamSelectorLoadingBar.StopLoading();
@@ -107,22 +103,22 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             switch (status)
             {
                 case PlayerStatus.Ready:
-                    nameText.color = UIColors.greenDefaultColor;
+                    nameText.color = UIColors.Green.One;
                     break;
                 case PlayerStatus.NotReady:
-                    nameText.color = UIColors.redDefaultColor;
+                    nameText.color = UIColors.Red.One;
                     break;
                 case PlayerStatus.InGame:
-                    nameText.color = UIColors.yellowDefaultColor;
+                    nameText.color = UIColors.Orange.One;
                     inGameStatePanel.SetActive(true);
                     break;
             }
         }
 
-        public void SetButtons(bool isLocalPlayer, bool isHost)
+        public void SetButtons(bool isLocalPlayer, bool isHost, bool isNotReady)
         {
-            changeTeamButton.gameObject.SetActive((isLocalPlayer || isHost) && Enum.Parse<PlayerStatus>(Player.Data["Status"].Value) == PlayerStatus.NotReady);
-            teamIndicatorImage.gameObject.SetActive((!isLocalPlayer && !isHost) || Enum.Parse<PlayerStatus>(Player.Data["Status"].Value) != PlayerStatus.NotReady);
+            changeTeamButton.gameObject.SetActive((isLocalPlayer || isHost) && isNotReady);
+            teamIndicatorImage.gameObject.SetActive((!isLocalPlayer && !isHost) || !isNotReady);
             optionsButton.gameObject.SetActive(!isLocalPlayer);
         }
 
@@ -141,9 +137,9 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             disconnectedStatePanel.SetActive(true);
         }
 
-        private void SetSteamInfo()
+        private void SetSteamInfo(ulong Id)
         {
-            CSteamID steamId = new(ulong.Parse(Player.Data["Id"].Value));
+            CSteamID steamId = new(Id);
             nameText.text = "Loading...";
             if (steamId == SteamUser.GetSteamID())
             {
@@ -173,23 +169,30 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             teamPanel.SetActive(true);
         }
 
-        private async void ChangeTeam(Team team)
+        private async void ChangeTeam(int team)
         {
-            playerTeamSelector.UpdateInteractable(false);
-            playerTeamSelectorLoadingBar.StartLoading();
+            Player player = LobbyManager.Instance.Lobby.Players.Find(player => player.Id == PlayerId);
 
-            await GameLobbyManager.Instance.ChangePlayerTeam(Player, team);
+            if ((Team)team != Enum.Parse<Team>(player.Data["Team"].Value))
+            {
+                changeTeamButton.interactable = false;
+                playerTeamSelector.UpdateInteractable(false);
+                playerTeamSelectorLoadingBar.StartLoading();
+                await GameLobbyManager.Instance.ChangePlayerTeam(player, (Team)team);
+            }
+            else teamPanel.SetActive(false);
         }
 
-        public void SetTeam(Team team)
+        public async void SetTeam(Team team)
         {
             playerTeamSelector.SetSelection((int)team, true);
 
             ColorBlock colors = changeTeamButton.colors;
             colors.normalColor = TeamColors.GetColor(team);
             colors.highlightedColor = TeamColors.GetHoverColor(team);
-            colors.pressedColor = TeamColors.GetHoverColor(team);
-            colors.selectedColor = TeamColors.GetHoverColor(team);
+            colors.pressedColor = TeamColors.GetSelectedColor(team);
+            colors.selectedColor = TeamColors.GetSelectedColor(team);
+            colors.disabledColor = TeamColors.GetDisabledColor(team);
             changeTeamButton.colors = colors;
 
             teamIndicatorImage.color = TeamColors.GetColor(team);
@@ -197,11 +200,15 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             playerTeamSelectorLoadingBar.StopLoading();
             playerTeamSelector.UpdateInteractable(true);
             teamPanel.SetActive(false);
+
+            await Task.Delay(1500);
+
+            changeTeamButton.interactable = true;
         }
 
         private void OnOptionsButtonClicked()
         {
-            bool kickablePlayer = Player.Id != AuthenticationManager.Instance.LocalPlayer.Id &&
+            bool kickablePlayer = PlayerId != AuthenticationManager.Instance.LocalPlayer.Id &&
                 AuthenticationManager.Instance.LocalPlayer.Id == LobbyManager.Instance.Lobby.HostId;
 
             optionsButton.gameObject.SetActive(false);
@@ -223,7 +230,7 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         private void OnSteamProfileButtonClicked()
         {
-            Application.OpenURL("https://steamcommunity.com/profiles/" + Player.Data["Id"].Value.ToString());
+            Application.OpenURL("https://steamcommunity.com/profiles/" + LobbyManager.Instance.Lobby.Players.Find(player => player.Id == PlayerId).Data["SteamId"].Value.ToString());
         }
 
         private async void OnKickButtonClicked()
@@ -231,22 +238,14 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             kickButton.interactable = false;
             kickLoadingBar.StartLoading();
 
-            await LobbyManager.Instance.KickPlayer(Player);
+            await LobbyManager.Instance.KickPlayer(LobbyManager.Instance.Lobby.Players.Find(player => player.Id == PlayerId));
         }
 
         private void OnAvatarImageLoaded(AvatarImageLoaded_t callback)
         {
-            if (Player.Data.TryGetValue("Id", out PlayerDataObject idObject) &&
-                ulong.TryParse(idObject.Value, out ulong playerId) &&
-                callback.m_steamID.m_SteamID == playerId)
-            {
-                int imageHandle = callback.m_iImage;
-                if (imageHandle > 0) profilePictureRawImage.texture = GetSteamInfo.SteamImageToUnityImage(imageHandle);
-
-                string updatedName = SteamFriends.GetFriendPersonaName(callback.m_steamID);
-                if (updatedName != "[unknown]" && nameText.text.StartsWith("Loading"))
-                    nameText.text = updatedName;
-            }
+            int imageHandle = callback.m_iImage;
+            if (imageHandle > 0) profilePictureRawImage.texture = GetSteamInfo.SteamImageToUnityImage(imageHandle);
+            nameText.text = SteamFriends.GetFriendPersonaName(callback.m_steamID);
         }
     }
 }

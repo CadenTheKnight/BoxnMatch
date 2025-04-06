@@ -4,7 +4,7 @@ using Assets.Scripts.Framework.Core;
 using Assets.Scripts.Game.UI.Controllers.OptionsCanvas.OptionsMenu;
 using Assets.Scripts.Game.UI.Controllers.OptionsCanvas.SettingsMenu;
 
-namespace Assets.Scripts.Game.Managers.UI.Managers
+namespace Assets.Scripts.Game.Managers
 {
     public class OptionsManager : Singleton<OptionsManager>
     {
@@ -42,41 +42,8 @@ namespace Assets.Scripts.Game.Managers.UI.Managers
 
         private void UpdateMenuVisibility(bool shouldDisableMenus)
         {
-            if (shouldDisableMenus)
-                HideAllMenus();
-            else
-            {
-                ShowOptionsMenu();
-                HideSettingsPanel();
-            }
-        }
-
-        public void ShowOptionsMenu()
-        {
-            optionsPanelController.ShowPanel();
-        }
-
-        public void HideOptionsMenu()
-        {
-            optionsPanelController.HidePanel();
-        }
-
-        public void ShowSettingsPanel()
-        {
-            string currentScene = SceneManager.GetActiveScene().name;
-            if (!ShouldDisableMenusInScene(currentScene))
-                settingsPanelController.ShowPanel();
-        }
-
-        public void HideSettingsPanel()
-        {
-            settingsPanelController.HidePanel();
-        }
-
-        public void HideAllMenus()
-        {
-            HideOptionsMenu();
-            HideSettingsPanel();
+            optionsPanelController.gameObject.SetActive(!shouldDisableMenus);
+            if (shouldDisableMenus) settingsPanelController.gameObject.SetActive(false);
         }
     }
 }

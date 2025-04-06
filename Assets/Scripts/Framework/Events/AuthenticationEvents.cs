@@ -27,8 +27,8 @@ namespace Assets.Scripts.Framework.Events
         /// Triggered when the player is rejoining a lobby.
         /// </summary>
         /// <param name="result">The result of the rejoin operation.</param>
-        public delegate void LobbyRegionHandler(OperationResult result);
-        public static event LobbyRegionHandler OnLobbyRejoined;
+        public delegate void LobbyRejoinHandler(OperationResult result);
+        public static event LobbyRejoinHandler OnLobbyRejoined;
 
         /// <summary>
         /// Triggered when there is an error during the rejoin process.

@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 using Assets.Scripts.Framework.Core;
-using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Utilities;
 using Assets.Scripts.Game.UI.Controllers.NotificationCanvas;

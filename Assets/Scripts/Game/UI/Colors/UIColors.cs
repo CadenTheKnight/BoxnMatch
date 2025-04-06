@@ -3,40 +3,58 @@ using UnityEngine;
 namespace Assets.Scripts.Game.UI.Colors
 {
     /// <summary>
-    /// Scriptable Object that contains editable UI color palettes.
+    /// Contains UI color palettes organized by color category.
     /// </summary>
     public static class UIColors
     {
-        [Header("Primary Colors")]
-        [SerializeField] public static Color primaryDefaultColor = new(0.87f, 0.89f, 0.92f); // DDE0E4
-        [SerializeField] public static Color primaryHoverColor = new(0.184f, 0.208f, 0.259f); // 2F3542
-        [SerializeField] public static Color primaryPressedColor = new(0.455f, 0.490f, 0.549f); // 747D8C
-        [SerializeField] public static Color primaryDisabledColor = new(0.34f, 0.38f, 0.44f); // 57606F
+        public static class Primary
+        {
+            public static Color One = new(r: 1f, g: 1f, b: 1f);
+            public static Color Two = new(r: 0.9f, g: 0.9f, b: 0.95f);
+            public static Color Three = new(r: 0.8f, g: 0.8f, b: 0.85f);
+            public static Color Four = new(r: 0.7f, g: 0.7f, b: 0.75f);
+            public static Color Five = new(r: 0.6f, g: 0.6f, b: 0.65f);
+            public static Color Six = new(r: 0.5f, g: 0.5f, b: 0.55f);
+            public static Color Seven = new(r: 0.4f, g: 0.4f, b: 0.45f);
+            public static Color Eight = new(r: 0.3f, g: 0.3f, b: 0.35f);
+            public static Color Nine = new(r: 0.2f, g: 0.2f, b: 0.25f);
+            public static Color Ten = new(r: 0.1f, g: 0.1f, b: 0.15f);
+        }
 
-        [Header("Secondary Colors")]
-        [SerializeField] public static Color secondaryDefaultColor = new(0.184f, 0.208f, 0.259f); // 2F3542
-        [SerializeField] public static Color secondaryHoverColor = new(0.34f, 0.38f, 0.44f); // 57606F
-        [SerializeField] public static Color secondaryPressedColor = new(0.455f, 0.490f, 0.549f); // 747D8C
-        [SerializeField] public static Color secondaryDisabledColor = new(0.87f, 0.89f, 0.92f); // DFE4EA
+        public static class Green
+        {
+            public static Color One = new(r: 0.1f, g: 0.9f, b: 0.1f);
+            public static Color Two = new(r: 0.1f, g: 0.8f, b: 0.1f);
+            public static Color Three = new(r: 0.1f, g: 0.6f, b: 0.1f);
+            public static Color Four = new(r: 0.1f, g: 0.4f, b: 0.1f);
+            public static Color Five = new(r: 0.1f, g: 0.2f, b: 0.1f);
+        }
 
-        [Header("Green Colors")]
-        [SerializeField] public static Color greenDefaultColor = new(0.18f, 0.84f, 0.45f); // 2ED573
-        [SerializeField] public static Color greenHoverColor = new(0.48f, 0.93f, 0.62f);   // 7BED9F
+        public static class Orange
+        {
+            public static Color One = new(r: 0.9f, g: 0.5f, b: 0.1f);
+            public static Color Two = new(r: 0.8f, g: 0.4f, b: 0.1f);
+            public static Color Three = new(r: 0.6f, g: 0.3f, b: 0.1f);
+            public static Color Four = new(r: 0.4f, g: 0.2f, b: 0.1f);
+            public static Color Five = new(r: 0.2f, g: 0.1f, b: 0.1f);
+        }
 
-        [Header("Yellow Colors")]
-        [SerializeField] public static Color yellowDefaultColor = new(1f, 0.65f, 0.01f); // FFA502
-        [SerializeField] public static Color yellowHoverColor = new(1f, 0.75f, 0.1f);   // FFCF19
+        public static class Red
+        {
+            public static Color One = new(r: 0.9f, g: 0.1f, b: 0.1f);
+            public static Color Two = new(r: 0.8f, g: 0.1f, b: 0.1f);
+            public static Color Three = new(r: 0.6f, g: 0.1f, b: 0.1f);
+            public static Color Four = new(r: 0.4f, g: 0.1f, b: 0.1f);
+            public static Color Five = new(r: 0.2f, g: 0.1f, b: 0.1f);
+        }
 
-        [Header("Red Colors")]
-        [SerializeField] public static Color redDefaultColor = new(1f, 0.278f, 0.3414f); // FF4757
-        [SerializeField] public static Color redHoverColor = new(1f, 0.412f, 0.506f);   // FF6B81
-
-        [Header("Blue Colors")]
-        [SerializeField] public static Color blueDefaultColor = new(0.1f, 0.6f, 1f); // 1E90FF
-        [SerializeField] public static Color blueHoverColor = new(0.2f, 0.8f, 1f);   // 32CDFF
-
-
-        [SerializeField] public static Color grayDefaultColor = new(0.64f, 0.69f, 0.75f); // A4B0BE
-
+        public static class Blue
+        {
+            public static Color One = new(r: 0.1f, g: 0.1f, b: 0.9f);
+            public static Color Two = new(r: 0.1f, g: 0.1f, b: 0.8f);
+            public static Color Three = new(r: 0.1f, g: 0.1f, b: 0.6f);
+            public static Color Four = new(r: 0.1f, g: 0.1f, b: 0.4f);
+            public static Color Five = new(r: 0.1f, g: 0.1f, b: 0.2f);
+        }
     }
 }

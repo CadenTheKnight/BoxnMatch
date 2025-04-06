@@ -1,15 +1,13 @@
 using System;
 using Steamworks;
+using UnityEngine;
 using Unity.Services.Core;
 using System.Threading.Tasks;
 using Assets.Scripts.Game.Data;
-using Assets.Scripts.Game.Types;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Core;
 using Unity.Services.Authentication;
 using Assets.Scripts.Framework.Utilities;
-
-// may want to add timeouts for steam and unity services
 
 namespace Assets.Scripts.Framework.Managers
 {
@@ -67,7 +65,15 @@ namespace Assets.Scripts.Framework.Managers
         {
             try
             {
-                while (!SteamManager.Initialized) await Task.Delay(100);
+                float startTime = Time.realtimeSinceStartup;
+                float timeoutDuration = 15f;
+
+                while (!SteamManager.Initialized)
+                {
+                    if (Time.realtimeSinceStartup - startTime > timeoutDuration)
+                        return OperationResult.ErrorResult("InitializeSteamTimeout", "Steam failed to initialize within timeout period");
+                    await Task.Delay(100);
+                }
 
                 return OperationResult.SuccessResult("InitializeSteam", "Steam initialized successfully.");
             }
@@ -86,9 +92,18 @@ namespace Assets.Scripts.Framework.Managers
             try
             {
                 SignInWithSteam();
-                while (!AuthenticationService.Instance.IsSignedIn) await Task.Delay(100);
 
-                PlayerData playerData = new() { Id = SteamUser.GetSteamID() };
+                float startTime = Time.realtimeSinceStartup;
+                float timeoutDuration = 15f;
+
+                while (!AuthenticationService.Instance.IsSignedIn)
+                {
+                    if (Time.realtimeSinceStartup - startTime > timeoutDuration)
+                        return OperationResult.ErrorResult("AuthenticateTimeout", "Authentication failed to complete within timeout period");
+                    await Task.Delay(100);
+                }
+
+                PlayerData playerData = new() { SteamId = SteamUser.GetSteamID() };
                 LocalPlayer = new Player(id: AuthenticationService.Instance.PlayerId, data: playerData.Serialize());
 
                 return OperationResult.SuccessResult("Authenticated", $"Signed in as {SteamFriends.GetPersonaName()}");

@@ -1,13 +1,15 @@
+using System;
 using UnityEngine;
-using Assets.Scripts.Game.UI.Components;
 using Assets.Scripts.Game.UI.Components.Options.ToggleSwitch;
 
 namespace Assets.Scripts.Game.UI.Controllers.OptionsCanvas.SettingsMenu
 {
-    public class VideoSettingsPanelController : BaseSettingsPanel
+    public class VideoSettingsPanelController : MonoBehaviour
     {
         [Header("Options")]
         [SerializeField] private ToggleSwitch fullscreenToggle;
+
+        public Action OnVideoSettingsChanged;
 
         private bool _originalFullscreen;
 
@@ -21,23 +23,23 @@ namespace Assets.Scripts.Game.UI.Controllers.OptionsCanvas.SettingsMenu
             fullscreenToggle.onToggle -= OnFullscreenChanged;
         }
 
-        public override void LoadSettings()
+        public void LoadSettings()
         {
             _originalFullscreen = PlayerPrefs.GetInt("video_fullscreen") == 1;
             fullscreenToggle.SetState(_originalFullscreen, false);
-            if (!IsDefaults()) NotifySettingsChanged();
+            OnVideoSettingsChanged?.Invoke();
         }
 
-        public override void DiscardChanges()
+        public void DiscardChanges()
         {
-            fullscreenToggle.SetState(_originalFullscreen, true);
-
-            ResetChangeTracking();
+            fullscreenToggle.SetState(_originalFullscreen, false);
+            OnVideoSettingsChanged?.Invoke();
         }
 
-        public override void ResetToDefaults()
+        public void ResetToDefaults()
         {
-            fullscreenToggle.SetState(false, true);
+            fullscreenToggle.SetState(false, false);
+            OnVideoSettingsChanged?.Invoke();
         }
 
         public bool IsDefaults()
@@ -50,18 +52,12 @@ namespace Assets.Scripts.Game.UI.Controllers.OptionsCanvas.SettingsMenu
             return fullscreenToggle.CurrentValue != _originalFullscreen;
         }
 
-        private void CheckForChanges()
-        {
-            if (HasChanges()) NotifySettingsChanged();
-            if (!IsDefaults()) NotifySettingsChanged();
-        }
-
         private void OnFullscreenChanged(bool isFullscreen)
         {
-            CheckForChanges();
+            OnVideoSettingsChanged?.Invoke();
         }
 
-        public override void ApplyChanges()
+        public void ApplyChanges()
         {
             Screen.fullScreen = fullscreenToggle.CurrentValue;
 
@@ -70,7 +66,7 @@ namespace Assets.Scripts.Game.UI.Controllers.OptionsCanvas.SettingsMenu
 
             _originalFullscreen = fullscreenToggle.CurrentValue;
 
-            ResetChangeTracking();
+            OnVideoSettingsChanged?.Invoke();
         }
     }
 }

@@ -108,7 +108,7 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.JoinMenu
             SetLoading("Refreshing...", true);
 
             await Task.Delay(1000);
-            List<Lobby> lobbies = await LobbyManager.Instance.GetLobbies();
+            List<Lobby> lobbies = await LobbyManager.Instance.QueryLobbies();
 
             foreach (LobbyListEntry entry in lobbyListContainer.GetComponentsInChildren<LobbyListEntry>())
                 DeleteLobbyListEntry(entry);

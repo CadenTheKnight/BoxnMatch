@@ -24,23 +24,47 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private void Start()
         {
-            SetReadyUnreadyButton(Enum.Parse<PlayerStatus>(AuthenticationManager.Instance.LocalPlayer.Data["Status"].Value));
+            LobbyEvents.OnPlayerConnected += OnPlayerConnect;
+            LobbyEvents.OnPlayerDisconnected += OnPlayerDisconnect;
+
+            if (LobbyManager.Instance.Lobby != null) OnPlayerConnect(AuthenticationManager.Instance.LocalPlayer);
         }
 
-        private void OnEnable()
+        private async void OnPlayerConnect(Player player)
         {
             leaveButton.onClick.AddListener(OnLeaveClicked);
             readyUnreadyButton.onClick.AddListener(OnReadyUnreadyClicked);
 
             LobbyEvents.OnPlayerStatusChanged += OnPlayerStatusChanged;
+
+            await GameLobbyManager.Instance.TogglePlayerReady(player, setUnready: true);
         }
 
-        private void OnDisable()
+        private void OnPlayerDisconnect(Player player)
         {
             leaveButton.onClick.RemoveListener(OnLeaveClicked);
             readyUnreadyButton.onClick.RemoveListener(OnReadyUnreadyClicked);
 
             LobbyEvents.OnPlayerStatusChanged -= OnPlayerStatusChanged;
+        }
+
+        private void OnDestroy()
+        {
+            LobbyEvents.OnPlayerConnected -= OnPlayerConnect;
+            LobbyEvents.OnPlayerDisconnected -= OnPlayerDisconnect;
+
+            leaveLoadingBar.StopLoading();
+            readyUnreadyLoadingBar.StopLoading();
+        }
+
+        public async void OnPlayerStatusChanged(Player player)
+        {
+            SetReadyUnreadyButton(Enum.Parse<PlayerStatus>(player.Data["Status"].Value));
+
+            await Task.Delay(1000);
+
+            readyUnreadyLoadingBar.StopLoading();
+            readyUnreadyButton.interactable = true;
         }
 
         private async void OnLeaveClicked()
@@ -62,17 +86,8 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             readyUnreadyButton.interactable = false;
             readyUnreadyLoadingBar.StartLoading();
 
-            await GameLobbyManager.Instance.TogglePlayerReady(AuthenticationManager.Instance.LocalPlayer);
-        }
-
-        public async void OnPlayerStatusChanged(int playerIndex, PlayerStatus newStatus)
-        {
-            SetReadyUnreadyButton(newStatus);
-
-            await Task.Delay(1000);
-
-            readyUnreadyLoadingBar.StopLoading();
-            readyUnreadyButton.interactable = true;
+            Player player = LobbyManager.Instance.Lobby.Players.Find(player => player.Id == AuthenticationManager.Instance.LocalPlayer.Id);
+            await GameLobbyManager.Instance.TogglePlayerReady(player);
         }
 
         private void SetReadyUnreadyButton(PlayerStatus status)
@@ -83,17 +98,17 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
             if (status == PlayerStatus.Ready)
             {
-                colors.normalColor = UIColors.greenDefaultColor;
-                colors.highlightedColor = UIColors.greenHoverColor;
-                colors.pressedColor = UIColors.greenDefaultColor;
-                colors.selectedColor = UIColors.greenHoverColor;
+                colors.normalColor = UIColors.Green.One;
+                colors.highlightedColor = UIColors.Green.Two;
+                colors.pressedColor = UIColors.Green.Three;
+                colors.selectedColor = UIColors.Green.Three;
             }
             else
             {
-                colors.normalColor = UIColors.redDefaultColor;
-                colors.highlightedColor = UIColors.redHoverColor;
-                colors.pressedColor = UIColors.redDefaultColor;
-                colors.selectedColor = UIColors.redHoverColor;
+                colors.normalColor = UIColors.Red.One;
+                colors.highlightedColor = UIColors.Red.Two;
+                colors.pressedColor = UIColors.Red.Three;
+                colors.selectedColor = UIColors.Red.Three;
             }
 
             readyUnreadyButton.colors = colors;

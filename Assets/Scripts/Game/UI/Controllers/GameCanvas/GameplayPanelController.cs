@@ -2,7 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Assets.Scripts.Game.UI.Controllers.Gameplay
+namespace Assets.Scripts.Game.UI.Controllers.GameCanvas
 {
     public class GameplayPanelController : MonoBehaviour
     {

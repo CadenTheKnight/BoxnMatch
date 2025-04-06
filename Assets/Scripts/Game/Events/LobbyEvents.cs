@@ -18,11 +18,19 @@ namespace Assets.Scripts.Game.Events
         /// <param name="playersReady">The number of players that are ready.</param>
         public delegate void LobbyNotReadyHandler(int playersReady);
         public static event LobbyNotReadyHandler OnLobbyNotReady;
+
+        /// <summary>
+        /// Triggered when the lobby host presses the start button.
+        /// </summary>
+        /// <param name="mapName">The name of the map to be loaded.</param>
+        public delegate void LobbyGameStartingHandler(string mapName);
+        public static event LobbyGameStartingHandler OnGameStarting;
         #endregion
 
         #region Invocations
         public static void InvokeLobbyReady() => OnLobbyReady?.Invoke();
         public static void InvokeLobbyNotReady(int playersReady) => OnLobbyNotReady?.Invoke(playersReady);
+        public static void InvokeGameStarting(string mapName) => OnGameStarting?.Invoke(mapName);
         #endregion
     }
 }

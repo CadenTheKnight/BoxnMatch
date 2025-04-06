@@ -11,6 +11,13 @@ namespace Assets.Scripts.Framework.Events
     {
         #region Events
         /// <summary>
+        /// Triggered when the lobby is initialized.
+        /// </summary>
+        /// <param name="lobby">The initialized lobby.</param>
+        public delegate void LobbyInitializedHandler(Lobby lobby);
+        public static event LobbyInitializedHandler OnLobbyInitialized;
+
+        /// <summary>
         /// Triggered when a new lobby is successfully created.
         /// </summary>
         /// <param name="result"> The result of the lobby creation operation.</param>
@@ -138,17 +145,15 @@ namespace Assets.Scripts.Framework.Events
         /// <summary>
         /// Triggered when the player's status is changed.
         /// </summary>
-        /// <param name="playerIndex"=>The index of the player whose status has changed.</param>
-        /// <param name="newStatus">The new status of the player.</param>
-        public delegate void PlayerStatusChangedHandler(int playerIndex, PlayerStatus newStatus);
+        /// <param name="player">The player whose status has changed.</param>
+        public delegate void PlayerStatusChangedHandler(Player player);
         public static event PlayerStatusChangedHandler OnPlayerStatusChanged;
 
         /// <summary>
         /// Triggered when the player's team is changed.
         /// </summary>
-        /// <param name="playerIndex">The index of the player whose team has changed.</param>
-        /// <param name="newTeam">The new team of the player.</param>
-        public delegate void PlayerTeamChangedHandler(int playerIndex, Team newTeam);
+        /// <param name="player">The player whose team has changed.</param>
+        public delegate void PlayerTeamChangedHandler(Player player);
         public static event PlayerTeamChangedHandler OnPlayerTeamChanged;
 
         /// <summary>
@@ -174,6 +179,7 @@ namespace Assets.Scripts.Framework.Events
         #endregion
 
         #region Invocations
+        public static void InvokeLobbyInitialized(Lobby lobby) => OnLobbyInitialized?.Invoke(lobby);
         public static void InvokeLobbyCreated(OperationResult result) => OnLobbyCreated?.Invoke(result);
         public static void InvokeLobbyChanged() => OnLobbyChanged?.Invoke();
         public static void InvokeLobbyHostMigrated(Player player) => OnLobbyHostMigrated?.Invoke(player);
@@ -192,8 +198,8 @@ namespace Assets.Scripts.Framework.Events
         public static void InvokeLobbyGameModeChanged(GameMode mode) => OnLobbyGameModeChanged?.Invoke(mode);
         public static void InvokeLobbyStatusChanged(LobbyStatus status) => OnLobbyStatusChanged?.Invoke(status);
         public static void InvokePlayerDataChanged(OperationResult result) => OnPlayerDataChanged?.Invoke(result);
-        public static void InvokePlayerStatusChanged(int playerIndex, PlayerStatus newStatus) => OnPlayerStatusChanged?.Invoke(playerIndex, newStatus);
-        public static void InvokePlayerTeamChanged(int playerIndex, Team newTeam) => OnPlayerTeamChanged?.Invoke(playerIndex, newTeam);
+        public static void InvokePlayerStatusChanged(Player player) => OnPlayerStatusChanged?.Invoke(player);
+        public static void InvokePlayerTeamChanged(Player player) => OnPlayerTeamChanged?.Invoke(player);
         public static void InvokePlayerConnecting(Player player) => OnPlayerConnecting?.Invoke(player);
         public static void InvokePlayerConnected(Player player) => OnPlayerConnected?.Invoke(player);
         public static void InvokePlayerDisconnected(Player player) => OnPlayerDisconnected?.Invoke(player);

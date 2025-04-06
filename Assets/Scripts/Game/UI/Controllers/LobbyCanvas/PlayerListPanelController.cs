@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using Assets.Scripts.Game.Types;
 using System.Collections.Generic;
@@ -15,7 +16,15 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
     {
         [SerializeField] private List<PlayerListEntry> _playerListEntries = new();
 
-        private void OnEnable()
+        private void Start()
+        {
+            LobbyEvents.OnPlayerConnected += OnPlayerConnect;
+            LobbyEvents.OnPlayerDisconnected += OnPlayerDisconnect;
+
+            if (LobbyManager.Instance.Lobby != null) OnPlayerConnect(AuthenticationManager.Instance.LocalPlayer);
+        }
+
+        private void OnPlayerConnect(Player player)
         {
             LobbyEvents.OnLobbyHostMigrated += OnLobbyHostMigrated;
             LobbyEvents.OnPlayerJoined += OnPlayerJoined;
@@ -24,11 +33,12 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             LobbyEvents.OnPlayerTeamChanged += OnPlayerTeamChanged;
             LobbyEvents.OnPlayerStatusChanged += OnPlayerStatusChanged;
             LobbyEvents.OnPlayerConnecting += OnPlayerConnecting;
-            LobbyEvents.OnPlayerConnected += OnPlayerConnect;
-            LobbyEvents.OnPlayerDisconnected += OnPlayerDisconnect;
+
+            ResetPlayerList();
+            _playerListEntries.Find(entry => entry.PlayerId == player.Id).SetConnected();
         }
 
-        private void OnDisable()
+        private void OnPlayerDisconnect(Player player)
         {
             LobbyEvents.OnLobbyHostMigrated -= OnLobbyHostMigrated;
             LobbyEvents.OnPlayerJoined -= OnPlayerJoined;
@@ -37,38 +47,37 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             LobbyEvents.OnPlayerTeamChanged -= OnPlayerTeamChanged;
             LobbyEvents.OnPlayerStatusChanged -= OnPlayerStatusChanged;
             LobbyEvents.OnPlayerConnecting -= OnPlayerConnecting;
+
+            _playerListEntries.Find(entry => entry.PlayerId == player.Id).SetDisconnected();
+        }
+
+        private void OnDestroy()
+        {
             LobbyEvents.OnPlayerConnected -= OnPlayerConnect;
             LobbyEvents.OnPlayerDisconnected -= OnPlayerDisconnect;
         }
 
-        private void Start()
-        {
-            ResetPlayerList();
-        }
-
         private void ResetPlayerList()
         {
+            if (LobbyManager.Instance.Lobby == null) return;
             List<Player> players = LobbyManager.Instance.Lobby.Players;
             for (int i = 0; i < _playerListEntries.Count; i++)
             {
                 _playerListEntries[i].gameObject.SetActive(true);
-                if (i < players.Count)
-                    _playerListEntries[i].SetPlayer(players[i]);
-                else if (i < LobbyManager.Instance.Lobby.MaxPlayers)
-                    _playerListEntries[i].SetEmpty();
-                else
-                    _playerListEntries[i].gameObject.SetActive(false);
+                if (i < players.Count) _playerListEntries[i].SetPlayer(players[i]);
+                else if (i < LobbyManager.Instance.Lobby.MaxPlayers) _playerListEntries[i].SetEmpty();
+                else _playerListEntries[i].gameObject.SetActive(false);
             }
         }
 
         private void OnLobbyHostMigrated(Player player)
         {
-            _playerListEntries.Find(entry => entry.Player.Id == player.Id).SetHostName(true);
+            if (player.Id == AuthenticationManager.Instance.LocalPlayer.Id) ResetPlayerList();
         }
 
         private void OnPlayerJoined(Player player)
         {
-            _playerListEntries.Find(entry => entry.Player == null).SetPlayer(player);
+            _playerListEntries.Find(entry => entry.PlayerId == player.Id).SetPlayer(player);
         }
 
         private void OnPlayerLeft(Player player)
@@ -76,29 +85,19 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             ResetPlayerList();
         }
 
-        private void OnPlayerTeamChanged(int playerIndex, Team team)
+        private void OnPlayerTeamChanged(Player player)
         {
-            _playerListEntries.Find(entry => entry.Player.Id == LobbyManager.Instance.Lobby.Players[playerIndex].Id).SetTeam(team);
+            _playerListEntries.Find(entry => entry.PlayerId == player.Id).SetTeam(Enum.Parse<Team>(player.Data["Team"].Value));
         }
 
-        private void OnPlayerStatusChanged(int playerIndex, PlayerStatus status)
+        private void OnPlayerStatusChanged(Player player)
         {
-            _playerListEntries.Find(entry => entry.Player.Id == LobbyManager.Instance.Lobby.Players[playerIndex].Id).SetStatus(status);
+            _playerListEntries.Find(entry => entry.PlayerId == player.Id).SetStatus(Enum.Parse<PlayerStatus>(player.Data["Status"].Value));
         }
 
         private void OnPlayerConnecting(Player player)
         {
-            _playerListEntries.Find(entry => entry.Player.Id == player.Id).SetConnecting();
-        }
-
-        private void OnPlayerConnect(Player player)
-        {
-            _playerListEntries.Find(entry => entry.Player.Id == player.Id).SetConnected();
-        }
-
-        private void OnPlayerDisconnect(Player player)
-        {
-            _playerListEntries.Find(entry => entry.Player.Id == player.Id).SetDisconnected();
+            _playerListEntries.Find(entry => entry.PlayerId == player.Id).SetConnecting();
         }
     }
 }

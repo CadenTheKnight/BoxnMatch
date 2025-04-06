@@ -26,11 +26,11 @@ namespace Assets.Scripts.Framework.Managers
         private List<Player> cachedPlayersList = new();
 
         /// <summary>
-        /// Retrieves list of all active lobbies.
+        /// Retrieves list of active lobbies matching the filters.
         /// </summary>
         /// <param name="filters">Optional filters to apply to the query.</param>
         /// <returns>A list of lobbies matching the query.</returns>
-        public async Task<List<Lobby>> GetLobbies(List<QueryFilter> filters = null)
+        public async Task<List<Lobby>> QueryLobbies(List<QueryFilter> filters = null)
         {
             QueryLobbiesOptions queryLobbiesOptions = new()
             {
@@ -42,12 +42,12 @@ namespace Assets.Scripts.Framework.Managers
             try
             {
                 QueryResponse queryResponse = await LobbyService.Instance.QueryLobbiesAsync(queryLobbiesOptions);
-                LobbyEvents.InvokeLobbyQueryResponse(OperationResult.SuccessResult("GetLobbies", $"Found {queryResponse.Results.Count} " + (queryResponse.Results.Count == 1 ? "lobby" : "lobbies")));
+                LobbyEvents.InvokeLobbyQueryResponse(OperationResult.SuccessResult("QueryLobbies", $"Found {queryResponse.Results.Count} " + (queryResponse.Results.Count == 1 ? "lobby" : "lobbies")));
                 return queryResponse.Results;
             }
             catch (LobbyServiceException e)
             {
-                LobbyEvents.InvokeLobbyError(OperationResult.ErrorResult("GetLobbiesError", e.Message));
+                LobbyEvents.InvokeLobbyError(OperationResult.ErrorResult("QueryLobbiesError", e.Message));
                 return new List<Lobby>();
             }
         }
@@ -163,12 +163,6 @@ namespace Assets.Scripts.Framework.Managers
         {
             try
             {
-                foreach (string lobbyId in joinedLobbyIds.GetRange(1, joinedLobbyIds.Count - 1))
-                {
-                    await Task.Delay(1500);
-                    await LobbyService.Instance.RemovePlayerAsync(lobbyId, AuthenticationManager.Instance.LocalPlayer.Id);
-                }
-
                 Lobby = await LobbyService.Instance.ReconnectToLobbyAsync(joinedLobbyIds[0]);
                 await SubscribeToLobbyEvents(Lobby.Id);
                 AuthenticationEvents.InvokeLobbyRejoined(OperationResult.SuccessResult("RejoinLobby", $"Rejoined lobby: {Lobby.Name}"));
@@ -262,6 +256,21 @@ namespace Assets.Scripts.Framework.Managers
             catch (LobbyServiceException e)
             {
                 LobbyEvents.InvokeLobbyError(OperationResult.ErrorResult("UpdateLobbyDataError", e.Message));
+            }
+        }
+
+        /// <summary>
+        /// Refreshes the lobby data.
+        /// </summary>
+        public async Task RefreshLobbyData()
+        {
+            try
+            {
+                Lobby = await LobbyService.Instance.GetLobbyAsync(Lobby.Id);
+            }
+            catch (LobbyServiceException e)
+            {
+                LobbyEvents.InvokeLobbyError(OperationResult.ErrorResult("RefreshLobbyDataError", e.Message));
             }
         }
         #endregion
@@ -367,22 +376,15 @@ namespace Assets.Scripts.Framework.Managers
         {
             foreach (int playerIndex in playerIndices)
             {
-                if (playerIndex < 0 || playerIndex > cachedPlayersList.Count)
-                {
-                    Debug.LogError($"Invalid player index: {playerIndex}");
-                    continue;
-                }
-
-                Player leavingPlayer = cachedPlayersList[playerIndex];
-
-                if (showDebugMessages) Debug.Log($"Player {leavingPlayer.Id} left the lobby");
-                LobbyEvents.InvokePlayerLeft(leavingPlayer);
+                if (showDebugMessages) Debug.Log($"Player {cachedPlayersList[playerIndex].Id} left the lobby");
+                LobbyEvents.InvokePlayerLeft(cachedPlayersList[playerIndex]);
                 cachedPlayersList.RemoveAt(playerIndex);
             }
         }
 
-        private void OnDataChanged(Dictionary<string, ChangedOrRemovedLobbyValue<DataObject>> dataChanges)
+        private async void OnDataChanged(Dictionary<string, ChangedOrRemovedLobbyValue<DataObject>> dataChanges)
         {
+            await RefreshLobbyData();
             if (showDebugMessages) Debug.Log($"Lobby data changed: {dataChanges.Count} " + (dataChanges.Count == 1 ? "field" : "fields"));
             foreach (var kvp in dataChanges)
             {
@@ -400,19 +402,21 @@ namespace Assets.Scripts.Framework.Managers
             }
         }
 
-        private void OnPlayerDataChanged(Dictionary<int, Dictionary<string, ChangedOrRemovedLobbyValue<PlayerDataObject>>> changes)
+        private async void OnPlayerDataChanged(Dictionary<int, Dictionary<string, ChangedOrRemovedLobbyValue<PlayerDataObject>>> changes)
         {
+            await RefreshLobbyData();
             if (showDebugMessages) Debug.Log($"Player data changed: {changes.Count} " + (changes.Count == 1 ? "player" : "players"));
             foreach (var kvp in changes)
             {
-                if (showDebugMessages) Debug.Log($"- Player {kvp.Key} data changed: {kvp.Value.Count} fields");
+                Player changedPlayer = Lobby.Players[kvp.Key];
+                if (showDebugMessages) Debug.Log($"- Player {changedPlayer.Id} data changed: {kvp.Value.Count} fields");
                 foreach (var dataChange in kvp.Value)
                 {
                     if (showDebugMessages) Debug.Log($"-- {dataChange.Key}: {dataChange.Value.Value.Value}");
-                    if (dataChange.Key == "Status")
-                        LobbyEvents.InvokePlayerStatusChanged(kvp.Key, Enum.Parse<PlayerStatus>(dataChange.Value.Value.Value));
-                    else if (dataChange.Key == "Team")
-                        LobbyEvents.InvokePlayerTeamChanged(kvp.Key, Enum.Parse<Team>(dataChange.Value.Value.Value));
+                    if (dataChange.Key == "Team")
+                        LobbyEvents.InvokePlayerTeamChanged(changedPlayer);
+                    else if (dataChange.Key == "Status")
+                        LobbyEvents.InvokePlayerStatusChanged(changedPlayer);
                 }
             }
         }

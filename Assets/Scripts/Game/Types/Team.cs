@@ -8,6 +8,6 @@ namespace Assets.Scripts.Game.Types
         Red,
         Blue,
         Green,
-        Yellow,
+        Orange,
     }
 }

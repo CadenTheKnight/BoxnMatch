@@ -3,43 +3,35 @@ using Assets.Scripts.Game.Types;
 
 namespace Assets.Scripts.Game.UI.Colors
 {
-    /// <summary>
-    /// Provides color information for different teams.
-    /// </summary>
     public static class TeamColors
     {
         public static Color GetColor(Team team)
         {
-            switch (team)
-            {
-                case Team.Red:
-                    return UIColors.redDefaultColor;
-                case Team.Blue:
-                    return UIColors.blueDefaultColor;
-                case Team.Green:
-                    return UIColors.greenDefaultColor;
-                case Team.Yellow:
-                    return UIColors.yellowDefaultColor;
-                default:
-                    return Color.white;
-            }
+            if (team == Team.Red) return UIColors.Red.One;
+            if (team == Team.Blue) return UIColors.Blue.One;
+            if (team == Team.Green) return UIColors.Green.One;
+            else return UIColors.Orange.One;
         }
 
         public static Color GetHoverColor(Team team)
         {
-            switch (team)
-            {
-                case Team.Red:
-                    return UIColors.redHoverColor;
-                case Team.Blue:
-                    return UIColors.blueHoverColor;
-                case Team.Green:
-                    return UIColors.greenHoverColor;
-                case Team.Yellow:
-                    return UIColors.yellowHoverColor;
-                default:
-                    return Color.white;
-            }
+            if (team == Team.Red) return UIColors.Red.Two;
+            if (team == Team.Blue) return UIColors.Blue.Two;
+            if (team == Team.Green) return UIColors.Green.Two;
+            else return UIColors.Orange.Two;
+        }
+
+        public static Color GetSelectedColor(Team team)
+        {
+            if (team == Team.Red) return UIColors.Red.Three;
+            if (team == Team.Blue) return UIColors.Blue.Three;
+            if (team == Team.Green) return UIColors.Green.Three;
+            else return UIColors.Orange.Three;
+        }
+
+        public static Color GetDisabledColor(Team team)
+        {
+            return UIColors.Primary.Eight;
         }
     }
 }

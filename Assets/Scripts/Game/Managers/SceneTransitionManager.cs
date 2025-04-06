@@ -20,6 +20,8 @@ namespace Assets.Scripts.Game.Managers
             LobbyEvents.OnLobbyJoined += TransitionToLobby;
             LobbyEvents.OnLobbyLeft += TransitionToMain;
             LobbyEvents.OnLobbyKicked += TransitionToMain;
+
+            Events.LobbyEvents.OnGameStarting += TransitionToLoading;
         }
 
         private void OnDestroy()
@@ -32,6 +34,8 @@ namespace Assets.Scripts.Game.Managers
             LobbyEvents.OnLobbyJoined -= TransitionToLobby;
             LobbyEvents.OnLobbyLeft -= TransitionToMain;
             LobbyEvents.OnLobbyKicked -= TransitionToMain;
+
+            Events.LobbyEvents.OnGameStarting -= TransitionToLoading;
         }
 
         private void TransitionToMain(OperationResult result = null)
@@ -42,6 +46,16 @@ namespace Assets.Scripts.Game.Managers
         private void TransitionToLobby(OperationResult result = null)
         {
             SceneManager.LoadSceneAsync("Lobby");
+        }
+
+        private void TransitionToLoading(string mapName)
+        {
+            SceneManager.LoadSceneAsync("Loading");
+        }
+
+        private void TransitionToGame(string mapName)
+        {
+            SceneManager.LoadSceneAsync(mapName);
         }
     }
 }

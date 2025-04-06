@@ -5,9 +5,7 @@ using Assets.Scripts.Game.Types;
 using System.Collections.Generic;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Core;
-using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Managers;
-using Unity.Services.Lobbies;
 
 namespace Assets.Scripts.Game.Managers
 {
@@ -18,30 +16,6 @@ namespace Assets.Scripts.Game.Managers
     {
         [Header("Debug Options")]
         [SerializeField] private bool showDebugMessages = false;
-
-        private void OnEnable()
-        {
-            LobbyEvents.OnPlayerConnecting += OnPlayerConnecting;
-            LobbyEvents.OnPlayerDisconnected += OnPlayerDisconnect;
-        }
-
-        private void OnDisable()
-        {
-            LobbyEvents.OnPlayerConnecting -= OnPlayerConnecting;
-            LobbyEvents.OnPlayerDisconnected -= OnPlayerDisconnect;
-        }
-
-        private void OnPlayerConnecting(Player player)
-        {
-            if (showDebugMessages) Debug.Log($"Player {player.Id} is connecting to the lobby.");
-            _ = TogglePlayerReady(player, setUnready: true);
-        }
-
-        private void OnPlayerDisconnect(Player player)
-        {
-            if (showDebugMessages) Debug.Log($"Player {player.Id} has disconnected from the lobby.");
-            _ = TogglePlayerReady(player, setUnready: true);
-        }
 
         /// <summary>
         /// Returns the number of players that are ready in the lobby.
@@ -61,7 +35,6 @@ namespace Assets.Scripts.Game.Managers
                 }
                 else if (showDebugMessages) Debug.Log($"Player {player.Id} is not ready.");
             }
-
             if (playersReady == LobbyManager.Instance.Lobby.MaxPlayers)
             {
                 if (showDebugMessages) Debug.Log("All players are ready.");
@@ -73,6 +46,7 @@ namespace Assets.Scripts.Game.Managers
                 Events.LobbyEvents.InvokeLobbyNotReady(playersReady);
             }
 
+            if (showDebugMessages) Debug.Log($"Total players ready: {playersReady} / {LobbyManager.Instance.Lobby.MaxPlayers}");
             return playersReady;
         }
 
@@ -84,15 +58,15 @@ namespace Assets.Scripts.Game.Managers
         /// <param name="setUnready">True to set the player as not ready.</param>
         public async Task TogglePlayerReady(Player player, bool setReady = false, bool setUnready = false)
         {
-            PlayerStatus newStatus;
-            if (setReady) newStatus = PlayerStatus.Ready;
-            else if (setUnready) newStatus = PlayerStatus.NotReady;
-            else newStatus = Enum.Parse<PlayerStatus>(player.Data["Status"].Value) == PlayerStatus.Ready ? PlayerStatus.NotReady : PlayerStatus.Ready;
+            PlayerStatus status;
 
-            if (showDebugMessages) Debug.Log($"Toggling player {player.Id} status to {newStatus}.");
+            if (setReady) status = PlayerStatus.Ready;
+            else if (setUnready) status = PlayerStatus.NotReady;
+            else status = Enum.Parse<PlayerStatus>(player.Data["Status"].Value) == PlayerStatus.Ready ? PlayerStatus.NotReady : PlayerStatus.Ready;
 
-            Dictionary<string, PlayerDataObject> statusUpdate = new() { ["Status"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, newStatus.ToString()) };
+            Dictionary<string, PlayerDataObject> statusUpdate = new() { ["Status"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)status).ToString()) };
 
+            if (showDebugMessages) Debug.Log($"Updating player {player.Id} status: {player.Data["Status"].Value} to: {statusUpdate["Status"].Value}");
             await LobbyManager.Instance.UpdatePlayerData(player.Id, statusUpdate);
         }
 
@@ -103,10 +77,9 @@ namespace Assets.Scripts.Game.Managers
         /// <param name="team">The new team for the player.</param>
         public async Task ChangePlayerTeam(Player player, Team team)
         {
-            if (showDebugMessages) Debug.Log($"Changing player {player.Id} team to {team}.");
+            Dictionary<string, PlayerDataObject> teamUpdate = new() { ["Team"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)team).ToString()) };
 
-            Dictionary<string, PlayerDataObject> teamUpdate = new() { ["Team"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, team.ToString()) };
-
+            if (showDebugMessages) Debug.Log($"Updating player {player.Id} team: {player.Data["Team"].Value} to: {teamUpdate["Team"].Value}");
             await LobbyManager.Instance.UpdatePlayerData(player.Id, teamUpdate);
         }
 
@@ -118,6 +91,31 @@ namespace Assets.Scripts.Game.Managers
             foreach (Player player in LobbyManager.Instance.Lobby.Players)
                 await TogglePlayerReady(player, setUnready: true);
         }
+
+        /// <summary>
+        /// Updates the game settings in the lobby data.
+        /// </summary>
+        /// <param name="mapValue">The updated map index.</param>
+        /// <param name="roundCountValue">The updated round count.</param>
+        /// <param name="roundTimeValue">The updated round time.</param>
+        /// <param name="gameModeSelection">The updated game mode.</param> 
+        public async void UpdateGameSettings(int mapValue, int roundCountValue, int roundTimeValue, int gameModeSelection)
+        {
+            Dictionary<string, DataObject> changedData = new()
+            {
+                ["MapIndex"] = new DataObject(DataObject.VisibilityOptions.Public, mapValue.ToString()),
+                ["RoundCount"] = new DataObject(DataObject.VisibilityOptions.Member, roundCountValue.ToString()),
+                ["RoundTime"] = new DataObject(DataObject.VisibilityOptions.Member, roundTimeValue.ToString()),
+                ["GameMode"] = new DataObject(DataObject.VisibilityOptions.Public, gameModeSelection.ToString())
+            };
+
+            if (showDebugMessages) foreach (var data in changedData) Debug.Log($"Updating game setting: {data.Key} to: {data.Value.Value}");
+            await LobbyManager.Instance.UpdateLobbyData(changedData);
+        }
+
+
+
+
 
         #region Game Flow
         /// <summary>

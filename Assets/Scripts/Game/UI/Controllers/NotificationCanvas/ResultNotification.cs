@@ -56,22 +56,26 @@ namespace Assets.Scripts.Game.UI.Controllers.NotificationCanvas
             switch (status)
             {
                 case ResultStatus.Success:
-                    colors.normalColor = UIColors.greenDefaultColor;
-                    colors.highlightedColor = UIColors.greenHoverColor;
+                    colors.normalColor = UIColors.Green.One;
+                    colors.highlightedColor = UIColors.Green.Two;
+                    colors.pressedColor = UIColors.Green.Three;
+                    colors.selectedColor = UIColors.Green.Three;
                     break;
                 case ResultStatus.Warning:
-                    colors.normalColor = UIColors.yellowDefaultColor;
-                    colors.highlightedColor = UIColors.yellowHoverColor;
+                    colors.normalColor = UIColors.Orange.One;
+                    colors.highlightedColor = UIColors.Orange.Two;
+                    colors.pressedColor = UIColors.Orange.Three;
+                    colors.selectedColor = UIColors.Orange.Three;
                     break;
                 case ResultStatus.Error:
-                    colors.normalColor = UIColors.redDefaultColor;
-                    colors.highlightedColor = UIColors.redHoverColor;
+                    colors.normalColor = UIColors.Red.One;
+                    colors.highlightedColor = UIColors.Red.Two;
+                    colors.pressedColor = UIColors.Red.Three;
+                    colors.selectedColor = UIColors.Red.Three;
                     break;
             }
 
-            colors.pressedColor = colors.normalColor;
-            colors.selectedColor = colors.highlightedColor;
-            colors.disabledColor = UIColors.secondaryDisabledColor;
+            colors.disabledColor = UIColors.Primary.Three;
             notificationButton.colors = colors;
         }
 

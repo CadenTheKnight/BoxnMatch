@@ -98,11 +98,11 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 1, g: 0.2784314, b: 0.34117648, a: 1}
-    m_HighlightedColor: {r: 1, g: 0.41960785, b: 0.5058824, a: 1}
-    m_PressedColor: {r: 1, g: 0.2784314, b: 0.34117648, a: 1}
-    m_SelectedColor: {r: 1, g: 0.41960785, b: 0.5058824, a: 1}
-    m_DisabledColor: {r: 0.8745098, g: 0.89411765, b: 0.91764706, a: 1}
+    m_NormalColor: {r: 0.9, g: 0.1, b: 0.1, a: 1}
+    m_HighlightedColor: {r: 0.8, g: 0.1, b: 0.1, a: 1}
+    m_PressedColor: {r: 0.6, g: 0.1, b: 0.1, a: 1}
+    m_SelectedColor: {r: 0.6, g: 0.1, b: 0.1, a: 1}
+    m_DisabledColor: {r: 0.8, g: 0.8, b: 0.85, a: 1}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -135,7 +135,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 228708682379952613, guid: 689c35d4c899df84c9b5e50bbaf3c074, type: 3}
       propertyPath: m_fontSize
-      value: 60.25
+      value: 143.4
       objectReference: {fileID: 0}
     - target: {fileID: 228708682379952613, guid: 689c35d4c899df84c9b5e50bbaf3c074, type: 3}
       propertyPath: m_fontColor.b

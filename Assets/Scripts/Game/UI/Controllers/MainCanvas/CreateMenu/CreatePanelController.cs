@@ -1,13 +1,11 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Threading.Tasks;
 using Assets.Scripts.Game.Data;
-using Assets.Scripts.Game.Types;
 using System.Text.RegularExpressions;
 using Assets.Scripts.Game.UI.Components;
 using Assets.Scripts.Framework.Managers;
-using Assets.Scripts.Game.UI.Components.Options;
+using Assets.Scripts.Game.UI.Components.Options.Selector;
 using Assets.Scripts.Game.UI.Components.Options.ToggleSwitch;
 
 namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.CreateMenu
@@ -49,11 +47,9 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.CreateMenu
             isPrivateToggle.onToggle -= OnPrivacyChanged;
             maxPlayersSelector.onSelectionChanged -= OnMaxPlayersChanged;
             createButton.onClick.RemoveListener(OnCreateClicked);
-        }
 
-        private void OnDestroy()
-        {
             createLoadingBar.StopLoading();
+            createText.text = "Create";
         }
 
         private void OnLobbyNameChanged(string input)

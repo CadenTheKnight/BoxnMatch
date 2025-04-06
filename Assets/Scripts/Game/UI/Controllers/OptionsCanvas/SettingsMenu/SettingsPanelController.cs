@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using Assets.Scripts.Game.Managers;
 using Assets.Scripts.Game.UI.Components;
 using Assets.Scripts.Framework.Utilities;
-using Assets.Scripts.Game.UI.Components.Options;
+using Assets.Scripts.Game.UI.Components.Options.Selector;
 
 namespace Assets.Scripts.Game.UI.Controllers.OptionsCanvas.SettingsMenu
 {
@@ -30,69 +30,39 @@ namespace Assets.Scripts.Game.UI.Controllers.OptionsCanvas.SettingsMenu
             LoadAllSettings();
 
             panelSelector.SetSelection(0, true);
-            panelSelector.onSelectionChanged += (index) =>
-            {
-                switch (index)
-                {
-                    case 0:
-                        SetActivePanel(videoSettingsPanelController.gameObject);
-                        break;
-                    case 1:
-                        SetActivePanel(audioSettingsPanelController.gameObject);
-                        break;
-                    case 2:
-                        SetActivePanel(controlsSettingsPanelController.gameObject);
-                        break;
-                }
-                UpdateActionButtonsState();
-            };
+            panelSelector.onSelectionChanged += SetActivePanel;
 
             applyChangesButton.onClick.AddListener(ApplyChanges);
             discardChangesButton.onClick.AddListener(DiscardChanges);
             resetToDefaultsButton.onClick.AddListener(ResetToDefaults);
 
-            videoSettingsPanelController.OnSettingsChanged += UpdateActionButtonsState;
-            audioSettingsPanelController.OnSettingsChanged += UpdateActionButtonsState;
-            controlsSettingsPanelController.OnSettingsChanged += UpdateActionButtonsState;
+            videoSettingsPanelController.OnVideoSettingsChanged += UpdateActionButtonsState;
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
 
-            panelSelector.onSelectionChanged -= (index) =>
-            {
-                switch (index)
-                {
-                    case 0:
-                        SetActivePanel(videoSettingsPanelController.gameObject);
-                        break;
-                    case 1:
-                        SetActivePanel(audioSettingsPanelController.gameObject);
-                        break;
-                    case 2:
-                        SetActivePanel(controlsSettingsPanelController.gameObject);
-                        break;
-                }
-                UpdateActionButtonsState();
-            };
+            panelSelector.onSelectionChanged -= SetActivePanel;
 
             applyChangesButton.onClick.RemoveListener(ApplyChanges);
             discardChangesButton.onClick.RemoveListener(DiscardChanges);
             resetToDefaultsButton.onClick.RemoveListener(ResetToDefaults);
 
-            videoSettingsPanelController.OnSettingsChanged -= UpdateActionButtonsState;
-            audioSettingsPanelController.OnSettingsChanged -= UpdateActionButtonsState;
-            controlsSettingsPanelController.OnSettingsChanged -= UpdateActionButtonsState;
+            videoSettingsPanelController.OnVideoSettingsChanged -= UpdateActionButtonsState;
         }
 
-        private void SetActivePanel(GameObject activePanel)
+        private void SetActivePanel(int index)
         {
             videoSettingsPanelController.gameObject.SetActive(false);
             audioSettingsPanelController.gameObject.SetActive(false);
             controlsSettingsPanelController.gameObject.SetActive(false);
 
-            activePanel.SetActive(true);
+            if (index == 0) videoSettingsPanelController.gameObject.SetActive(true);
+            else if (index == 1) audioSettingsPanelController.gameObject.SetActive(true);
+            else if (index == 2) controlsSettingsPanelController.gameObject.SetActive(true);
+
+            UpdateActionButtonsState();
         }
 
         private void UpdateActionButtonsState()
@@ -105,16 +75,6 @@ namespace Assets.Scripts.Game.UI.Controllers.OptionsCanvas.SettingsMenu
                 hasChanges = videoSettingsPanelController.HasChanges();
                 isDefaults = videoSettingsPanelController.IsDefaults();
             }
-            else if (audioSettingsPanelController.gameObject.activeSelf)
-            {
-                hasChanges = audioSettingsPanelController.HasChanges();
-                isDefaults = audioSettingsPanelController.IsDefaults();
-            }
-            else if (controlsSettingsPanelController.gameObject.activeSelf)
-            {
-                hasChanges = controlsSettingsPanelController.HasChanges();
-                isDefaults = controlsSettingsPanelController.IsDefaults();
-            }
 
             resetToDefaultsButton.interactable = !isDefaults;
             applyChangesButton.interactable = hasChanges;
@@ -124,26 +84,14 @@ namespace Assets.Scripts.Game.UI.Controllers.OptionsCanvas.SettingsMenu
         private void LoadAllSettings()
         {
             videoSettingsPanelController.LoadSettings();
-            audioSettingsPanelController.LoadSettings();
-            controlsSettingsPanelController.LoadSettings();
         }
 
         private void ResetToDefaults()
         {
-            if (videoSettingsPanelController.gameObject.activeSelf)
+            if (videoSettingsPanelController.gameObject.activeSelf && videoSettingsPanelController.HasChanges())
             {
                 videoSettingsPanelController.ResetToDefaults();
                 NotificationManager.Instance.ShowNotification(OperationResult.ErrorResult("VideoSettingsReset", "Video settings reset to default"));
-            }
-            else if (audioSettingsPanelController.gameObject.activeSelf)
-            {
-                audioSettingsPanelController.ResetToDefaults();
-                NotificationManager.Instance.ShowNotification(OperationResult.ErrorResult("AudioSettingsReset", "Audio settings reset to default"));
-            }
-            else if (controlsSettingsPanelController.gameObject.activeSelf)
-            {
-                controlsSettingsPanelController.ResetToDefaults();
-                NotificationManager.Instance.ShowNotification(OperationResult.ErrorResult("ControlsSettingsReset", "Controls settings reset to default"));
             }
 
             UpdateActionButtonsState();
@@ -151,20 +99,10 @@ namespace Assets.Scripts.Game.UI.Controllers.OptionsCanvas.SettingsMenu
 
         private void DiscardChanges()
         {
-            if (videoSettingsPanelController.gameObject.activeSelf)
+            if (videoSettingsPanelController.gameObject.activeSelf && videoSettingsPanelController.HasChanges())
             {
                 videoSettingsPanelController.DiscardChanges();
                 NotificationManager.Instance.ShowNotification(OperationResult.WarningResult("VideoSettingsDiscarded", "Video settings changes discarded"));
-            }
-            else if (audioSettingsPanelController.gameObject.activeSelf)
-            {
-                audioSettingsPanelController.DiscardChanges();
-                NotificationManager.Instance.ShowNotification(OperationResult.WarningResult("AudioSettingsDiscarded", "Audio settings changes discarded"));
-            }
-            else if (controlsSettingsPanelController.gameObject.activeSelf)
-            {
-                controlsSettingsPanelController.DiscardChanges();
-                NotificationManager.Instance.ShowNotification(OperationResult.WarningResult("ControlsSettingsDiscarded", "Controls settings changes discarded"));
             }
 
             UpdateActionButtonsState();
@@ -172,20 +110,10 @@ namespace Assets.Scripts.Game.UI.Controllers.OptionsCanvas.SettingsMenu
 
         private void ApplyChanges()
         {
-            if (videoSettingsPanelController.gameObject.activeSelf)
+            if (videoSettingsPanelController.gameObject.activeSelf && videoSettingsPanelController.HasChanges())
             {
                 videoSettingsPanelController.ApplyChanges();
                 NotificationManager.Instance.ShowNotification(OperationResult.SuccessResult("VideoSettingsChanged", "Video settings changes applied"));
-            }
-            else if (audioSettingsPanelController.gameObject.activeSelf)
-            {
-                audioSettingsPanelController.ApplyChanges();
-                NotificationManager.Instance.ShowNotification(OperationResult.SuccessResult("AudioSettingsChanged", "Audio settings changes applied"));
-            }
-            else if (controlsSettingsPanelController.gameObject.activeSelf)
-            {
-                controlsSettingsPanelController.ApplyChanges();
-                NotificationManager.Instance.ShowNotification(OperationResult.SuccessResult("ControlsSettingsChanged", "Controls settings changes applied"));
             }
 
             UpdateActionButtonsState();
@@ -193,6 +121,7 @@ namespace Assets.Scripts.Game.UI.Controllers.OptionsCanvas.SettingsMenu
 
         public override void HidePanel()
         {
+            DiscardChanges();
             base.HidePanel();
         }
     }

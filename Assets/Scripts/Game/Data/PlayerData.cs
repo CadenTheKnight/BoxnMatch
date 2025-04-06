@@ -10,7 +10,7 @@ namespace Assets.Scripts.Game.Data
     /// </summary>
     public class PlayerData
     {
-        public CSteamID Id { get; set; } = CSteamID.Nil;
+        public CSteamID SteamId { get; set; } = CSteamID.Nil;
         public Team Team { get; set; } = Team.Blue;
         public PlayerStatus Status { get; set; } = PlayerStatus.NotReady;
 
@@ -18,9 +18,9 @@ namespace Assets.Scripts.Game.Data
         {
             return new Dictionary<string, PlayerDataObject>
             {
-                { "Id", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, Id.ToString()) },
-                { "Team", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, Team.ToString()) },
-                { "Status", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, Status.ToString()) }
+                { "SteamId", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, SteamId.ToString()) },
+                { "Team", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)Team).ToString()) },
+                { "Status", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)Status).ToString()) }
             };
         }
     }
