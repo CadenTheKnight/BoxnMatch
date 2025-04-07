@@ -134,6 +134,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: GrapplingHookAbilityAttatchment
       objectReference: {fileID: 0}
+    - target: {fileID: 6827325051261493220, guid: fd028ccb4ccfc734b9f635f3b2a09a51, type: 3}
+      propertyPath: grapplinghook
+      value: 
+      objectReference: {fileID: 8483590265862177989, guid: 45bad916bb2615a4c8ea71bf635c4a87, type: 3}
+    - target: {fileID: 6827325051261493220, guid: fd028ccb4ccfc734b9f635f3b2a09a51, type: 3}
+      propertyPath: positionOffset
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8982399607168297734, guid: fd028ccb4ccfc734b9f635f3b2a09a51, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

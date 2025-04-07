@@ -5,10 +5,15 @@ using UnityEngine;
 
 public class handleAnchor : MonoBehaviour
 {
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
         GrapplingHook script = GetComponentInParent<GrapplingHook>();
         Rigidbody2D rigidbody2D = collision.GetComponent<Rigidbody2D>();
+
+        AudioSource audioSource = GetComponent<AudioSource>();
+        audioSource.Play();
+
         script.extend = false;
         script.retract = true;
         GetComponent<HingeJoint2D>().connectedBody = rigidbody2D;

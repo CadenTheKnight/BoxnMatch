@@ -19,10 +19,15 @@ public class GrapplingHook : MonoBehaviour
     private GameObject rope;
     private GameObject anchor;
 
+    [SerializeField] private AudioClip extending;
+    [SerializeField] private AudioClip retracting;
+    private AudioSource audioSource;
+
     private void Start()
     {
         rope = GameObject.Find("Rope");
         anchor = GameObject.Find("Anchor");
+        audioSource = rope.GetComponent<AudioSource>();
     }
 
     // Update is called once per frame
@@ -37,11 +42,12 @@ public class GrapplingHook : MonoBehaviour
             }
             Destroy(gameObject);
         }
-            // Extend the rope
-            if (extend)
+        // Extend the rope
+        if (extend)
         {
             // Move the anchor according to the designated speed
             anchor.transform.position += speed * Time.deltaTime * dir.GetUnitDirection();
+            audioSource.clip = extending;
         }
 
         /* Update the Rope */
@@ -59,6 +65,7 @@ public class GrapplingHook : MonoBehaviour
         if (retract)
         {
             pr.GetComponent<Rigidbody2D>().AddForce(-retractForce * vDif.normalized);
+            audioSource.clip = retracting;
         }
         if (rope.transform.localScale.y < minimumRopeLength && retract)
         {
