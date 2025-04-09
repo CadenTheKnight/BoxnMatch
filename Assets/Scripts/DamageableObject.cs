@@ -115,10 +115,12 @@ public class DamageableObject : MonoBehaviour
         }
     }
 
-    private void ExplodeDie()
+    public void ExplodeDie()
     {
+        /*
         GameObject explo = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
         explo.GetComponent<ParticleSystem>().Play();
         Destroy(explo, 5f);
+        */
     }
 }
