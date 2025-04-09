@@ -4,12 +4,14 @@ using System.Xml.Serialization;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 
 public class CPUController : MonoBehaviour
 {
-    private CPUMovement cpu;                            // The cpu movement handler (set in start)
+    private CPUMovement cpuM;                            // The cpu movement handler (set in start)
     [SerializeField] private LayerMask groundLayer;     // Ground Layer Mask
     private Rigidbody2D rb;                             // CPU's Rigid Body Component (set in start)
+    private CPURotator cr;
 
     [SerializeField] private float stopRange = 0.05f;   // The velocity +/- 0 that the CPU deems acceptable for stop function
 
@@ -18,8 +20,9 @@ public class CPUController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        cpu = GetComponent<CPUMovement>();
+        cpuM = GetComponent<CPUMovement>();
         rb = GetComponent<Rigidbody2D>();
+        cr = GetComponent<CPURotator>();
         StartCoroutine(Idle());
     }
 
@@ -38,18 +41,18 @@ public class CPUController : MonoBehaviour
     private IEnumerator OptimalJumps()
     {
 
-        cpu.Jump();
+        cpuM.Jump();
 
         yield return new WaitForSeconds(0.1f);// Wait to ensure remaining jumps is updated
 
-        if (cpu.RemainingJumps() > 0) // If there is still a jump left then do a double jump
+        if (cpuM.RemainingJumps() > 0) // If there is still a jump left then do a double jump
         {
             while(rb.velocity.y > 0.1) // Loop until the peak of the jump is reached
             {
                 yield return new WaitForEndOfFrame(); // Delay to prevent overload
             }
 
-            cpu.Jump();
+            cpuM.Jump();
         }
     }
 
@@ -57,18 +60,18 @@ public class CPUController : MonoBehaviour
     {
         while (rb.velocity.x > stopRange || rb.velocity.x < -stopRange) // Loop until suffieciently slowed/stopped
         {
-            cpu.HorizontalMove(-rb.velocity.x/cpu.TOP_SPEED); // set horizontal movement in the opposite direction from current x velocity
+            cpuM.HorizontalMove(-rb.velocity.x/cpuM.TOP_SPEED); // set horizontal movement in the opposite direction from current x velocity
 
             yield return new WaitForEndOfFrame(); // Delay to prvent overload
         }
 
-        cpu.HorizontalMove(0); // set move to 0 after
+        cpuM.HorizontalMove(0); // set move to 0 after
     }
 
     private IEnumerator MoveToEdge(int direction) // Moves to the edge of the platform it's on
     {
         // Set movement in direction
-        cpu.HorizontalMove(direction);
+        cpuM.HorizontalMove(direction);
 
         // Loop to continuously check if the ray hits the ground layer
         RaycastHit2D ray;
@@ -119,7 +122,7 @@ public class CPUController : MonoBehaviour
         int direction = (int)-(transform.position.x / (Mathf.Abs(transform.position.x)));
 
         // Set Move Direction
-        cpu.HorizontalMove(direction);
+        cpuM.HorizontalMove(direction);
 
         // Jump to help get back to platforms
         Coroutine jumpRoutine = StartCoroutine(OptimalJumps());
@@ -137,7 +140,7 @@ public class CPUController : MonoBehaviour
         Coroutine stop = StartCoroutine(StopHorizontal());
 
         // fast falls to the platform
-        cpu.Crouch();
+        cpuM.Crouch();
 
         // Transition to Idle after stopped
         yield return stop;
@@ -148,11 +151,11 @@ public class CPUController : MonoBehaviour
     private IEnumerator Idle() // Moves back and forth on the current platform
     {
         int direction = -1;
-        cpu.HorizontalMove(direction);
+        cpuM.HorizontalMove(direction);
         
         while (true)
         {
-            // Loop to continuously check if the ray hits the ground layer
+            // Move side to side switching directions at the edge of the platform
             RaycastHit2D ray;
             // Cast a ray downwards with a slight horizontal direction based on the given direction
             ray = Physics2D.Raycast(transform.position, new Vector2(direction, -1), 2f, groundLayer);
@@ -161,11 +164,8 @@ public class CPUController : MonoBehaviour
             if (!ray.collider)
             {
                 direction = -direction;
-                cpu.HorizontalMove(direction);
+                cpuM.HorizontalMove(direction);
             }
-
-            // Added delay so it only checks every frame to prevent overloading
-            yield return new WaitForEndOfFrame();
             
 
 
@@ -175,6 +175,11 @@ public class CPUController : MonoBehaviour
                 StartCoroutine(Recover()); // Recover back to a platform
                 break;
             }
+
+
+
+            // Added delay so it only checks every frame to prevent overloading
+            yield return new WaitForEndOfFrame();
         }
 
         yield return null;
