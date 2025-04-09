@@ -30,19 +30,19 @@ public class PlayerRotator : MonoBehaviour
         currDirection = AbilityDirection.NORTH;
     }
 
-    private void OnEnable()
+    protected virtual void OnEnable()
     {
         EnableInputs();
     }
 
-    private void OnDisable()
+    protected virtual void OnDisable()
     {
         DisableInputs();
     }
 
     //actually useful methods
 
-    private void UseAbility(AbilityDirection ab)
+    protected void UseAbility(AbilityDirection ab)
     {
         /*access the socket that is at that direction, 
          * by using its index in the socket array.
@@ -61,7 +61,7 @@ public class PlayerRotator : MonoBehaviour
         sockets[socketToFire % 4].FireAbility(this);
     }
 
-    private void Rotate(int quarterCirclesCW)
+    protected void Rotate(int quarterCirclesCW)
     {
         //buffer input
         if (currentlyRotating)
@@ -139,7 +139,7 @@ public class PlayerRotator : MonoBehaviour
         if (val.performed) Rotate(-1);
     }
 
-    private void EnableInputs()
+    protected virtual void EnableInputs()
     {
         input.abilityNorthInput += UseAbility_N;
         input.abilityEastInput += UseAbility_E;
@@ -150,7 +150,7 @@ public class PlayerRotator : MonoBehaviour
         input.rotateCounterCWInput += RotateCCW;
     }
 
-    private void DisableInputs()
+    protected virtual void DisableInputs()
     {
         input.abilityNorthInput -= UseAbility_N;
         input.abilityEastInput -= UseAbility_E;
