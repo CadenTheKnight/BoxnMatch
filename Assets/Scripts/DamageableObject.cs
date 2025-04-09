@@ -24,6 +24,9 @@ public class DamageableObject : MonoBehaviour
     [Header("DamageText")]
     [SerializeField] private TMP_Text damageText;
 
+    [Header("LifeCounter")]
+    [SerializeField] private GameObject LifeCounter;
+
     private Rigidbody2D rb;
 
     private Material playerMat;
@@ -123,4 +126,29 @@ public class DamageableObject : MonoBehaviour
         Destroy(explo, 5f);
         */
     }
+
+    public void Die()
+    {
+        // Reduce number of lifes
+        LifeCounter.GetComponent<LifeCounter>().LoseLife();
+
+        // Trigger Explosive death VFX
+        ExplodeDie();
+    }
+    
+    // Makes this object invincible for the set amount of time (seconds)
+    public void MakeInvincible(float time)
+    {
+        StartCoroutine(HandleMakeInvincible(time));
+    }
+    public IEnumerator HandleMakeInvincible(float time)
+    {
+        float temp = damageModifier; // saves current modifier
+        damageModifier = 0; // sets modifier to 0 to prevent damage
+
+        yield return new WaitForSeconds(time);
+
+        damageModifier = temp; // sets modifier back to original
+    }
+
 }
