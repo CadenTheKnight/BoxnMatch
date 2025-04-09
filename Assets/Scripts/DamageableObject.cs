@@ -12,16 +12,23 @@ public class DamageableObject : MonoBehaviour
     public float damageModifier = 1f;
     public float currentDamage = 0f;
 
-    [Header("Damage Distortion Shader")]
+    [Header("DamageFX")]
     public bool isPlayer;
     public float distortionAmt = 1f;
     public float distortionDuration = 1f;
+    public GameObject shrapnelPS;
 
-    private Rigidbody2D rb;
+    [Header("DeathExplosion")]
+    public GameObject explosionPrefab;
+
+    [Header("DamageText")]
     [SerializeField] private TMP_Text damageText;
 
+    private Rigidbody2D rb;
+
     private Material playerMat;
-    private readonly string distortionKey = "_DistortionAmt";
+    private readonly int distortionKey = Shader.PropertyToID("_DistortionAmt");
+    private readonly int fillColorKey = Shader.PropertyToID("_BoxColor");
     private Coroutine distortionRoutine;
 
     // Start is called before the first frame update
@@ -76,8 +83,17 @@ public class DamageableObject : MonoBehaviour
 
             if(isPlayer)
             {
+                //distortion
                 if(distortionRoutine != null) StopCoroutine(distortionRoutine);
                 distortionRoutine = StartCoroutine(DistortionRoutine());
+
+                //shrapnel particles
+                GameObject shrapnel = Instantiate(shrapnelPS, transform.position, Quaternion.identity);
+                ParticleSystem shrapPs = shrapnel.GetComponent<ParticleSystem>();
+                var main = shrapPs.main;
+                main.startColor = playerMat.GetColor(fillColorKey);
+                shrapPs.Play();
+                Destroy(shrapnel, 3f);
             }
         }
     }
@@ -97,5 +113,12 @@ public class DamageableObject : MonoBehaviour
             playerMat.SetFloat(distortionKey, distortionAmt * (1f - (timer/distortionDuration)));
             yield return null;
         }
+    }
+
+    private void ExplodeDie()
+    {
+        GameObject explo = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
+        explo.GetComponent<ParticleSystem>().Play();
+        Destroy(explo, 5f);
     }
 }

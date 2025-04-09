@@ -258,8 +258,10 @@ MonoBehaviour:
   damageModifier: 1
   currentDamage: 0
   isPlayer: 1
-  distortionAmt: 25
-  distortionDuration: 0.5
+  distortionAmt: 45
+  distortionDuration: 0.8
+  shrapnelPS: {fileID: 2075798126913677705, guid: 4e0821a9cb3778340a029ab8d567b1a2, type: 3}
+  explosionPrefab: {fileID: 0}
   damageText: {fileID: 1927709897836642307}
 --- !u!61 &5885112987111493559
 BoxCollider2D:
