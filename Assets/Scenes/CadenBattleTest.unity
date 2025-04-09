@@ -824,6 +824,10 @@ PrefabInstance:
       value: PlayBox
       objectReference: {fileID: 0}
     - target: {fileID: 4386131442664752088, guid: b45d0fd47cbdf474c8ae54e0518fcbd7, type: 3}
+      propertyPath: m_Color.a
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4386131442664752088, guid: b45d0fd47cbdf474c8ae54e0518fcbd7, type: 3}
       propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
