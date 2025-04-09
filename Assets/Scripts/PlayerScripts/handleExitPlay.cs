@@ -13,6 +13,7 @@ public class handleExitPlay : MonoBehaviour
         if (collision.gameObject.tag == "Player") // handle player exiting
         {
             Debug.Log("exit");
+            collision.gameObject.GetComponent<DamageableObject>().ExplodeDie();
             collision.gameObject.GetComponent<DamageableObject>().currentDamage = 0;
             collision.gameObject.GetComponent<Rigidbody2D>().velocity = Vector3.zero;
             collision.gameObject.transform.position = respawnPoint;

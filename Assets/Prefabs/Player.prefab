@@ -168,7 +168,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 845796839
+  GlobalObjectIdHash: 44823295
   InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -242,6 +242,7 @@ MonoBehaviour:
   - {fileID: 4899146130871674873}
   - {fileID: 4349432204383466356}
   - {fileID: 2607270109137490046}
+  currDirection: 0
 --- !u!114 &4992684568994746398
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -256,6 +257,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   damageModifier: 1
   currentDamage: 0
+  isPlayer: 1
+  distortionAmt: 45
+  distortionDuration: 0.8
+  shrapnelPS: {fileID: 2075798126913677705, guid: 4e0821a9cb3778340a029ab8d567b1a2, type: 3}
+  explosionPrefab: {fileID: 0}
   damageText: {fileID: 1927709897836642307}
 --- !u!61 &5885112987111493559
 BoxCollider2D:

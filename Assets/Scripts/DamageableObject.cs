@@ -12,13 +12,31 @@ public class DamageableObject : MonoBehaviour
     public float damageModifier = 1f;
     public float currentDamage = 0f;
 
-    private Rigidbody2D rb;
+    [Header("DamageFX")]
+    public bool isPlayer;
+    public float distortionAmt = 1f;
+    public float distortionDuration = 1f;
+    public GameObject shrapnelPS;
+
+    [Header("DeathExplosion")]
+    public GameObject explosionPrefab;
+
+    [Header("DamageText")]
     [SerializeField] private TMP_Text damageText;
+
+    private Rigidbody2D rb;
+
+    private Material playerMat;
+    private readonly int distortionKey = Shader.PropertyToID("_DistortionAmt");
+    private readonly int fillColorKey = Shader.PropertyToID("_BoxColor");
+    private Coroutine distortionRoutine;
 
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+
+        if (isPlayer) playerMat = GetComponent<SpriteRenderer>().material;
     }
 
     // Update is called once per frame
@@ -62,6 +80,21 @@ public class DamageableObject : MonoBehaviour
             currentDamage += damage;
             Vector2 collisionDirection = transform.position - go.transform.position;
             HandleKnockback(knockback, collisionDirection);
+
+            if(isPlayer)
+            {
+                //distortion
+                if(distortionRoutine != null) StopCoroutine(distortionRoutine);
+                distortionRoutine = StartCoroutine(DistortionRoutine());
+
+                //shrapnel particles
+                GameObject shrapnel = Instantiate(shrapnelPS, transform.position, Quaternion.identity);
+                ParticleSystem shrapPs = shrapnel.GetComponent<ParticleSystem>();
+                var main = shrapPs.main;
+                main.startColor = playerMat.GetColor(fillColorKey);
+                shrapPs.Play();
+                Destroy(shrapnel, 3f);
+            }
         }
     }
 
@@ -69,5 +102,25 @@ public class DamageableObject : MonoBehaviour
     {
         Vector2 knockbackVelocity = dir * (knockback * currentDamage / 100);
         rb.AddForce(knockbackVelocity, ForceMode2D.Impulse);
+    }
+
+    private IEnumerator DistortionRoutine()
+    {
+        float timer = 0f;
+        while (timer < distortionDuration)
+        {
+            timer += Time.deltaTime;
+            playerMat.SetFloat(distortionKey, distortionAmt * (1f - (timer/distortionDuration)));
+            yield return null;
+        }
+    }
+
+    public void ExplodeDie()
+    {
+        /*
+        GameObject explo = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
+        explo.GetComponent<ParticleSystem>().Play();
+        Destroy(explo, 5f);
+        */
     }
 }
