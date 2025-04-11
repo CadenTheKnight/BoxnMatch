@@ -16,6 +16,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 2263655372429113230, guid: 8f867951f7bd9684e82859f0ec174919, type: 3}
+      propertyPath: m_TagString
+      value: AttackAbility
+      objectReference: {fileID: 0}
     - target: {fileID: 8423506135422238934, guid: 8f867951f7bd9684e82859f0ec174919, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -84,4 +88,3 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   explosivePrefab: {fileID: 9222737732797618968, guid: 76fad720fa706794abfc85a51e9431ce, type: 3}
   positionOffset: 1
-  noAbility: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}

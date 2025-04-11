@@ -8,21 +8,27 @@ using UnityEngine.InputSystem;
 
 public class CPUController : MonoBehaviour
 {
-    private CPUMovement cpuM;                            // The cpu movement handler (set in start)
+    private CPUMovement cpuM;                           // The cpu movement handler (set in start)
+    private CPURotator cpuR;                            // The cpu rotator handler (set in start)
     [SerializeField] private LayerMask groundLayer;     // Ground Layer Mask
     private Rigidbody2D rb;                             // CPU's Rigid Body Component (set in start)
-    private CPURotator cr;
 
     [SerializeField] private float stopRange = 0.05f;   // The velocity +/- 0 that the CPU deems acceptable for stop function
 
-    
+    // Stores the number of abilities attached that are used in various states
+    private int numAttackAbilities = 0;
+    private int numDefenseAbilities = 0;
+    private int numRecoverAbilites = 0;
+
+
 
     // Start is called before the first frame update
     void Start()
     {
         cpuM = GetComponent<CPUMovement>();
+        cpuR = GetComponent<CPURotator>();
         rb = GetComponent<Rigidbody2D>();
-        cr = GetComponent<CPURotator>();
+
         StartCoroutine(Idle());
     }
 
@@ -110,6 +116,78 @@ public class CPUController : MonoBehaviour
         return ray.collider;
     }
 
+    private Collider2D CheckImportantNearby()
+    {
+        Vector2 point = transform.position;
+        Vector2 capsulePoint1 = point + new Vector2(5f, 1.5f);
+        Vector2 capsulePoint2 = point + new Vector2(-5f, 1.5f);
+        float radius = 2f;
+
+        // CapsuleDirection2D.Vertical or .Horizontal — choose based on capsule orientation
+        Collider2D[] senseAreaCollisions = Physics2D.OverlapCapsuleAll((capsulePoint1 + capsulePoint2) * 0.5f, // center
+                                                                        new Vector2(Vector2.Distance(capsulePoint1, capsulePoint2), radius * 2), // size
+                                                                        CapsuleDirection2D.Horizontal,
+                                                                        0f // angle
+                                                                        );
+
+        foreach (Collider2D c in senseAreaCollisions)
+        {
+            if (c == null) continue;
+
+            //Debug.Log($"Detected: {c.name} with tag {c.tag}");
+
+            if (c.CompareTag("DamageObject"))
+            {
+                // Handle dodging/defense
+                Debug.Log("Incoming danger detected!");
+            }
+            else if (c.CompareTag("AbilityOrb"))
+            {
+                Debug.Log("Found Ability Orb Nearby");
+                return c;
+            }
+        }
+
+        return null;
+    }
+
+
+
+
+
+    /* ------------ Ability Handling ------------ */
+
+
+
+    // Counts the number of abilities currently attached and classifies them for ease of access
+    private IEnumerator CountAbilities()
+    {
+        numAttackAbilities = 0;
+        numDefenseAbilities = 0;
+        numRecoverAbilites = 0;
+        foreach(AbilitySocket s in cpuR.sockets)
+        {
+            // Classify the ability in the socket as attack, defense, or recovery
+            if(s.ability.CompareTag("AttackAbility"))
+            {
+                // Fireball, Hammer, Laser, Remote Explosive
+                numAttackAbilities++;
+            }
+            else if (s.ability.CompareTag("DefenseAbility"))
+            {
+                // Shield
+                numDefenseAbilities++;
+            }
+            else if (s.ability.CompareTag("RecoverAbility"))
+            {
+                // Grapple, Rocket
+                numDefenseAbilities++;
+            }
+        }
+
+        yield break;
+    }
+
 
 
     /* ------------ Finite State Machine Nodes ------------ */
@@ -142,9 +220,8 @@ public class CPUController : MonoBehaviour
         // fast falls to the platform
         cpuM.Crouch();
 
-        // Transition to Idle after stopped
+        // End this coroutine to return to previous Node
         yield return stop;
-        StartCoroutine(Idle());
         
     }
 
@@ -155,6 +232,9 @@ public class CPUController : MonoBehaviour
         
         while (true)
         {
+            // Check for important things nearby
+            Collider2D nearby = CheckImportantNearby();
+
             // Move side to side switching directions at the edge of the platform
             RaycastHit2D ray;
             // Cast a ray downwards with a slight horizontal direction based on the given direction
@@ -172,17 +252,102 @@ public class CPUController : MonoBehaviour
             // Check if not Above a platform
             if (!IsAbovePlatform())
             {
-                StartCoroutine(Recover()); // Recover back to a platform
-                break;
+                Coroutine recover = StartCoroutine(Recover()); // Recover back to a platform
+                yield return recover;
             }
 
+            // Check if an orb is nearby
+            if((numAttackAbilities + numDefenseAbilities + numRecoverAbilites < 4) && nearby && nearby.CompareTag("AbilityOrb"))
+            {
+                Coroutine collectOrb = StartCoroutine(CollectOrb(nearby.gameObject));
+                yield return collectOrb;
+            }
 
 
             // Added delay so it only checks every frame to prevent overloading
             yield return new WaitForEndOfFrame();
         }
+    
+    }
 
+    private IEnumerator CollectOrb(GameObject abilityOrb)
+    {
+        // Navigate to orb
+        Vector2 distanceFromOrb;
+        while (abilityOrb) // Navigate to the orb until it is collected and therefore destroyed
+        {
+            distanceFromOrb = abilityOrb.transform.position - transform.position;
+
+            // Horizontal Navigation
+            cpuM.HorizontalMove(distanceFromOrb.x/Mathf.Abs(distanceFromOrb.x)); // Normalize the horizontal input to 1 or -1
+
+            // If the Orb is above then jump to get it
+            if(distanceFromOrb.x < 1.5 && distanceFromOrb.y > 0.5)
+            {
+                cpuM.Jump();
+            }
+            else if(rb.velocity.y < -0.1) // If falling off a platform to get it
+            {
+                cpuM.Jump();
+            }
+
+            // Calculate once per frame
+            yield return new WaitForEndOfFrame();
+        }
+
+
+        // Handle ability
+        Coroutine count = StartCoroutine(CountAbilities());
+        yield return count;
+
+        // Recover if not above a platform
+        if(!IsAbovePlatform())
+        {
+             Coroutine recover = StartCoroutine(Recover());
+            yield return recover;
+        }
+
+    }
+
+    private IEnumerator Attack()
+    {
         yield return null;
+    }
+
+    private IEnumerator Defend()
+    {
+        yield return null;
+    }
+
+    private IEnumerator Dodge()
+    {
+        yield return null;
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Vector2 point = transform.position;
+        Vector2 capsulePoint1 = point + new Vector2(5f, 1.5f);
+        Vector2 capsulePoint2 = point + new Vector2(-5f, 1.5f);
+        float radius = 2f;
+
+        Gizmos.color = Color.cyan;
+
+        // Draw ends
+        Gizmos.DrawWireSphere(capsulePoint1, radius);
+        Gizmos.DrawWireSphere(capsulePoint2, radius);
+
+        // Draw sides (a capsule is two circles + a rectangle between them)
+        Vector2 dir = (capsulePoint2 - capsulePoint1).normalized;
+        Vector2 perpendicular = new Vector2(-dir.y, dir.x); // get perpendicular vector
+
+        Vector2 p1a = capsulePoint1 + perpendicular * radius;
+        Vector2 p1b = capsulePoint1 - perpendicular * radius;
+        Vector2 p2a = capsulePoint2 + perpendicular * radius;
+        Vector2 p2b = capsulePoint2 - perpendicular * radius;
+
+        Gizmos.DrawLine(p1a, p2a);
+        Gizmos.DrawLine(p1b, p2b);
     }
 
 }
