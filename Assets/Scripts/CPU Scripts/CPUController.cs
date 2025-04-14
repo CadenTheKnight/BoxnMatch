@@ -145,7 +145,50 @@ public class CPUController : MonoBehaviour
         return null;
     }
 
+    // Checks if a player is near
+    private bool IsPlayerNear()
+    {
 
+        // Circle collider sizing
+        Vector2 point = transform.position;
+        float radius = 10f;
+
+        // Creating circle sensing area
+        Collider2D[] senseAreaCollisions = Physics2D.OverlapCircleAll(point, radius);
+
+        // Checks if a player is in the circle area
+        foreach (Collider2D c in senseAreaCollisions)
+        {
+            if (c.CompareTag("Player"))
+            {
+                Debug.Log("Found Player Nearby");
+                return c; // Return ability orb as collider2d
+            }
+        }
+
+        return false;
+    }
+
+    private GameObject GetClosestPlayer()
+    {
+        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+        GameObject closest = null;
+        float minDist = Mathf.Infinity;
+
+        foreach (GameObject p in players)
+        {
+            if (p == gameObject) continue;
+
+            float dist = Vector2.Distance(transform.position, p.transform.position);
+            if (dist < minDist)
+            {
+                minDist = dist;
+                closest = p;
+            }
+        }
+
+        return closest;
+    }
 
 
 
@@ -192,11 +235,11 @@ public class CPUController : MonoBehaviour
         {
             if (s.ability && s.ability.CompareTag(tag))
             {
+                Debug.Log("Found ability " + tag + " in slot " + s.socketDirection);
                 return s;
             }
         }
 
-        Debug.Log("No ability with that tag found");
         return null;
     }
 
@@ -231,10 +274,99 @@ public class CPUController : MonoBehaviour
     }
 
     // Use Ability in the selected direction
-    private void UseAbility(AbilityDirection dir)
+    private IEnumerator UseAbility(string abilityTag, AbilityDirection dir)
     {
+
+        Coroutine rotate = StartCoroutine(RotateAbility(abilityTag, dir));
+        yield return rotate;
+        yield return new WaitForSeconds(0.25f);
+
         cpuR.UseAbilityProgrammatically(dir);
+        Coroutine count = StartCoroutine(CountAbilities());
+        yield return count;
+        
     }
+
+    // Check if there if a launched fireball will hit a player
+    private bool CanFireballHit(GameObject target, AbilityDirection dir)
+{
+    Vector2 offset = DirectionToVector(dir); // Offset vector based on ability direction
+    Vector2 startPos = (Vector2)transform.position + offset; // Apply 1-unit offset
+    Vector2 velocity;
+
+    // Define velocity based on direction
+    switch (dir)
+    {
+        case AbilityDirection.EAST:
+            velocity = new Vector2(15f, 20f); // Arced right
+            break;
+        case AbilityDirection.WEST:
+            velocity = new Vector2(-15f, 20f); // Arced left
+            break;
+        case AbilityDirection.NORTH:
+            velocity = new Vector2(0f, 20f); // Straight up
+            break;
+        case AbilityDirection.SOUTH:
+            velocity = new Vector2(0f, -20f); // Shot downward
+            break;
+        default:
+            return false;
+    }
+
+    float gravity = Physics2D.gravity.y * 4f; // Account for gravity scale of fireball
+    float timestep = 0.05f;
+    float totalTime = 2f;
+
+    for (float t = 0; t < totalTime; t += timestep)
+    {
+        Vector2 currentPos = startPos + velocity * t + 0.5f * t * t * new Vector2(0, gravity);
+        Vector2 nextPos = startPos + velocity * (t + timestep) + 0.5f * Mathf.Pow(t + timestep, 2) * new Vector2(0, gravity);
+
+        RaycastHit2D hit = Physics2D.Linecast(currentPos, nextPos);
+        if (hit.collider)
+        {
+            if (hit.collider.gameObject == target)
+                return true;
+
+            return false; // Hit something else
+        }
+    }
+
+    return false;
+}
+
+
+    // Converts Ability Direction to Vector
+    private Vector2 DirectionToVector(AbilityDirection dir)
+    {
+        return dir switch
+        {
+            AbilityDirection.NORTH => Vector2.up,
+            AbilityDirection.SOUTH => Vector2.down,
+            AbilityDirection.EAST => Vector2.right,
+            AbilityDirection.WEST => Vector2.left,
+            _ => Vector2.zero,
+        };
+    }
+
+    // Converts Vector to Ability Direction
+    private AbilityDirection GetAbilityDirection(Vector2 direction)
+    {
+        direction.Normalize();
+
+        if (Mathf.Abs(direction.x) > Mathf.Abs(direction.y))
+        {
+            return direction.x > 0 ? AbilityDirection.EAST : AbilityDirection.WEST;
+        }
+        else
+        {
+            return direction.y > 0 ? AbilityDirection.NORTH : AbilityDirection.SOUTH;
+        }
+    }
+
+
+
+
 
 
 
@@ -300,6 +432,7 @@ public class CPUController : MonoBehaviour
             // Check if not Above a platform
             if (!IsAbovePlatform())
             {
+                Debug.Log("RECOVER!");
                 Coroutine recover = StartCoroutine(Recover()); // Recover back to a platform
                 yield return recover;
             }
@@ -307,16 +440,18 @@ public class CPUController : MonoBehaviour
             // Check if an orb is nearby
             if((numAttackAbilities + numDefenseAbilities + numRecoverAbilites < 4) && nearby && nearby.CompareTag("AbilityOrb"))
             {
+                Debug.Log("ORB!");
                 Coroutine collectOrb = StartCoroutine(CollectOrb(nearby.gameObject));
                 yield return collectOrb;
             }
 
-            // Check if has attack ability
-            if(numAttackAbilities > 0)
+            // Check if has attack ability and a player is nearby to attack
+            if (numAttackAbilities > 0 && IsPlayerNear())
             {
                 Coroutine attack = StartCoroutine(Attack());
                 yield return attack;
             }
+
 
 
             // Added delay so it only checks every frame to prevent overloading
@@ -367,36 +502,80 @@ public class CPUController : MonoBehaviour
         }
 
         // Use shields immediately if gotten just in case since they don't have time limit
-        if (numShields < numDefenseAbilities) ;
+        if (numShields < numDefenseAbilities)
+        {
+            Coroutine useAbility = StartCoroutine(UseAbility("Shield", AbilityDirection.NORTH));
+            yield return useAbility;
+        }
+            
 
     }
 
     private IEnumerator Attack()
     {
-        Coroutine rotate = StartCoroutine(RotateAbility("Fireball", AbilityDirection.WEST));
-        yield return rotate;
-        yield return new WaitForSeconds(0.25f);
+        GameObject target = GetClosestPlayer();
+        if (!target || !IsPlayerNear()) yield break;
 
-        UseAbility(AbilityDirection.WEST);
-        Coroutine count = StartCoroutine(CountAbilities());
-        yield return count;
+        Vector2 toTarget = target.transform.position - transform.position;
+        AbilityDirection dir = GetAbilityDirection(toTarget);
 
-        rotate = StartCoroutine(RotateAbility("Fireball", AbilityDirection.EAST));
-        yield return rotate;
-        yield return new WaitForSeconds(0.25f);
+        // FIREBALL - hit check within normal fireball arc path
+        //Debug.Log(FindAbilitySocket("Fireball") + " | " + CanFireballHit(target, dir));
+        if (FindAbilitySocket("Fireball") && CanFireballHit(target, dir))
+        {
+            yield return StartCoroutine(UseAbility("Fireball", dir));
+            yield break;
+        }
 
-        UseAbility(AbilityDirection.EAST);
-        count = StartCoroutine(CountAbilities());
-        yield return count;
+        // HAMMER - hit check within 2.5 units in the direction
+        else if (FindAbilitySocket("Hammer"))
+        {
+            RaycastHit2D hit = Physics2D.Raycast(transform.position, DirectionToVector(dir), 2.5f, LayerMask.GetMask("Default"));
+            if (hit.collider && hit.collider.gameObject == target)
+            {
+                yield return StartCoroutine(UseAbility("Hammer", dir));
+                yield break;
+            }
+        }
 
-        rotate = StartCoroutine(RotateAbility("Fireball", AbilityDirection.NORTH));
-        yield return rotate;
-        yield return new WaitForSeconds(0.25f);
+        // LASER - raycast in direction, instant hit
+        else if (FindAbilitySocket("Laser"))
+        {
+            RaycastHit2D hit = Physics2D.Raycast(transform.position, DirectionToVector(dir), 50f, LayerMask.GetMask("Default"));
+            if (hit.collider && hit.collider.gameObject == target)
+            {
+                yield return StartCoroutine(UseAbility("Laser", dir));
+                yield break;
+            }
+        }
 
-        UseAbility(AbilityDirection.NORTH);
-        count = StartCoroutine(CountAbilities());
-        yield return count;
+        // REMOTE EXPLOSIVE - simple logic: drop if close to player
+        else if (FindAbilitySocket("RemoteExplosive"))
+        {
+            float dist = Vector2.Distance(transform.position, target.transform.position);
+            if (dist < 2f) // near enough to drop
+            {
+                yield return StartCoroutine(UseAbility("RemoteExplosive", AbilityDirection.SOUTH));
+                yield break;
+            }
+        }
+
+        // GRAPPLE - raycast to hit target
+        else if (FindAbilitySocket("Grapple"))
+        {
+            RaycastHit2D hit = Physics2D.Raycast(transform.position, DirectionToVector(dir), 10f, LayerMask.GetMask("Default"));
+            if (hit.collider && hit.collider.gameObject == target)
+            {
+                yield return StartCoroutine(UseAbility("Grapple", dir));
+                yield break;
+            }
+        }
+
+        yield break;
     }
+
+
+
 
     private IEnumerator Defend()
     {
@@ -409,8 +588,32 @@ public class CPUController : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        // Orb detection
+        DrawFireballArc();
+        DrawOrbDetectionArea();
+    }
 
+    private void DrawFireballArc()
+    {
+        Vector2 velocity = new Vector2(15f, 20f);
+        float gravity = Physics2D.gravity.y * 4f;
+        float timestep = 0.05f;
+        float totalTime = 2f;
+
+        Vector2 offset = DirectionToVector(AbilityDirection.EAST); // Offset vector based on ability direction
+        Vector2 previousPoint = (Vector2)transform.position + offset; // Apply 1-unit offset
+
+        for (float t = timestep; t < totalTime; t += timestep)
+        {
+            Vector2 nextPoint = (Vector2)transform.position + velocity * t + 0.5f * new Vector2(0, gravity) * t * t;
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(previousPoint, nextPoint);
+            previousPoint = nextPoint;
+        }
+    }
+
+    private void DrawOrbDetectionArea()
+    {
+        // Orb detection
         Vector2 point = transform.position;
         Vector2 capsulePoint1 = point + new Vector2(5f, 1.5f);
         Vector2 capsulePoint2 = point + new Vector2(-5f, 1.5f);
@@ -434,5 +637,7 @@ public class CPUController : MonoBehaviour
         Gizmos.DrawLine(p1a, p2a);
         Gizmos.DrawLine(p1b, p2b);
     }
+
+
 
 }
