@@ -5,6 +5,14 @@ TagManager:
   serializedVersion: 2
   tags:
   - DamageObject
+  - AbilityOrb
+  - RemoteExplosive
+  - Fireball
+  - Laser
+  - Hammer
+  - Grapple
+  - Shield
+  - Rocket
   layers:
   - Default
   - TransparentFX

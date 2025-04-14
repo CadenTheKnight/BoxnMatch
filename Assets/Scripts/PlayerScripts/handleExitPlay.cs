@@ -23,6 +23,8 @@ public class handleExitPlay : MonoBehaviour
         
         if (collision.gameObject.CompareTag("Player")) // handle player exiting
         {
+            GetComponent<AudioSource>().Play();
+
             //Debug.Log("exit");
             DamageableObject damagableObj = colObj.GetComponent<DamageableObject>();
 
