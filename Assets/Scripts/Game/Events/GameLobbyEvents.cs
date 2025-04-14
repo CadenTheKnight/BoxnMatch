@@ -1,5 +1,3 @@
-using Assets.Scripts.Framework.Utilities;
-
 namespace Assets.Scripts.Game.Events
 {
     /// <summary>
@@ -11,22 +9,28 @@ namespace Assets.Scripts.Game.Events
         /// <summary>
         /// Triggered when a player changes their ready status.
         /// </summary>
-        /// <param name="playersReady">The number of players ready.</param>
-        /// <param name="maxPlayers">The maximum number of players in the lobby.</param>
-        public delegate void LobbyReadyStatusHandler(int playersReady, int maxPlayers);
-        public static event LobbyReadyStatusHandler OnLobbyReadyStatusUpdated;
+        /// <param name="playerId">The id of the player whose status changed.</param>
+        public delegate void PlayerStatusChangedHandler(string playerId);
+        public static event PlayerStatusChangedHandler OnPlayerStatusChanged;
 
         /// <summary>
-        /// Triggered when the lobby host presses the start button.
+        /// Triggered when a player changes their team.
         /// </summary>
-        /// <param name="mapName">The name of the map to be loaded.</param>
-        public delegate void LobbyGameStartingHandler(string mapName);
-        public static event LobbyGameStartingHandler OnGameStarting;
+        /// <param name="playerId">The id of the player whose team changed.</param>
+        public delegate void PlayerTeamChangedHandler(string playerId);
+        public static event PlayerTeamChangedHandler OnPlayerTeamChanged;
+
+        /// <summary>
+        /// Triggered when game settings are updated by the host.
+        /// </summary>
+        public delegate void GameSettingsChangedHandler();
+        public static event GameSettingsChangedHandler OnGameSettingsChanged;
         #endregion
 
         #region Invocations
-        public static void InvokeLobbyReadyStatus(int playersReady, int maxPlayers) => OnLobbyReadyStatusUpdated?.Invoke(playersReady, maxPlayers);
-        public static void InvokeGameStarting(string mapName) => OnGameStarting?.Invoke(mapName);
+        public static void InvokePlayerStatusChanged(string playerId) => OnPlayerStatusChanged?.Invoke(playerId);
+        public static void InvokePlayerTeamChanged(string playerId) => OnPlayerTeamChanged?.Invoke(playerId);
+        public static void InvokeGameSettingsChanged() => OnGameSettingsChanged?.Invoke();
         #endregion
     }
 }

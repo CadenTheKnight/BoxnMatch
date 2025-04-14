@@ -10,13 +10,6 @@ namespace Assets.Scripts.Framework.Events
     {
         #region Events
         /// <summary>
-        /// Triggered when the list of joined lobbies is retrieved.
-        /// </summary>
-        /// <param name="result">The result of the operation.</param>
-        public delegate void JoinedLobbiesRetrievedHandler(OperationResult result);
-        public static event JoinedLobbiesRetrievedHandler OnJoinedLobbiesRetrieved;
-
-        /// <summary>
         /// Triggered when the list of lobbies is queried.
         /// </summary>
         /// <param name="result">The result of the operation.</param>
@@ -81,21 +74,6 @@ namespace Assets.Scripts.Framework.Events
         public static event PlayerKickedHandler OnPlayerKicked;
 
         /// <summary>
-        /// Triggered when the lobby data is updated or there is an error in updating the lobby data.
-        /// </summary>
-        /// <param name="result">The result of the operation.</param>
-        public delegate void LobbyDataUpdatedHandler(OperationResult result);
-        public static event LobbyDataUpdatedHandler OnLobbyDataUpdated;
-
-        /// <summary>
-        /// Triggered when the player data is updated or there is an error in updating the player data.
-        /// </summary>
-        /// <param name="result">The result of the operation.</param>
-        public delegate void PlayerDataUpdatedHandler(OperationResult result);
-        public static event PlayerDataUpdatedHandler OnPlayerDataUpdated;
-
-
-        /// <summary>
         /// Triggered when a player is connecting to the lobby.
         /// </summary>
         /// <param name="playerId">The id of the player who is connecting.</param>
@@ -118,7 +96,6 @@ namespace Assets.Scripts.Framework.Events
         #endregion
 
         #region Invocations
-        public static void InvokeJoinedLobbiesRetrieved(OperationResult result) => OnJoinedLobbiesRetrieved?.Invoke(result);
         public static void InvokeLobbiesQueried(OperationResult result) => OnLobbiesQueried?.Invoke(result);
         public static void InvokeLobbyCreated(OperationResult result) => OnLobbyCreated?.Invoke(result);
         public static void InvokeLobbyJoined(OperationResult result) => OnLobbyJoined?.Invoke(result);
@@ -128,8 +105,6 @@ namespace Assets.Scripts.Framework.Events
         public static void InvokePlayerJoined(string playerId) => OnPlayerJoined?.Invoke(playerId);
         public static void InvokePlayerLeft(int playerIndex) => OnPlayerLeft?.Invoke(playerIndex);
         public static void InvokePlayerKicked(OperationResult result) => OnPlayerKicked?.Invoke(result);
-        public static void InvokeLobbyDataUpdated(OperationResult result) => OnLobbyDataUpdated?.Invoke(result);
-        public static void InvokePlayerDataUpdated(OperationResult result) => OnPlayerDataUpdated?.Invoke(result);
         public static void InvokePlayerConnecting(string playerId) => OnPlayerConnecting?.Invoke(playerId);
         public static void InvokePlayerConnected(string playerId) => OnPlayerConnected?.Invoke(playerId);
         public static void InvokePlayerDisconnected(string playerId) => OnPlayerDisconnected?.Invoke(playerId);

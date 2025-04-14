@@ -14,6 +14,7 @@ using Assets.Scripts.Framework.Utilities;
 using Assets.Scripts.Game.UI.Components.Options.Selector;
 using Assets.Scripts.Framework.Types;
 using System.Collections.Generic;
+using Assets.Scripts.Game.Events;
 
 namespace Assets.Scripts.Game.UI.Components.ListEntries
 {
@@ -38,6 +39,7 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
         [SerializeField] private Button kickButton;
         [SerializeField] private LoadingBar kickLoadingBar;
         [SerializeField] private TextMeshProUGUI nameText;
+        [SerializeField] private Image hostIndicatorImage;
         [SerializeField] private Button optionsButton;
         [SerializeField] private GameObject teamPanel;
         [SerializeField] private Selector playerTeamSelector;
@@ -57,7 +59,7 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             kickButton.onClick.AddListener(OnKickButtonClicked);
             optionsButton.onClick.AddListener(OnOptionsButtonClicked);
 
-            LobbyEvents.OnPlayerDataUpdated += OnPlayerDataUpdated;
+            // LobbyEvents.OnPlayerDataUpdated += OnPlayerDataUpdated;
 
         }
 
@@ -71,7 +73,7 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             kickButton.onClick.RemoveListener(OnKickButtonClicked);
             optionsButton.onClick.RemoveListener(OnOptionsButtonClicked);
 
-            LobbyEvents.OnPlayerDataUpdated -= OnPlayerDataUpdated;
+            // LobbyEvents.OnPlayerDataUpdated -= OnPlayerDataUpdated;
 
             playerTeamSelectorLoadingBar.StopLoading();
             kickLoadingBar.StopLoading();
@@ -89,8 +91,8 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             SetTeam((Team)int.Parse(player.Data["Team"].Value));
             SetStatus((PlayerStatus)int.Parse(player.Data["Status"].Value));
             SetSteamInfo(ulong.Parse(player.Data["SteamId"].Value));
-            SetHostName(player.Id == GameLobbyManager.Instance.Lobby.HostId);
 
+            hostIndicatorImage.gameObject.SetActive(player.Id == GameLobbyManager.Instance.Lobby.HostId);
             optionsButton.gameObject.SetActive(player.Id != AuthenticationService.Instance.PlayerId);
         }
 
@@ -150,45 +152,41 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             }
         }
 
-        public void SetHostName(bool isHost)
-        {
-            nameText.text += isHost ? " (Host)" : "";
-        }
-
         private void OnChangeTeamButtonClicked()
         {
             teamPanel.SetActive(true);
         }
 
-        private async void OnPlayerDataUpdated(OperationResult result)
-        {
-            if (result.Status == ResultStatus.Success && result.Data is Dictionary<string, PlayerDataObject> dataDict)
-            {
-                if (dataDict.ContainsKey("Status")) SetStatus((PlayerStatus)int.Parse(dataDict["Status"].Value));
-                if (dataDict.ContainsKey("Team"))
-                {
-                    SetTeam((Team)int.Parse(dataDict["Team"].Value));
-
-                    playerTeamSelectorLoadingBar.StopLoading();
-                    teamPanel.SetActive(false);
-
-                    await Task.Delay(1000);
-
-                    playerTeamSelector.UpdateInteractable(true);
-                    changeTeamButton.interactable = true;
-                }
-            }
-        }
-
         private async void ChangeTeam(int team)
         {
-            Player player = GameLobbyManager.Instance.Lobby.Players.Find(player => player.Id == PlayerId);
+            try
+            {
+                playerTeamSelector.UpdateInteractable(false);
+                changeTeamButton.interactable = false;
+                playerTeamSelectorLoadingBar.StartLoading();
 
-            changeTeamButton.interactable = false;
-            playerTeamSelector.UpdateInteractable(false);
-            playerTeamSelectorLoadingBar.StartLoading();
+                Task<OperationResult> toggleTask = GameLobbyManager.Instance.ChangePlayerTeam(GameLobbyManager.Instance.GetPlayerById(AuthenticationService.Instance.PlayerId), (Team)team);
+                await Task.WhenAny(toggleTask, Task.Delay(5000));
 
-            await GameLobbyManager.Instance.ChangePlayerTeam(player, (Team)team);
+                if (toggleTask.IsCompletedSuccessfully && toggleTask.Result.Status == ResultStatus.Success)
+                {
+                    if (toggleTask.Result.Data is Dictionary<string, PlayerDataObject> dataDict && dataDict.ContainsKey("Team"))
+                    {
+                        SetTeam((Team)int.Parse(dataDict["Team"].Value));
+
+                        GameLobbyEvents.InvokePlayerTeamChanged(AuthenticationService.Instance.PlayerId);
+                    }
+                }
+            }
+            finally
+            {
+                playerTeamSelectorLoadingBar.StopLoading();
+                playerTeamSelector.UpdateInteractable(true);
+                teamPanel.SetActive(false);
+
+                await Task.Delay(1000);
+                changeTeamButton.interactable = true;
+            }
         }
 
         public void SetStatus(PlayerStatus status)
@@ -228,13 +226,17 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         private void OnOptionsButtonClicked()
         {
-            bool kickablePlayer = PlayerId != AuthenticationService.Instance.PlayerId &&
-                AuthenticationService.Instance.PlayerId == GameLobbyManager.Instance.Lobby.HostId;
+            bool isHost = PlayerId == GameLobbyManager.Instance.Lobby.HostId;
+            bool kickablePlayer = PlayerId != AuthenticationService.Instance.PlayerId && AuthenticationService.Instance.PlayerId == GameLobbyManager.Instance.Lobby.HostId;
 
             optionsButton.gameObject.SetActive(false);
+            hostIndicatorImage.gameObject.SetActive(isHost);
             kickButton.gameObject.SetActive(kickablePlayer);
+
             nameText.GetComponent<RectTransform>().anchorMin = new Vector2(0.35f, 0f);
-            nameText.GetComponent<RectTransform>().anchorMax = new Vector2(kickablePlayer ? 0.7f : 1f, 1f);
+            nameText.GetComponent<RectTransform>().anchorMax = new Vector2(kickablePlayer ? 0.7f : isHost ? 0.85f : 1f, 1f);
+            hostIndicatorImage.GetComponent<RectTransform>().anchorMin = new Vector2(0.85f, 0f);
+            hostIndicatorImage.GetComponent<RectTransform>().anchorMax = new Vector2(1f, 1f);
 
             optionsPanel.SetActive(true);
         }
@@ -244,7 +246,10 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             optionsPanel.SetActive(false);
 
             nameText.GetComponent<RectTransform>().anchorMin = new Vector2(0.15f, 0f);
-            nameText.GetComponent<RectTransform>().anchorMax = new Vector2(0.85f, 1f);
+            nameText.GetComponent<RectTransform>().anchorMax = new Vector2(PlayerId == GameLobbyManager.Instance.Lobby.HostId ? 0.7f : 0.85f, 1f);
+            hostIndicatorImage.GetComponent<RectTransform>().anchorMin = new Vector2(0.7f, 0f);
+            hostIndicatorImage.GetComponent<RectTransform>().anchorMax = new Vector2(0.85f, 1f);
+
             optionsButton.gameObject.SetActive(true);
         }
 

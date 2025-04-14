@@ -23,10 +23,6 @@ namespace Assets.Scripts.Game.Managers
             SettingsPanelController.OnSettingsUpdated += ShowNotification;
 
             LobbyEvents.OnLobbiesQueried += ShowNotification;
-            LobbyEvents.OnLobbyCreated += ShowNotification;
-            LobbyEvents.OnLobbyJoined += ShowNotification;
-            LobbyEvents.OnLobbyRejoined += ShowNotification;
-            LobbyEvents.OnLobbyLeft += ShowNotification;
         }
 
         private void OnDisable()
@@ -36,10 +32,6 @@ namespace Assets.Scripts.Game.Managers
             SettingsPanelController.OnSettingsUpdated -= ShowNotification;
 
             LobbyEvents.OnLobbiesQueried -= ShowNotification;
-            LobbyEvents.OnLobbyCreated -= ShowNotification;
-            LobbyEvents.OnLobbyJoined -= ShowNotification;
-            LobbyEvents.OnLobbyRejoined -= ShowNotification;
-            LobbyEvents.OnLobbyLeft -= ShowNotification;
         }
 
         private void ShowNotification(OperationResult result)

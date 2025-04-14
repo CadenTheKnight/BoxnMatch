@@ -90,10 +90,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1982946203608321883}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMin: {x: 0.1, y: 0.1}
+  m_AnchorMax: {x: 0.9, y: 0.9}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: -10, y: -10}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1132580870469851598
 CanvasRenderer:
@@ -165,10 +165,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 3413624489250150494}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMin: {x: 0.1, y: 0.1}
+  m_AnchorMax: {x: 0.9, y: 0.9}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: -10, y: -10}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6685090590590596217
 CanvasRenderer:
@@ -410,7 +410,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8680193151002354585, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       propertyPath: m_fontSize
-      value: 22.65
+      value: 21.1
       objectReference: {fileID: 0}
     - target: {fileID: 8680193151002354585, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       propertyPath: m_fontColor32.rgba
@@ -419,6 +419,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects:
     - {fileID: 3291524627063663631, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
+    - {fileID: 3708290448822058192, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 4484541223686774273, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       insertIndex: -1
@@ -776,7 +777,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8680193151002354585, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       propertyPath: m_fontSize
-      value: 22.65
+      value: 21.1
       objectReference: {fileID: 0}
     - target: {fileID: 8680193151002354585, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       propertyPath: m_fontColor32.rgba
@@ -785,6 +786,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects:
     - {fileID: 3291524627063663631, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
+    - {fileID: 3708290448822058192, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 4484541223686774273, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       insertIndex: -1

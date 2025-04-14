@@ -12,6 +12,7 @@ using Unity.Services.Authentication;
 using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Framework.Utilities;
+using Assets.Scripts.Framework.Types;
 
 namespace Assets.Scripts.Game.Managers
 {
@@ -78,10 +79,10 @@ namespace Assets.Scripts.Game.Managers
         }
 
         /// <summary>
-        /// Returns the number of players that are ready in the lobby.
-        /// Invokes events to notify if the lobby is ready or not.
+        /// Gets the number of players that are ready in the lobby.
         /// </summary>
-        public void GetPlayersReady()
+        /// <returns>The number of players that are ready.</returns>
+        public int GetPlayersReady()
         {
             int playersReady = 0;
 
@@ -89,8 +90,8 @@ namespace Assets.Scripts.Game.Managers
                 if ((PlayerStatus)int.Parse(player.Data["Status"].Value) == PlayerStatus.Ready)
                     playersReady++;
 
-            GameLobbyEvents.InvokeLobbyReadyStatus(playersReady, Lobby.MaxPlayers);
             if (showDebugMessages) Debug.Log($"Total players ready: {playersReady} / {Lobby.MaxPlayers}");
+            return playersReady;
         }
 
         /// <summary>
@@ -99,16 +100,17 @@ namespace Assets.Scripts.Game.Managers
         /// <param name="player">The player to toggle.</param>
         /// <param name="setReady">True to set the player as ready.</param>
         /// <param name="setUnready">True to set the player as not ready.</param>
-        public async Task TogglePlayerStatus(Player player, bool setReady = false, bool setUnready = false)
+        /// <returns>An OperationResult.</returns>
+        public async Task<OperationResult> TogglePlayerStatus(Player player, bool setReady = false, bool setUnready = false)
         {
             PlayerStatus status;
             if (setReady) status = PlayerStatus.Ready;
             else if (setUnready) status = PlayerStatus.NotReady;
             else status = (PlayerStatus)int.Parse(player.Data["Status"].Value) == PlayerStatus.NotReady ? PlayerStatus.Ready : PlayerStatus.NotReady;
 
-            Debug.Log($"Toggling player {player.Id} status from {(PlayerStatus)int.Parse(player.Data["Status"].Value)} to {status}");
-
-            await LobbyManager.UpdatePlayerData(Lobby.Id, player.Id, new() { ["Status"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)status).ToString()) });
+            OperationResult result = await LobbyManager.UpdatePlayerData(Lobby.Id, player.Id, new() { ["Status"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)status).ToString()) });
+            if (result.Status == ResultStatus.Success) player.Data["Status"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)status).ToString());
+            return result;
         }
 
         /// <summary>
@@ -116,9 +118,12 @@ namespace Assets.Scripts.Game.Managers
         /// </summary>
         /// <param name="player">The player to change.</param>
         /// <param name="team">The new team for the player.</param>
-        public async Task ChangePlayerTeam(Player player, Team team)
+        /// <returns>An OperationResult.</returns>
+        public async Task<OperationResult> ChangePlayerTeam(Player player, Team team)
         {
-            await LobbyManager.UpdatePlayerData(Lobby.Id, player.Id, new() { ["Team"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)team).ToString()) });
+            OperationResult result = await LobbyManager.UpdatePlayerData(Lobby.Id, player.Id, new() { ["Team"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)team).ToString()) });
+            if (result.Status == ResultStatus.Success) player.Data["Team"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)team).ToString());
+            return result;
         }
 
         /// <summary>
@@ -127,8 +132,9 @@ namespace Assets.Scripts.Game.Managers
         /// <param name="mapValue">The updated map index.</param>
         /// <param name="roundCountValue">The updated round count.</param>
         /// <param name="roundTimeValue">The updated round time.</param>
-        /// <param name="gameModeSelection">The updated game mode.</param> 
-        public async Task UpdateGameSettings(int mapValue, int roundCountValue, int roundTimeValue, int gameModeSelection)
+        /// <param name="gameModeSelection">The updated game mode.</param>
+        /// <returns>An OperationResult.</returns> 
+        public async Task<OperationResult> UpdateGameSettings(int mapValue, int roundCountValue, int roundTimeValue, int gameModeSelection)
         {
             Dictionary<string, DataObject> changedData = new()
             {
@@ -138,20 +144,33 @@ namespace Assets.Scripts.Game.Managers
                 ["GameMode"] = new DataObject(DataObject.VisibilityOptions.Public, gameModeSelection.ToString())
             };
 
-            await LobbyManager.UpdateLobbyData(Lobby.Id, changedData);
+            OperationResult result = await LobbyManager.UpdateLobbyData(Lobby.Id, changedData);
+            if (result.Status == ResultStatus.Success)
+            {
+                Lobby.Data["MapIndex"] = new DataObject(DataObject.VisibilityOptions.Public, mapValue.ToString());
+                Lobby.Data["RoundCount"] = new DataObject(DataObject.VisibilityOptions.Member, roundCountValue.ToString());
+                Lobby.Data["RoundTime"] = new DataObject(DataObject.VisibilityOptions.Member, roundTimeValue.ToString());
+                Lobby.Data["GameMode"] = new DataObject(DataObject.VisibilityOptions.Public, gameModeSelection.ToString());
+            }
+            return result;
         }
 
         /// <summary>
         /// Leaves the current lobby.
         /// </summary>
-        public async Task LeaveCurrentLobby()
+        /// <returns>An OperationResult.</returns>
+        public async Task<OperationResult> LeaveCurrentLobby()
         {
             try
             {
                 leftVolunatarily = true;
-                await LobbyManager.LeaveLobby(Lobby.Id);
+                return await LobbyManager.LeaveLobby(Lobby.Id);
             }
-            catch (Exception) { leftVolunatarily = false; }
+            catch (Exception e)
+            {
+                leftVolunatarily = false;
+                return OperationResult.ErrorResult("LeaveLobby", e.Message);
+            }
         }
 
         #region Unity Lobby Events
@@ -196,7 +215,6 @@ namespace Assets.Scripts.Game.Managers
                 if (showDebugMessages) Debug.Log($"Host changed to {lobbyChanges.HostId.Value}");
                 if (AuthenticationService.Instance.PlayerId == lobbyChanges.HostId.Value)
                 {
-                    if (showDebugMessages) Debug.Log("Local player is now host - setting to Ready");
                     if (_heartbeatCoroutine == null)
                     {
                         _heartbeatCoroutine = StartCoroutine(HeartbeatCoroutine(Lobby.Id, 6f));
@@ -245,13 +263,36 @@ namespace Assets.Scripts.Game.Managers
             if (showDebugMessages) Debug.Log($"Lobby data changed: {dataChanges.Count} " + (dataChanges.Count == 1 ? "field" : "fields"));
             foreach (var kvp in dataChanges)
             {
-                if (showDebugMessages) Debug.Log($"Data changed: {kvp.Key} = {kvp.Value.Value.Value}");
-                if (kvp.Key == "MapIndex") Lobby.Data["MapIndex"] = kvp.Value.Value;
-                else if (kvp.Key == "RoundCount") Lobby.Data["RoundCount"] = kvp.Value.Value;
-                else if (kvp.Key == "RoundTime") Lobby.Data["RoundTime"] = kvp.Value.Value;
-                else if (kvp.Key == "GameMode") Lobby.Data["GameMode"] = kvp.Value.Value;
-                else if (kvp.Key == "Status") Lobby.Data["Status"] = kvp.Value.Value;
-                else if (kvp.Key == "RelayJoinCode") Lobby.Data["RelayJoinCode"] = kvp.Value.Value;
+                if (kvp.Key == "MapIndex")
+                {
+                    if (showDebugMessages) Debug.Log($"Map index changed to {kvp.Value.Value.Value}");
+                    Lobby.Data["MapIndex"] = kvp.Value.Value;
+                }
+                else if (kvp.Key == "RoundCount")
+                {
+                    if (showDebugMessages) Debug.Log($"Round count changed to {kvp.Value.Value.Value}");
+                    Lobby.Data["RoundCount"] = kvp.Value.Value;
+                }
+                else if (kvp.Key == "RoundTime")
+                {
+                    if (showDebugMessages) Debug.Log($"Round time changed to {kvp.Value.Value.Value}");
+                    Lobby.Data["RoundTime"] = kvp.Value.Value;
+                }
+                else if (kvp.Key == "GameMode")
+                {
+                    if (showDebugMessages) Debug.Log($"Game mode changed to {kvp.Value.Value.Value}");
+                    Lobby.Data["GameMode"] = kvp.Value.Value;
+                }
+                else if (kvp.Key == "Status")
+                {
+                    if (showDebugMessages) Debug.Log($"Lobby status changed to {kvp.Value.Value.Value}");
+                    Lobby.Data["Status"] = kvp.Value.Value;
+                }
+                else if (kvp.Key == "RelayJoinCode")
+                {
+                    if (showDebugMessages) Debug.Log($"Relay join code changed to {kvp.Value.Value.Value}");
+                    Lobby.Data["RelayJoinCode"] = kvp.Value.Value;
+                }
             }
         }
 
@@ -261,9 +302,16 @@ namespace Assets.Scripts.Game.Managers
             foreach (var kvp in changes)
                 foreach (var dataChange in kvp.Value)
                 {
-                    if (showDebugMessages) Debug.Log($"Data changed: {kvp.Key} = {dataChange.Value.Value.Value}");
-                    if (dataChange.Key == "Status") Lobby.Players[kvp.Key].Data["Status"] = dataChange.Value.Value;
-                    else if (dataChange.Key == "Team") Lobby.Players[kvp.Key].Data["Team"] = dataChange.Value.Value;
+                    if (dataChange.Key == "Status")
+                    {
+                        if (showDebugMessages) Debug.Log($"Player {kvp.Key} status changed to {(PlayerStatus)int.Parse(dataChange.Value.Value.Value)}");
+                        Lobby.Players[kvp.Key].Data["Status"] = dataChange.Value.Value;
+                    }
+                    else if (dataChange.Key == "Team")
+                    {
+                        if (showDebugMessages) Debug.Log($"Player {kvp.Key} team changed to {(Team)int.Parse(dataChange.Value.Value.Value)}");
+                        Lobby.Players[kvp.Key].Data["Team"] = dataChange.Value.Value;
+                    }
                 }
         }
 

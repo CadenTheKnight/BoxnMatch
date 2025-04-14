@@ -1,11 +1,13 @@
 using UnityEngine;
 using Assets.Scripts.Game.Types;
+using Assets.Scripts.Game.Events;
 using System.Collections.Generic;
 using Assets.Scripts.Game.Managers;
 using Unity.Services.Lobbies.Models;
 using Unity.Services.Authentication;
 using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Game.UI.Components.ListEntries;
+
 
 namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 {
@@ -33,6 +35,9 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
                 LobbyEvents.OnPlayerLeft += OnPlayerLeft;
                 LobbyEvents.OnPlayerConnecting += OnPlayerConnecting;
 
+                GameLobbyEvents.OnPlayerStatusChanged += SetPlayerStatus;
+                GameLobbyEvents.OnPlayerTeamChanged += SetPlayerTeam;
+
                 ResetPlayerList();
                 // _playerListEntries.Find(entry => entry.PlayerId == playerId).SetConnected();
             }
@@ -46,6 +51,9 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
                 LobbyEvents.OnPlayerJoined -= OnPlayerJoined;
                 LobbyEvents.OnPlayerLeft -= OnPlayerLeft;
                 LobbyEvents.OnPlayerConnecting -= OnPlayerConnecting;
+
+                GameLobbyEvents.OnPlayerStatusChanged -= SetPlayerStatus;
+                GameLobbyEvents.OnPlayerTeamChanged -= SetPlayerTeam;
 
                 // _playerListEntries.Find(entry => entry.PlayerId == playerId).SetDisconnected();
             }
@@ -85,14 +93,14 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             ResetPlayerList();
         }
 
-        public void SetPlayerTeam(string playerId, Team team)
+        private void SetPlayerTeam(string playerId)
         {
-            _playerListEntries.Find(entry => entry.PlayerId == playerId).SetTeam(team);
+            _playerListEntries.Find(entry => entry.PlayerId == playerId).SetTeam((Team)int.Parse(GameLobbyManager.Instance.GetPlayerById(playerId).Data["Team"].Value));
         }
 
-        public void SetPlayerStatus(string playerId, PlayerStatus status)
+        private void SetPlayerStatus(string playerId)
         {
-            _playerListEntries.Find(entry => entry.PlayerId == playerId).SetStatus(status);
+            _playerListEntries.Find(entry => entry.PlayerId == playerId).SetStatus((PlayerStatus)int.Parse(GameLobbyManager.Instance.GetPlayerById(playerId).Data["Status"].Value));
         }
 
         private void OnPlayerConnecting(string playerId)
