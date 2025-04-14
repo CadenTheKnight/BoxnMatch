@@ -8,9 +8,13 @@ using UnityEngine.UI;
 
 public class DamageableObject : MonoBehaviour
 {
-
+    [Header("Damage")]
     public float damageModifier = 1f;
     public float currentDamage = 0f;
+
+    [Header("Lives")]
+    public int startingLives = 3;
+    private int currLives;
 
     [Header("DamageFX")]
     public bool isPlayer;
@@ -25,7 +29,7 @@ public class DamageableObject : MonoBehaviour
     [SerializeField] private TMP_Text damageText;
 
     [Header("LifeCounter")]
-    [SerializeField] private GameObject LifeCounter;
+    [SerializeField] private TMP_Text LifeCounter;
 
     private Rigidbody2D rb;
 
@@ -40,12 +44,9 @@ public class DamageableObject : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
 
         if (isPlayer) playerMat = GetComponent<SpriteRenderer>().material;
-    }
 
-    // Update is called once per frame
-    void Update()
-    {
-        damageText.text = currentDamage + "%";
+        currLives = startingLives;
+        LifeCounter.text = "" + currLives;
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -99,6 +100,9 @@ public class DamageableObject : MonoBehaviour
                 Destroy(shrapnel, 3f);
             }
         }
+
+        //update damage text
+        if(damageText != null) damageText.text = currentDamage + "%";
     }
 
     private void HandleKnockback(float knockback, Vector2 dir)
@@ -120,20 +124,36 @@ public class DamageableObject : MonoBehaviour
 
     public void ExplodeDie()
     {
-        /*
         GameObject explo = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
         explo.GetComponent<ParticleSystem>().Play();
         Destroy(explo, 5f);
-        */
     }
 
     public void Die()
     {
         // Reduce number of lifes
-        LifeCounter.GetComponent<LifeCounter>().LoseLife();
+        //LifeCounter.GetComponent<LifeCounter>().LoseLife();
+
+        //i coded a tiny thing for tracking lives in this script, not realizing this was partially
+        //done already. whoops. oh well
+        UpdateLifeCount(-1);
 
         // Trigger Explosive death VFX
         ExplodeDie();
+    }
+
+    public void PermaDie()
+    {
+        Destroy(damageText);
+        Destroy(LifeCounter);
+        Destroy(gameObject);
+    }
+
+    public void UpdateLifeCount(int lifeDelta)
+    {
+        currLives += lifeDelta;
+        LifeCounter.text = "" + currLives;
+        if (currLives <= 0) PermaDie();
     }
     
     // Makes this object invincible for the set amount of time (seconds)
