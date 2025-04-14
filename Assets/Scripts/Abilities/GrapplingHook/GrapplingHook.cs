@@ -12,6 +12,7 @@ public class GrapplingHook : MonoBehaviour
     [SerializeField] public bool extend = true;
     [SerializeField] public bool retract = false;
     [SerializeField] public float minimumRopeLength = 0.5f;
+    [SerializeField] public float maximumRopeLength = 30f;
     [SerializeField] private float knockbackMult = 1f;
 
     public Rigidbody2D hookedPlayer;
@@ -60,7 +61,7 @@ public class GrapplingHook : MonoBehaviour
 
         // Set the rope angle to correctly connect the ends to the anchor and player
         Vector2 vDif = rope.transform.position - anchor.transform.position;
-        float angle = Mathf.Atan2(vDif.y, vDif.x) * Mathf.Rad2Deg;
+        //float angle = Mathf.Atan2(vDif.y, vDif.x) * Mathf.Rad2Deg;
         //rope.transform.rotation = Quaternion.Euler(0f, 0f, angle + dir.GetRotationZ());
 
         // Set the rope scale to fill the distance completely
@@ -68,14 +69,24 @@ public class GrapplingHook : MonoBehaviour
         rope.GetComponent<LineRenderer>().SetPosition(0, anchor.transform.position);
         rope.GetComponent<LineRenderer>().SetPosition(1, pr.transform.position);
 
+        float ropeLength = Mathf.Abs((pr.transform.position - anchor.transform.position).magnitude);
+
         if (retract)
         {
             pr.GetComponent<Rigidbody2D>().AddForce(-retractForce * vDif.normalized);
             audioSource.clip = retracting;
         }
-        if (rope.transform.localScale.y < minimumRopeLength && retract)
+
+        // Check if player has reached the target
+        if (ropeLength < minimumRopeLength)
         {
-            //Destroy(gameObject);
+            Destroy(anchor); // destroy anchor to trigger Force on target
+        }
+
+        // Check Max Length
+        if (ropeLength > maximumRopeLength)
+        {
+            Destroy(gameObject);
         }
     }
 }

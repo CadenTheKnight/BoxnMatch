@@ -364,7 +364,8 @@ MonoBehaviour:
   retractForce: 40
   extend: 1
   retract: 0
-  minimumRopeLength: 1
+  minimumRopeLength: 0.5
+  maximumRopeLength: 30
   knockbackMult: 50
   hookedPlayer: {fileID: 0}
   pr: {fileID: 0}
@@ -503,10 +504,11 @@ PolygonCollider2D:
   m_AutoTiling: 0
   m_Points:
     m_Paths:
-    - - {x: 0, y: 0.5773587}
-      - {x: -0.5, y: -0.28866667}
-      - {x: 0.010683511, y: -2.8482742}
-      - {x: 0.5, y: -0.28866667}
+    - - {x: 0.096655846, y: 0.49577034}
+      - {x: 0.20431529, y: 0.84221256}
+      - {x: -0.21657073, y: 0.8786483}
+      - {x: -0.09012104, y: 0.40959114}
+      - {x: 0.071205065, y: 0.4138711}
   m_UseDelaunayMesh: 0
 --- !u!114 &3464224958077540260
 MonoBehaviour:
@@ -562,8 +564,8 @@ HingeJoint2D:
   m_BreakTorque: Infinity
   m_BreakAction: 3
   m_AutoConfigureConnectedAnchor: 1
-  m_Anchor: {x: 0, y: -0.5}
-  m_ConnectedAnchor: {x: 0, y: 0}
+  m_Anchor: {x: -0.004354894, y: 0.66275954}
+  m_ConnectedAnchor: {x: -0.004354894, y: 1.1627595}
   m_UseMotor: 0
   m_Motor:
     m_MotorSpeed: 0
