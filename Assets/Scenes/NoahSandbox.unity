@@ -134,6 +134,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: GrapplingHookAbilityAttatchment
       objectReference: {fileID: 0}
+    - target: {fileID: 1669626514854894686, guid: fd028ccb4ccfc734b9f635f3b2a09a51, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6827325051261493220, guid: fd028ccb4ccfc734b9f635f3b2a09a51, type: 3}
       propertyPath: grapplinghook
       value: 
@@ -238,6 +242,10 @@ PrefabInstance:
     - target: {fileID: 7609067020259386251, guid: 307955a21601d7349b0eee540c166f1b, type: 3}
       propertyPath: m_Name
       value: FireballAbilityAttatchment Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 7609067020259386251, guid: 307955a21601d7349b0eee540c166f1b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -378,7 +386,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1193362371953575053, guid: d1d2bc52a55e26a47820c7dfb4f984bd, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3668713479875662316, guid: d1d2bc52a55e26a47820c7dfb4f984bd, type: 3}
       propertyPath: m_LocalPosition.x
@@ -552,6 +560,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HammerAbilityAttathcment
       objectReference: {fileID: 0}
+    - target: {fileID: 1669626514854894686, guid: 8670373975fbf624787df0e8413a7035, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8982399607168297734, guid: 8670373975fbf624787df0e8413a7035, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -608,6 +620,10 @@ PrefabInstance:
     - target: {fileID: 1669626514854894686, guid: e1e0d9ec6f7af3645b37cfc15ed6708a, type: 3}
       propertyPath: m_Name
       value: RocketAbilityAttatchment Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 1669626514854894686, guid: e1e0d9ec6f7af3645b37cfc15ed6708a, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8982399607168297734, guid: e1e0d9ec6f7af3645b37cfc15ed6708a, type: 3}
       propertyPath: m_LocalPosition.x
@@ -706,6 +722,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: LaserAbilityAttatchment
       objectReference: {fileID: 0}
+    - target: {fileID: 7609067020259386251, guid: cfa6cf211905dda4fab878accf4fd3be, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -722,6 +742,10 @@ PrefabInstance:
     - target: {fileID: 1669626514854894686, guid: 8f42ada35a4e8f74a807d7fe7888a67f, type: 3}
       propertyPath: m_Name
       value: ShieldAbilityAttatchment Variant 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1669626514854894686, guid: 8f42ada35a4e8f74a807d7fe7888a67f, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8982399607168297734, guid: 8f42ada35a4e8f74a807d7fe7888a67f, type: 3}
       propertyPath: m_LocalPosition.x
@@ -793,7 +817,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1864694405886149648, guid: 9be8934d4ac444043a7e4388995ad65e, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2931708398383716144, guid: 9be8934d4ac444043a7e4388995ad65e, type: 3}
       propertyPath: ability
@@ -809,11 +833,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3733846812709486415, guid: 9be8934d4ac444043a7e4388995ad65e, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -1.1643144
+      value: 1.01
       objectReference: {fileID: 0}
     - target: {fileID: 3733846812709486415, guid: 9be8934d4ac444043a7e4388995ad65e, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.5
+      value: 0.84
       objectReference: {fileID: 0}
     - target: {fileID: 3733846812709486415, guid: 9be8934d4ac444043a7e4388995ad65e, type: 3}
       propertyPath: m_LocalPosition.z
@@ -859,7 +883,13 @@ PrefabInstance:
     - {fileID: 7150353895574360191, guid: 9be8934d4ac444043a7e4388995ad65e, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4416477294812041694, guid: 9be8934d4ac444043a7e4388995ad65e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 8184726353424260718, guid: 9be8934d4ac444043a7e4388995ad65e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: 9be8934d4ac444043a7e4388995ad65e, type: 3}
 --- !u!114 &1662048327 stripped
 MonoBehaviour:
@@ -950,16 +980,20 @@ PrefabInstance:
       value: Platform
       objectReference: {fileID: 0}
     - target: {fileID: 6312379927313412463, guid: a19b9d6bfb245f44888413a423466b11, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 25
+      objectReference: {fileID: 0}
+    - target: {fileID: 6312379927313412463, guid: a19b9d6bfb245f44888413a423466b11, type: 3}
       propertyPath: m_LocalScale.y
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6312379927313412463, guid: a19b9d6bfb245f44888413a423466b11, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.30206728
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6312379927313412463, guid: a19b9d6bfb245f44888413a423466b11, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -2.0343025
+      value: -2
       objectReference: {fileID: 0}
     - target: {fileID: 6312379927313412463, guid: a19b9d6bfb245f44888413a423466b11, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1054,6 +1088,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: RemoteExplosiveAbilityAttatchment
       objectReference: {fileID: 0}
+    - target: {fileID: 7609067020259386251, guid: ab2fcba8aa48e33468312aa1d72fc544, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1125,7 +1163,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5862949730485368779, guid: 096fc797519de2b4dbac6cfc122c3a27, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
