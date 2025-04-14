@@ -34,7 +34,7 @@ public class ManageOrbs : MonoBehaviour
             GameObject temp = Instantiate(orb, new Vector3(Random.Range(spawnRangeX[0], spawnRangeX[1]), spawnY, 0), transform.rotation);
             temp.GetComponent<AbilityOrbHandler>().ability = abilities[randomAbilityIndex];
             temp.GetComponent<SpriteRenderer>().sprite = ability_sprites[randomAbilityIndex];
-            Debug.Log("ability is : " + randomAbilityIndex);
+            //Debug.Log("ability is : " + randomAbilityIndex);
         }
     }
 
