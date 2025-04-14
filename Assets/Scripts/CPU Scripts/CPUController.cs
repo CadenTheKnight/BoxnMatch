@@ -32,12 +32,6 @@ public class CPUController : MonoBehaviour
         StartCoroutine(Idle());
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
 
 
     /* ------------ Basic Movement Functions ------------ */
@@ -290,8 +284,7 @@ public class CPUController : MonoBehaviour
     // Check if there if a launched fireball will hit a player
     private bool CanFireballHit(GameObject target, AbilityDirection dir)
 {
-    Vector2 offset = DirectionToVector(dir); // Offset vector based on ability direction
-    Vector2 startPos = (Vector2)transform.position + offset; // Apply 1-unit offset
+    Vector2 startPos = GetAbilityOrigin(dir); ;
     Vector2 velocity;
 
     // Define velocity based on direction
@@ -363,6 +356,13 @@ public class CPUController : MonoBehaviour
             return direction.y > 0 ? AbilityDirection.NORTH : AbilityDirection.SOUTH;
         }
     }
+
+    // Gets the origin of the ability to be used based on 1 offset
+    private Vector2 GetAbilityOrigin(AbilityDirection dir)
+    {
+        return (Vector2)transform.position + DirectionToVector(dir); // Offset by 1 unit in direction
+    }
+
 
 
 
@@ -518,19 +518,19 @@ public class CPUController : MonoBehaviour
 
         Vector2 toTarget = target.transform.position - transform.position;
         AbilityDirection dir = GetAbilityDirection(toTarget);
+        Vector2 origin = GetAbilityOrigin(dir);
 
-        // FIREBALL - hit check within normal fireball arc path
-        //Debug.Log(FindAbilitySocket("Fireball") + " | " + CanFireballHit(target, dir));
+        // FIREBALL
         if (FindAbilitySocket("Fireball") && CanFireballHit(target, dir))
         {
             yield return StartCoroutine(UseAbility("Fireball", dir));
             yield break;
         }
 
-        // HAMMER - hit check within 2.5 units in the direction
-        else if (FindAbilitySocket("Hammer"))
+        // HAMMER - check hit within 2.5 units in direction
+        if (FindAbilitySocket("Hammer"))
         {
-            RaycastHit2D hit = Physics2D.Raycast(transform.position, DirectionToVector(dir), 2.5f, LayerMask.GetMask("Default"));
+            RaycastHit2D hit = Physics2D.Raycast(origin, DirectionToVector(dir), 2.5f, LayerMask.GetMask("Default"));
             if (hit.collider && hit.collider.gameObject == target)
             {
                 yield return StartCoroutine(UseAbility("Hammer", dir));
@@ -538,10 +538,10 @@ public class CPUController : MonoBehaviour
             }
         }
 
-        // LASER - raycast in direction, instant hit
-        else if (FindAbilitySocket("Laser"))
+        // LASER - raycast in direction, long range
+        if (FindAbilitySocket("Laser"))
         {
-            RaycastHit2D hit = Physics2D.Raycast(transform.position, DirectionToVector(dir), 50f, LayerMask.GetMask("Default"));
+            RaycastHit2D hit = Physics2D.Raycast(origin, DirectionToVector(dir), 50f, LayerMask.GetMask("Default"));
             if (hit.collider && hit.collider.gameObject == target)
             {
                 yield return StartCoroutine(UseAbility("Laser", dir));
@@ -549,21 +549,21 @@ public class CPUController : MonoBehaviour
             }
         }
 
-        // REMOTE EXPLOSIVE - simple logic: drop if close to player
-        else if (FindAbilitySocket("RemoteExplosive"))
+        // REMOTE EXPLOSIVE - drop if close
+        if (FindAbilitySocket("RemoteExplosive"))
         {
             float dist = Vector2.Distance(transform.position, target.transform.position);
-            if (dist < 2f) // near enough to drop
+            if (dist < 2f)
             {
-                yield return StartCoroutine(UseAbility("RemoteExplosive", AbilityDirection.SOUTH));
+                yield return StartCoroutine(UseAbility("RemoteExplosive", AbilityDirection.SOUTH)); // drop down
                 yield break;
             }
         }
 
-        // GRAPPLE - raycast to hit target
-        else if (FindAbilitySocket("Grapple"))
+        // GRAPPLE - check raycast to see if player is in hook line
+        if (FindAbilitySocket("Grapple"))
         {
-            RaycastHit2D hit = Physics2D.Raycast(transform.position, DirectionToVector(dir), 10f, LayerMask.GetMask("Default"));
+            RaycastHit2D hit = Physics2D.Raycast(origin, DirectionToVector(dir), 10f, LayerMask.GetMask("Default"));
             if (hit.collider && hit.collider.gameObject == target)
             {
                 yield return StartCoroutine(UseAbility("Grapple", dir));
@@ -573,6 +573,7 @@ public class CPUController : MonoBehaviour
 
         yield break;
     }
+
 
 
 
@@ -594,7 +595,7 @@ public class CPUController : MonoBehaviour
 
     private void DrawFireballArc()
     {
-        Vector2 velocity = new Vector2(15f, 20f);
+        Vector2 velocity = new(15f, 20f);
         float gravity = Physics2D.gravity.y * 4f;
         float timestep = 0.05f;
         float totalTime = 2f;
@@ -604,7 +605,7 @@ public class CPUController : MonoBehaviour
 
         for (float t = timestep; t < totalTime; t += timestep)
         {
-            Vector2 nextPoint = (Vector2)transform.position + velocity * t + 0.5f * new Vector2(0, gravity) * t * t;
+            Vector2 nextPoint = (Vector2)transform.position + velocity * t + 0.5f * t * t * new Vector2(0, gravity);
             Gizmos.color = Color.red;
             Gizmos.DrawLine(previousPoint, nextPoint);
             previousPoint = nextPoint;
@@ -627,7 +628,7 @@ public class CPUController : MonoBehaviour
 
         // Draw sides (a capsule is two circles + a rectangle between them)
         Vector2 dir = (capsulePoint2 - capsulePoint1).normalized;
-        Vector2 perpendicular = new Vector2(-dir.y, dir.x); // get perpendicular vector
+        Vector2 perpendicular = new(-dir.y, dir.x); // get perpendicular vector
 
         Vector2 p1a = capsulePoint1 + perpendicular * radius;
         Vector2 p1b = capsulePoint1 - perpendicular * radius;
