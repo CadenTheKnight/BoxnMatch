@@ -50,17 +50,23 @@ public class GrapplingHook : MonoBehaviour
             audioSource.clip = extending;
         }
 
-        /* Update the Rope */
+
+        //REMADE TO USE LINE RENDERER SO POINTS ARE JUST
+        //STRAIGHT SET INSTEAD OF CALCULATING ANGLE
+
+        // Update the Rope 
         // Set the rope to bridge the gap between the anchor and the player
-        rope.transform.position = (anchor.transform.position + pr.transform.position) / 2;
+        //rope.transform.position = (anchor.transform.position + pr.transform.position) / 2;
 
         // Set the rope angle to correctly connect the ends to the anchor and player
         Vector2 vDif = rope.transform.position - anchor.transform.position;
         float angle = Mathf.Atan2(vDif.y, vDif.x) * Mathf.Rad2Deg;
-        rope.transform.rotation = Quaternion.Euler(0f, 0f, angle + dir.GetRotationZ());
+        //rope.transform.rotation = Quaternion.Euler(0f, 0f, angle + dir.GetRotationZ());
 
         // Set the rope scale to fill the distance completely
-        rope.transform.localScale = new Vector3(0.1f, vDif.magnitude * 2, 1f);
+        //rope.transform.localScale = new Vector3(0.1f, vDif.magnitude * 2, 1f);
+        rope.GetComponent<LineRenderer>().SetPosition(0, anchor.transform.position);
+        rope.GetComponent<LineRenderer>().SetPosition(1, pr.transform.position);
 
         if (retract)
         {

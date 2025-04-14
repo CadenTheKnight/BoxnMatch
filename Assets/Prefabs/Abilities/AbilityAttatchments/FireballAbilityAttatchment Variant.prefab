@@ -86,8 +86,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1886f6dfd1640c9418b0de0745a1f987, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  positionOffset: 1
+  positionOffset: 1.5
   maxShots: 3
-  launchForce: {x: 15, y: 20}
+  launchForce: {x: 15, y: 10}
   noAbility: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
   Fireball: {fileID: 1345575990676556360, guid: d8ba9e5f1ecc7424abc1b85f9c9cd55a, type: 3}

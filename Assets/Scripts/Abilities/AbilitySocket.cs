@@ -22,4 +22,19 @@ public class AbilitySocket : MonoBehaviour
         }
     }
 
+    public void TrashAbilityBinding()
+    {
+        //nope this caused bugs with the rocket never despawning.
+        //could fix, but there are more pressing issues 4-14-25
+
+        /*
+        if(ability != null)
+        {
+            Destroy(ability.gameObject);
+            ability = null;
+            GetComponent<SpriteRenderer>().sprite = null;
+        }
+        */
+    }
+
 }

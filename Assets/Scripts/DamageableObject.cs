@@ -5,6 +5,7 @@ using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
+using Cinemachine;
 
 public class DamageableObject : MonoBehaviour
 {
@@ -24,6 +25,7 @@ public class DamageableObject : MonoBehaviour
 
     [Header("DeathExplosion")]
     public GameObject explosionPrefab;
+    public CinemachineImpulseSource screenShakeImpulse;
 
     [Header("DamageText")]
     [SerializeField] private TMP_Text damageText;
@@ -37,6 +39,10 @@ public class DamageableObject : MonoBehaviour
     private readonly int distortionKey = Shader.PropertyToID("_DistortionAmt");
     private readonly int fillColorKey = Shader.PropertyToID("_BoxColor");
     private Coroutine distortionRoutine;
+
+    //events
+    public delegate void DeathEvent(DamageableObject damage);
+    public event DeathEvent OnDeath;
 
     // Start is called before the first frame update
     void Start()
@@ -127,19 +133,22 @@ public class DamageableObject : MonoBehaviour
         GameObject explo = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
         explo.GetComponent<ParticleSystem>().Play();
         Destroy(explo, 5f);
+        screenShakeImpulse.GenerateImpulse();
     }
 
     public void Die()
     {
+        // Trigger Explosive death VFX
+        ExplodeDie();
+
+        OnDeath?.Invoke(this);
+
         // Reduce number of lifes
         //LifeCounter.GetComponent<LifeCounter>().LoseLife();
 
         //i coded a tiny thing for tracking lives in this script, not realizing this was partially
         //done already. whoops. oh well
         UpdateLifeCount(-1);
-
-        // Trigger Explosive death VFX
-        ExplodeDie();
     }
 
     public void PermaDie()
