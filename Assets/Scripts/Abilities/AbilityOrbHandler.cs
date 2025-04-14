@@ -61,7 +61,7 @@ public class AbilityOrbHandler : MonoBehaviour
             if ((time - collsionTime) < 0.5) return; // exit if collsions are happening to quickly (multiple colliders in player)
             collsionTime = time;
 
-            Debug.Log("Player collision");
+            //Debug.Log("Player collision");
             Vector2 playerPos = collision.gameObject.transform.position;
             Vector2 relativePos = (Vector2)transform.position - playerPos;
             int[] bindingOrder = new int[4];
@@ -133,7 +133,7 @@ public class AbilityOrbHandler : MonoBehaviour
             //Debug.Log("try slot: " + slot + " ability: " + player.GetComponent<PlayerRotator>().sockets[slot].GetComponent<AbilitySocket>().ability);
             if (!(player.GetComponent<PlayerRotator>().sockets[slot].GetComponent<AbilitySocket>().ability))
             {
-                Debug.Log("succes slot: " + slot);
+                //Debug.Log("succes slot: " + slot);
                 player.GetComponent<PlayerRotator>().sockets[slot].GetComponent<AbilitySocket>().ability = Instantiate(ability);
                 player.GetComponent<PlayerRotator>().sockets[slot].GetComponent<SpriteRenderer>().sprite = GetComponent<SpriteRenderer>().sprite;
                 return true;

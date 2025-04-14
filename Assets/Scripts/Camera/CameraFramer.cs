@@ -34,7 +34,7 @@ public class CameraFramer : MonoBehaviour
         {
             trackedObjects.Add(pcs[i].gameObject);
         }
-        Debug.Log("camera is tracking " + trackedObjects.Count + " objects");
+        //Debug.Log("camera is tracking " + trackedObjects.Count + " objects");
 
         if (cameraTracker == null) cameraTracker = transform;
 

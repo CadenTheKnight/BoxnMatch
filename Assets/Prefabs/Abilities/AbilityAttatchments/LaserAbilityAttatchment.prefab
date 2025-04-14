@@ -86,7 +86,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0621b66b588b56f418770f4f9f533b24, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  positionOffset: 1
+  positionOffset: 1.1
   maxShots: 3
   noAbility: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
   Laser: {fileID: 215190149022633427, guid: 2cf651686091f5446ad8e3c1770fa825, type: 3}

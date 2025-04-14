@@ -5,6 +5,7 @@ using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
+using Cinemachine;
 
 public class DamageableObject : MonoBehaviour
 {
@@ -24,6 +25,7 @@ public class DamageableObject : MonoBehaviour
 
     [Header("DeathExplosion")]
     public GameObject explosionPrefab;
+    public CinemachineImpulseSource screenShakeImpulse;
 
     [Header("DamageText")]
     [SerializeField] private TMP_Text damageText;
@@ -131,6 +133,7 @@ public class DamageableObject : MonoBehaviour
         GameObject explo = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
         explo.GetComponent<ParticleSystem>().Play();
         Destroy(explo, 5f);
+        screenShakeImpulse.GenerateImpulse();
     }
 
     public void Die()
