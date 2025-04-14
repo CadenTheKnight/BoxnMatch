@@ -23,6 +23,10 @@ namespace Assets.Scripts.Game.UI.Controllers.OptionsCanvas.SettingsMenu
         [SerializeField] private AudioSettingsPanelController audioSettingsPanelController;
         [SerializeField] private ControlsSettingsPanelController controlsSettingsPanelController;
 
+        public delegate void SettingsUpdateHandler(OperationResult result);
+        public static event SettingsUpdateHandler OnSettingsUpdated;
+        public static void InvokeSettingsUpdated(OperationResult result) => OnSettingsUpdated?.Invoke(result);
+
         protected override void OnEnable()
         {
             base.OnEnable();
@@ -91,7 +95,7 @@ namespace Assets.Scripts.Game.UI.Controllers.OptionsCanvas.SettingsMenu
             if (videoSettingsPanelController.gameObject.activeSelf && !videoSettingsPanelController.IsDefaults())
             {
                 videoSettingsPanelController.ResetToDefaults();
-                NotificationManager.Instance.ShowNotification(OperationResult.ErrorResult("VideoSettingsReset", "Video settings reset to default"));
+                InvokeSettingsUpdated(OperationResult.ErrorResult("VideoSettingsReset", "Video settings reset to defaults"));
             }
 
             UpdateActionButtonsState();
@@ -102,7 +106,7 @@ namespace Assets.Scripts.Game.UI.Controllers.OptionsCanvas.SettingsMenu
             if (videoSettingsPanelController.gameObject.activeSelf && videoSettingsPanelController.HasChanges())
             {
                 videoSettingsPanelController.DiscardChanges();
-                NotificationManager.Instance.ShowNotification(OperationResult.WarningResult("VideoSettingsDiscarded", "Video settings changes discarded"));
+                InvokeSettingsUpdated(OperationResult.WarningResult("VideoSettingsDiscarded", "Video settings changes discarded"));
             }
 
             UpdateActionButtonsState();
@@ -113,7 +117,7 @@ namespace Assets.Scripts.Game.UI.Controllers.OptionsCanvas.SettingsMenu
             if (videoSettingsPanelController.gameObject.activeSelf && videoSettingsPanelController.HasChanges())
             {
                 videoSettingsPanelController.ApplyChanges();
-                NotificationManager.Instance.ShowNotification(OperationResult.SuccessResult("VideoSettingsChanged", "Video settings changes applied"));
+                InvokeSettingsUpdated(OperationResult.SuccessResult("VideoSettingsApplied", "Video settings changes applied"));
             }
 
             UpdateActionButtonsState();

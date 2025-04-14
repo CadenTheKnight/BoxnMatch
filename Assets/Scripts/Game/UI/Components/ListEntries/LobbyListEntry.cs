@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using Assets.Scripts.Game.Data;
 using Assets.Scripts.Game.Types;
 using Unity.Services.Lobbies.Models;
+using Assets.Scripts.Game.UI.Colors;
 
 namespace Assets.Scripts.Game.UI.Components.ListEntries
 {
@@ -72,7 +73,7 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             nameText.text = lobby.Name;
             playerCountText.text = $"{lobby.Players.Count}/{lobby.MaxPlayers}";
             gameModeText.text = ((GameMode)int.Parse(lobby.Data["GameMode"].Value)).ToString();
-            statusText.text = ((PlayerStatus)int.Parse(lobby.Data["Status"].Value)).ToString();
+            statusText.text = ((LobbyStatus)int.Parse(lobby.Data["Status"].Value)).ToString();
             mapImage.sprite = mapSelectionData.GetMap(int.Parse(lobby.Data["MapIndex"].Value)).Thumbnail;
 
             SetSelected(false);
@@ -81,7 +82,7 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
         public void SetSelected(bool isSelected)
         {
             ColorBlock colors = lobbyButton.colors;
-            colors.normalColor = isSelected ? colors.selectedColor : colors.normalColor;
+            colors.normalColor = isSelected ? UIColors.Primary.Six : UIColors.Primary.Nine;
             lobbyButton.colors = colors;
         }
     }

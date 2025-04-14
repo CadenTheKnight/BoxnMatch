@@ -48,6 +48,8 @@ namespace Assets.Scripts.Game.UI.Components
         /// </summary>
         public void StartLoading()
         {
+            if (isLoading) return;
+
             RecalculatePositions();
             movingBar.anchoredPosition = new Vector2(startPosition, movingBar.anchoredPosition.y);
             isLoading = true;
@@ -58,13 +60,10 @@ namespace Assets.Scripts.Game.UI.Components
         /// </summary>
         public void StopLoading()
         {
+            if (!isLoading) return;
+
             isLoading = false;
             movingBar.anchoredPosition = new Vector2(startPosition, movingBar.anchoredPosition.y);
-        }
-
-        private void OnRectTransformDimensionsChange()
-        {
-            if (isActiveAndEnabled) RecalculatePositions();
         }
     }
 }

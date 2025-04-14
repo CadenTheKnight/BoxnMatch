@@ -1,3 +1,4 @@
+using System;
 using Assets.Scripts.Framework.Types;
 
 namespace Assets.Scripts.Framework.Utilities
@@ -10,33 +11,33 @@ namespace Assets.Scripts.Framework.Utilities
         public ResultStatus Status { get; }
         public string Code { get; }
         public string Message { get; }
+        public object Data { get; }
+        public Action Retry { get; }
 
         /// <summary>
         /// Creates a new OperationResult with the provided success status, code, and message.
         /// </summary>
-        public OperationResult(ResultStatus status, string code, string message)
+        public OperationResult(ResultStatus status, string code, string message, object data = null, Action retry = null)
         {
             Status = status;
             Code = code;
             Message = message;
+            Data = data;
+            Retry = retry;
         }
 
         /// <summary>
-        /// Creates a successful OperationResult with the provided code and message.
+        /// Creates a successful OperationResult with the provided code, data, and message.
         /// </summary>
-        public static OperationResult SuccessResult(string successCode, string successMessage)
-            => new(ResultStatus.Success, successCode, successMessage);
+        public static OperationResult SuccessResult(string code, string message, object data = null) => new(ResultStatus.Success, code, message, data);
 
         /// <summary>
-        /// Creates a warning OperationResult with the provided code and message.
+        /// Creates a warning OperationResult with the provided code, message, and data.
         /// </summary>
-        public static OperationResult WarningResult(string warningCode, string warningMessage)
-            => new(ResultStatus.Warning, warningCode, warningMessage);
-
+        public static OperationResult WarningResult(string code, string message, object data = null) => new(ResultStatus.Warning, code, message, data);
         /// <summary>
-        /// Creates a error OperationResult with the provided code and message.
+        /// Creates an error OperationResult with the provided code, message, data, and retry action.
         /// </summary>
-        public static OperationResult ErrorResult(string errorCode, string errorMessage)
-            => new(ResultStatus.Error, errorCode, errorMessage);
+        public static OperationResult ErrorResult(string code, string message, object data = null, Action retry = null) => new(ResultStatus.Error, code, message, data, retry);
     }
 }

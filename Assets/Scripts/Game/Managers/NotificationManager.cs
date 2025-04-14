@@ -1,8 +1,9 @@
-using System;
 using UnityEngine;
 using Assets.Scripts.Framework.Core;
+using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Utilities;
 using Assets.Scripts.Game.UI.Controllers.NotificationCanvas;
+using Assets.Scripts.Game.UI.Controllers.OptionsCanvas.SettingsMenu;
 
 namespace Assets.Scripts.Game.Managers
 {
@@ -15,16 +16,42 @@ namespace Assets.Scripts.Game.Managers
         [SerializeField] private ErrorPopup errorPopup;
         [SerializeField] private ResultNotification resultNotification;
 
-        public void ShowNotification(OperationResult result)
+        private void OnEnable()
+        {
+            AuthEvents.OnInitializationError += ShowErrorPopup;
+
+            SettingsPanelController.OnSettingsUpdated += ShowNotification;
+
+            LobbyEvents.OnLobbiesQueried += ShowNotification;
+            LobbyEvents.OnLobbyCreated += ShowNotification;
+            LobbyEvents.OnLobbyJoined += ShowNotification;
+            LobbyEvents.OnLobbyRejoined += ShowNotification;
+            LobbyEvents.OnLobbyLeft += ShowNotification;
+        }
+
+        private void OnDisable()
+        {
+            AuthEvents.OnInitializationError -= ShowErrorPopup;
+
+            SettingsPanelController.OnSettingsUpdated -= ShowNotification;
+
+            LobbyEvents.OnLobbiesQueried -= ShowNotification;
+            LobbyEvents.OnLobbyCreated -= ShowNotification;
+            LobbyEvents.OnLobbyJoined -= ShowNotification;
+            LobbyEvents.OnLobbyRejoined -= ShowNotification;
+            LobbyEvents.OnLobbyLeft -= ShowNotification;
+        }
+
+        private void ShowNotification(OperationResult result)
         {
             if (showDebugMessages) Debug.Log($"{result.Code} - {result.Message}");
             resultNotification.ShowNotification(result);
         }
 
-        public void ShowErrorPopup(OperationResult result, Action retryAction)
+        private void ShowErrorPopup(OperationResult result)
         {
             if (showDebugMessages) Debug.Log($"{result.Code} - {result.Message}");
-            errorPopup.ShowError(result, retryAction);
+            errorPopup.ShowError(result, result.Retry);
         }
     }
 }

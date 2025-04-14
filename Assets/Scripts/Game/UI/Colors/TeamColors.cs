@@ -31,7 +31,10 @@ namespace Assets.Scripts.Game.UI.Colors
 
         public static Color GetDisabledColor(Team team)
         {
-            return UIColors.Primary.Eight;
+            if (team == Team.Red) return UIColors.Red.Four;
+            if (team == Team.Blue) return UIColors.Blue.Four;
+            if (team == Team.Green) return UIColors.Green.Four;
+            else return UIColors.Orange.Four;
         }
     }
 }
