@@ -22,4 +22,13 @@ public class AbilitySocket : MonoBehaviour
         }
     }
 
+    public void TrashAbilityBinding()
+    {
+        if(ability != null)
+        {
+            Destroy(ability);
+            ability = null;
+        }
+    }
+
 }

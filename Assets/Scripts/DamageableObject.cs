@@ -38,6 +38,10 @@ public class DamageableObject : MonoBehaviour
     private readonly int fillColorKey = Shader.PropertyToID("_BoxColor");
     private Coroutine distortionRoutine;
 
+    //events
+    public delegate void DeathEvent(DamageableObject damage);
+    public event DeathEvent OnDeath;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -131,15 +135,17 @@ public class DamageableObject : MonoBehaviour
 
     public void Die()
     {
+        // Trigger Explosive death VFX
+        ExplodeDie();
+
+        OnDeath?.Invoke(this);
+
         // Reduce number of lifes
         //LifeCounter.GetComponent<LifeCounter>().LoseLife();
 
         //i coded a tiny thing for tracking lives in this script, not realizing this was partially
         //done already. whoops. oh well
         UpdateLifeCount(-1);
-
-        // Trigger Explosive death VFX
-        ExplodeDie();
     }
 
     public void PermaDie()
