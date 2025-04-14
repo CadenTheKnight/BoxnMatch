@@ -116,35 +116,29 @@ public class CPUController : MonoBehaviour
         return ray.collider;
     }
 
-    private Collider2D CheckImportantNearby()
+    private Collider2D IsOrbNear()
     {
+
+        // Capsule collider sizing
         Vector2 point = transform.position;
         Vector2 capsulePoint1 = point + new Vector2(5f, 1.5f);
         Vector2 capsulePoint2 = point + new Vector2(-5f, 1.5f);
         float radius = 2f;
 
-        // CapsuleDirection2D.Vertical or .Horizontal — choose based on capsule orientation
+        // Creating capsule sensing area
         Collider2D[] senseAreaCollisions = Physics2D.OverlapCapsuleAll((capsulePoint1 + capsulePoint2) * 0.5f, // center
                                                                         new Vector2(Vector2.Distance(capsulePoint1, capsulePoint2), radius * 2), // size
                                                                         CapsuleDirection2D.Horizontal,
                                                                         0f // angle
                                                                         );
 
+        // Checks if an ability orb is in the capsule area
         foreach (Collider2D c in senseAreaCollisions)
         {
-            if (c == null) continue;
-
-            //Debug.Log($"Detected: {c.name} with tag {c.tag}");
-
-            if (c.CompareTag("DamageObject"))
-            {
-                // Handle dodging/defense
-                Debug.Log("Incoming danger detected!");
-            }
-            else if (c.CompareTag("AbilityOrb"))
+            if (c.CompareTag("AbilityOrb"))
             {
                 Debug.Log("Found Ability Orb Nearby");
-                return c;
+                return c; // Return ability orb as collider2d
             }
         }
 
@@ -168,19 +162,19 @@ public class CPUController : MonoBehaviour
         foreach(AbilitySocket s in cpuR.sockets)
         {
             // Classify the ability in the socket as attack, defense, or recovery
-            if(s.ability.CompareTag("AttackAbility"))
+            if(s.ability.CompareTag("Fireball") || s.ability.CompareTag("Hammer") || s.ability.CompareTag("Laser") || s.ability.CompareTag("RemoteExplosive") || s.ability.CompareTag("Grapple"))
             {
-                // Fireball, Hammer, Laser, Remote Explosive
+                // Fireball, Hammer, Laser, Remote Explosive, Grappling Hook
                 numAttackAbilities++;
             }
-            else if (s.ability.CompareTag("DefenseAbility"))
+            else if (s.ability.CompareTag("Shield"))
             {
                 // Shield
                 numDefenseAbilities++;
             }
-            else if (s.ability.CompareTag("RecoverAbility"))
+            else if (s.ability.CompareTag("Grapple") || s.ability.CompareTag("Rocket"))
             {
-                // Grapple, Rocket
+                // Grappling Hook, Rocket
                 numDefenseAbilities++;
             }
         }
@@ -233,7 +227,7 @@ public class CPUController : MonoBehaviour
         while (true)
         {
             // Check for important things nearby
-            Collider2D nearby = CheckImportantNearby();
+            Collider2D nearby = IsOrbNear();
 
             // Move side to side switching directions at the edge of the platform
             RaycastHit2D ray;
@@ -319,13 +313,14 @@ public class CPUController : MonoBehaviour
         yield return null;
     }
 
-    private IEnumerator Dodge()
-    {
-        yield return null;
-    }
+
+
+    /* ------------ Displaying Sensor Fields ------------ */
 
     private void OnDrawGizmosSelected()
     {
+        // Orb detection
+
         Vector2 point = transform.position;
         Vector2 capsulePoint1 = point + new Vector2(5f, 1.5f);
         Vector2 capsulePoint2 = point + new Vector2(-5f, 1.5f);
