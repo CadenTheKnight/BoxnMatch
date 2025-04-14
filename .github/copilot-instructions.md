@@ -2,7 +2,7 @@
 - Project name: BoxnMatch
 - Unity version: Unity 2022.3.55f1
 - Active game object:
-  - Name: CPU
-  - Tag: Player
+  - Name: AbilityOrb
+  - Tag: AbilityOrb
   - Layer: Default
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->

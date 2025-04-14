@@ -452,6 +452,11 @@ public class CPUController : MonoBehaviour
                 yield return attack;
             }
 
+            // Check for hostile objects nearby and Dodge/Block if necessary
+            Coroutine defend = StartCoroutine(Defend());
+            yield return defend;
+
+
 
 
             // Added delay so it only checks every frame to prevent overloading
@@ -574,14 +579,55 @@ public class CPUController : MonoBehaviour
         yield break;
     }
 
-
-
-
-
     private IEnumerator Defend()
     {
-        yield return null;
+        float detectionRadius = 8f;
+        float dangerAngleThreshold = 0.7f; // cosine threshold to ensure it's mostly heading toward CPU
+        Collider2D[] threats = Physics2D.OverlapCircleAll(transform.position, detectionRadius);
+
+        foreach (Collider2D c in threats)
+        {
+            if (c.CompareTag("DamageObject"))
+            {
+                Rigidbody2D threatRb = c.attachedRigidbody;
+                if (!threatRb) continue;
+
+                Vector2 toSelf = (Vector2)transform.position - (Vector2)c.transform.position;
+                Vector2 threatVel = threatRb.velocity;
+
+                // Make sure it's flying toward the CPU
+                float threatDirDot = Vector2.Dot(toSelf.normalized, threatVel.normalized);
+                if (threatDirDot < dangerAngleThreshold) continue;
+
+                // Pick a direction to defend
+                AbilityDirection blockDir = GetAbilityDirection(threatVel);
+
+                // Dodge logic
+                if (cpuM.RemainingJumps() > 0)
+                {
+                    Debug.Log("DEFENSE: Dodging incoming attack!");
+                    yield return StartCoroutine(OptimalJumps());
+                    yield break;
+                }
+
+                // Block logic
+                if (FindAbilitySocket("Shield"))
+                {
+                    Debug.Log("DEFENSE: Blocking incoming attack with shield!");
+                    yield return StartCoroutine(UseAbility("Shield", blockDir));
+                    yield break;
+                }
+
+                // Crouch if falling or no other defense
+                Debug.Log("DEFENSE: Crouching to avoid!");
+                cpuM.Crouch();
+                yield break;
+            }
+        }
+
+        yield break;
     }
+
 
 
 
