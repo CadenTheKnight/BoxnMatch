@@ -161,8 +161,11 @@ public class CPUController : MonoBehaviour
         numRecoverAbilites = 0;
         foreach(AbilitySocket s in cpuR.sockets)
         {
+            // Check null cases (skip other checks if either is null)
+            if (!s || !s.ability);
+
             // Classify the ability in the socket as attack, defense, or recovery
-            if(s.ability.CompareTag("Fireball") || s.ability.CompareTag("Hammer") || s.ability.CompareTag("Laser") || s.ability.CompareTag("RemoteExplosive") || s.ability.CompareTag("Grapple"))
+            else if (s.ability.CompareTag("Fireball") || s.ability.CompareTag("Hammer") || s.ability.CompareTag("Laser") || s.ability.CompareTag("RemoteExplosive") || s.ability.CompareTag("Grapple"))
             {
                 // Fireball, Hammer, Laser, Remote Explosive, Grappling Hook
                 numAttackAbilities++;
@@ -180,6 +183,57 @@ public class CPUController : MonoBehaviour
         }
 
         yield break;
+    }
+
+    // Find Ability Socket that has the given ability
+    private AbilitySocket FindAbilitySocket (string tag)
+    {
+        foreach (AbilitySocket s in cpuR.sockets)
+        {
+            if (s.ability && s.ability.CompareTag(tag))
+            {
+                return s;
+            }
+        }
+
+        Debug.Log("No ability with that tag found");
+        return null;
+    }
+
+    // Rotate selected ability to selected direction
+    private IEnumerator RotateAbility(string tag, AbilityDirection dir)
+    {
+        // Find the socket that needs to be rotated
+        AbilitySocket abilitySocket = FindAbilitySocket(tag);
+        
+
+        // If ability is found in a socket, rotate it to the given direction
+        if(abilitySocket)
+        {
+            // Calculate spin direction
+            int rotation = dir - abilitySocket.socketDirection;
+            // Optimize spin direction
+            if (rotation > 2) rotation = -(4 - rotation);
+            else if (rotation < -2) rotation = -(-4 - rotation);
+
+            // Spin to correct position
+            cpuR.RotateProgrammatically(rotation);
+
+            yield return new WaitUntil(() => abilitySocket.socketDirection == dir);
+        }
+        // Handle no ability matching
+        else
+        {
+            Debug.Log("CPU ABILITY ERROR : No ability of that tag found to rotate");
+        }
+
+        yield break;
+    }
+
+    // Use Ability in the selected direction
+    private void UseAbility(AbilityDirection dir)
+    {
+        cpuR.UseAbilityProgrammatically(dir);
     }
 
 
@@ -257,6 +311,13 @@ public class CPUController : MonoBehaviour
                 yield return collectOrb;
             }
 
+            // Check if has attack ability
+            if(numAttackAbilities > 0)
+            {
+                Coroutine attack = StartCoroutine(Attack());
+                yield return attack;
+            }
+
 
             // Added delay so it only checks every frame to prevent overloading
             yield return new WaitForEndOfFrame();
@@ -266,6 +327,10 @@ public class CPUController : MonoBehaviour
 
     private IEnumerator CollectOrb(GameObject abilityOrb)
     {
+
+        // Shield abilities before grabbing
+        int numShields = numDefenseAbilities;
+
         // Navigate to orb
         Vector2 distanceFromOrb;
         while (abilityOrb) // Navigate to the orb until it is collected and therefore destroyed
@@ -301,11 +366,36 @@ public class CPUController : MonoBehaviour
             yield return recover;
         }
 
+        // Use shields immediately if gotten just in case since they don't have time limit
+        if (numShields < numDefenseAbilities) ;
+
     }
 
     private IEnumerator Attack()
     {
-        yield return null;
+        Coroutine rotate = StartCoroutine(RotateAbility("Fireball", AbilityDirection.WEST));
+        yield return rotate;
+        yield return new WaitForSeconds(0.25f);
+
+        UseAbility(AbilityDirection.WEST);
+        Coroutine count = StartCoroutine(CountAbilities());
+        yield return count;
+
+        rotate = StartCoroutine(RotateAbility("Fireball", AbilityDirection.EAST));
+        yield return rotate;
+        yield return new WaitForSeconds(0.25f);
+
+        UseAbility(AbilityDirection.EAST);
+        count = StartCoroutine(CountAbilities());
+        yield return count;
+
+        rotate = StartCoroutine(RotateAbility("Fireball", AbilityDirection.NORTH));
+        yield return rotate;
+        yield return new WaitForSeconds(0.25f);
+
+        UseAbility(AbilityDirection.NORTH);
+        count = StartCoroutine(CountAbilities());
+        yield return count;
     }
 
     private IEnumerator Defend()
