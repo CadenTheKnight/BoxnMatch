@@ -306,11 +306,13 @@ namespace Assets.Scripts.Game.Managers
                     {
                         if (showDebugMessages) Debug.Log($"Player {kvp.Key} status changed to {(PlayerStatus)int.Parse(dataChange.Value.Value.Value)}");
                         Lobby.Players[kvp.Key].Data["Status"] = dataChange.Value.Value;
+                        GameLobbyEvents.InvokePlayerStatusChanged(Lobby.Players[kvp.Key].Id);
                     }
                     else if (dataChange.Key == "Team")
                     {
                         if (showDebugMessages) Debug.Log($"Player {kvp.Key} team changed to {(Team)int.Parse(dataChange.Value.Value.Value)}");
                         Lobby.Players[kvp.Key].Data["Team"] = dataChange.Value.Value;
+                        GameLobbyEvents.InvokePlayerTeamChanged(Lobby.Players[kvp.Key].Id);
                     }
                 }
         }

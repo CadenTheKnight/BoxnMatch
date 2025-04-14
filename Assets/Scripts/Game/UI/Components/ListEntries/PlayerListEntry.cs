@@ -79,14 +79,30 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             kickLoadingBar.StopLoading();
         }
 
-        public void SetPlayer(string playerId)
+        public async void SetPlayer(string playerId)
         {
             PlayerId = playerId;
 
             emptyStatePanel.SetActive(false);
             activeStatePanel.SetActive(true);
 
-            Player player = GameLobbyManager.Instance.Lobby.Players.Find(player => player.Id == PlayerId);
+            Player player = GameLobbyManager.Instance.Lobby.Players.Find(p => p.Id == PlayerId);
+            if (player == null)
+            {
+                SetTeam(Team.Red);
+                SetStatus(PlayerStatus.NotReady);
+                nameText.color = UIColors.Primary.Four;
+                nameText.text = "Loading...";
+                hostIndicatorImage.gameObject.SetActive(false);
+                optionsButton.gameObject.SetActive(false);
+
+                while (player == null)
+                {
+                    player = GameLobbyManager.Instance.Lobby.Players.Find(p => p.Id == PlayerId);
+                    if (player == null) await Task.Delay(100);
+                }
+            }
+
 
             SetTeam((Team)int.Parse(player.Data["Team"].Value));
             SetStatus((PlayerStatus)int.Parse(player.Data["Status"].Value));
