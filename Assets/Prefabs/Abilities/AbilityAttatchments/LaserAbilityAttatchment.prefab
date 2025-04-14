@@ -18,7 +18,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2263655372429113230, guid: 8f867951f7bd9684e82859f0ec174919, type: 3}
       propertyPath: m_TagString
-      value: AttackAbility
+      value: Laser
       objectReference: {fileID: 0}
     - target: {fileID: 8423506135422238934, guid: 8f867951f7bd9684e82859f0ec174919, type: 3}
       propertyPath: m_LocalPosition.x

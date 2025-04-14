@@ -116,35 +116,29 @@ public class CPUController : MonoBehaviour
         return ray.collider;
     }
 
-    private Collider2D CheckImportantNearby()
+    private Collider2D IsOrbNear()
     {
+
+        // Capsule collider sizing
         Vector2 point = transform.position;
         Vector2 capsulePoint1 = point + new Vector2(5f, 1.5f);
         Vector2 capsulePoint2 = point + new Vector2(-5f, 1.5f);
         float radius = 2f;
 
-        // CapsuleDirection2D.Vertical or .Horizontal — choose based on capsule orientation
+        // Creating capsule sensing area
         Collider2D[] senseAreaCollisions = Physics2D.OverlapCapsuleAll((capsulePoint1 + capsulePoint2) * 0.5f, // center
                                                                         new Vector2(Vector2.Distance(capsulePoint1, capsulePoint2), radius * 2), // size
                                                                         CapsuleDirection2D.Horizontal,
                                                                         0f // angle
                                                                         );
 
+        // Checks if an ability orb is in the capsule area
         foreach (Collider2D c in senseAreaCollisions)
         {
-            if (c == null) continue;
-
-            //Debug.Log($"Detected: {c.name} with tag {c.tag}");
-
-            if (c.CompareTag("DamageObject"))
-            {
-                // Handle dodging/defense
-                Debug.Log("Incoming danger detected!");
-            }
-            else if (c.CompareTag("AbilityOrb"))
+            if (c.CompareTag("AbilityOrb"))
             {
                 Debug.Log("Found Ability Orb Nearby");
-                return c;
+                return c; // Return ability orb as collider2d
             }
         }
 
@@ -167,25 +161,79 @@ public class CPUController : MonoBehaviour
         numRecoverAbilites = 0;
         foreach(AbilitySocket s in cpuR.sockets)
         {
+            // Check null cases (skip other checks if either is null)
+            if (!s || !s.ability);
+
             // Classify the ability in the socket as attack, defense, or recovery
-            if(s.ability.CompareTag("AttackAbility"))
+            else if (s.ability.CompareTag("Fireball") || s.ability.CompareTag("Hammer") || s.ability.CompareTag("Laser") || s.ability.CompareTag("RemoteExplosive") || s.ability.CompareTag("Grapple"))
             {
-                // Fireball, Hammer, Laser, Remote Explosive
+                // Fireball, Hammer, Laser, Remote Explosive, Grappling Hook
                 numAttackAbilities++;
             }
-            else if (s.ability.CompareTag("DefenseAbility"))
+            else if (s.ability.CompareTag("Shield"))
             {
                 // Shield
                 numDefenseAbilities++;
             }
-            else if (s.ability.CompareTag("RecoverAbility"))
+            else if (s.ability.CompareTag("Grapple") || s.ability.CompareTag("Rocket"))
             {
-                // Grapple, Rocket
+                // Grappling Hook, Rocket
                 numDefenseAbilities++;
             }
         }
 
         yield break;
+    }
+
+    // Find Ability Socket that has the given ability
+    private AbilitySocket FindAbilitySocket (string tag)
+    {
+        foreach (AbilitySocket s in cpuR.sockets)
+        {
+            if (s.ability && s.ability.CompareTag(tag))
+            {
+                return s;
+            }
+        }
+
+        Debug.Log("No ability with that tag found");
+        return null;
+    }
+
+    // Rotate selected ability to selected direction
+    private IEnumerator RotateAbility(string tag, AbilityDirection dir)
+    {
+        // Find the socket that needs to be rotated
+        AbilitySocket abilitySocket = FindAbilitySocket(tag);
+        
+
+        // If ability is found in a socket, rotate it to the given direction
+        if(abilitySocket)
+        {
+            // Calculate spin direction
+            int rotation = dir - abilitySocket.socketDirection;
+            // Optimize spin direction
+            if (rotation > 2) rotation = -(4 - rotation);
+            else if (rotation < -2) rotation = -(-4 - rotation);
+
+            // Spin to correct position
+            cpuR.RotateProgrammatically(rotation);
+
+            yield return new WaitUntil(() => abilitySocket.socketDirection == dir);
+        }
+        // Handle no ability matching
+        else
+        {
+            Debug.Log("CPU ABILITY ERROR : No ability of that tag found to rotate");
+        }
+
+        yield break;
+    }
+
+    // Use Ability in the selected direction
+    private void UseAbility(AbilityDirection dir)
+    {
+        cpuR.UseAbilityProgrammatically(dir);
     }
 
 
@@ -233,7 +281,7 @@ public class CPUController : MonoBehaviour
         while (true)
         {
             // Check for important things nearby
-            Collider2D nearby = CheckImportantNearby();
+            Collider2D nearby = IsOrbNear();
 
             // Move side to side switching directions at the edge of the platform
             RaycastHit2D ray;
@@ -263,6 +311,13 @@ public class CPUController : MonoBehaviour
                 yield return collectOrb;
             }
 
+            // Check if has attack ability
+            if(numAttackAbilities > 0)
+            {
+                Coroutine attack = StartCoroutine(Attack());
+                yield return attack;
+            }
+
 
             // Added delay so it only checks every frame to prevent overloading
             yield return new WaitForEndOfFrame();
@@ -272,6 +327,10 @@ public class CPUController : MonoBehaviour
 
     private IEnumerator CollectOrb(GameObject abilityOrb)
     {
+
+        // Shield abilities before grabbing
+        int numShields = numDefenseAbilities;
+
         // Navigate to orb
         Vector2 distanceFromOrb;
         while (abilityOrb) // Navigate to the orb until it is collected and therefore destroyed
@@ -307,11 +366,36 @@ public class CPUController : MonoBehaviour
             yield return recover;
         }
 
+        // Use shields immediately if gotten just in case since they don't have time limit
+        if (numShields < numDefenseAbilities) ;
+
     }
 
     private IEnumerator Attack()
     {
-        yield return null;
+        Coroutine rotate = StartCoroutine(RotateAbility("Fireball", AbilityDirection.WEST));
+        yield return rotate;
+        yield return new WaitForSeconds(0.25f);
+
+        UseAbility(AbilityDirection.WEST);
+        Coroutine count = StartCoroutine(CountAbilities());
+        yield return count;
+
+        rotate = StartCoroutine(RotateAbility("Fireball", AbilityDirection.EAST));
+        yield return rotate;
+        yield return new WaitForSeconds(0.25f);
+
+        UseAbility(AbilityDirection.EAST);
+        count = StartCoroutine(CountAbilities());
+        yield return count;
+
+        rotate = StartCoroutine(RotateAbility("Fireball", AbilityDirection.NORTH));
+        yield return rotate;
+        yield return new WaitForSeconds(0.25f);
+
+        UseAbility(AbilityDirection.NORTH);
+        count = StartCoroutine(CountAbilities());
+        yield return count;
     }
 
     private IEnumerator Defend()
@@ -319,13 +403,14 @@ public class CPUController : MonoBehaviour
         yield return null;
     }
 
-    private IEnumerator Dodge()
-    {
-        yield return null;
-    }
+
+
+    /* ------------ Displaying Sensor Fields ------------ */
 
     private void OnDrawGizmosSelected()
     {
+        // Orb detection
+
         Vector2 point = transform.position;
         Vector2 capsulePoint1 = point + new Vector2(5f, 1.5f);
         Vector2 capsulePoint2 = point + new Vector2(-5f, 1.5f);
