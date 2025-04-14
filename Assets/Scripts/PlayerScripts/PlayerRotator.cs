@@ -33,11 +33,13 @@ public class PlayerRotator : MonoBehaviour
     protected virtual void OnEnable()
     {
         EnableInputs();
+        GetComponent<DamageableObject>().OnDeath += ClearBindings;
     }
 
     protected virtual void OnDisable()
     {
         DisableInputs();
+        GetComponent<DamageableObject>().OnDeath -= ClearBindings;
     }
 
     //actually useful methods
@@ -107,6 +109,14 @@ public class PlayerRotator : MonoBehaviour
             int tmp = rotateInputBuffer;
             rotateInputBuffer = 0;
             Rotate(tmp);
+        }
+    }
+
+    private void ClearBindings(DamageableObject dObj)
+    {
+        for(int i = 0; i < sockets.Length; i++)
+        {
+            sockets[i].TrashAbilityBinding();
         }
     }
 

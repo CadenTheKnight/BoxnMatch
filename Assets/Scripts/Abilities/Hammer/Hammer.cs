@@ -31,7 +31,7 @@ public class Hammer : MonoBehaviour
 
         // Updates damage and knockback values based on the speed of the hammer
         d.setDamageKnockback(baseDamageKnockback * speed);
-        Debug.Log(d.getDamageKnockback());
+        //Debug.Log(d.getDamageKnockback());
 
         if(speed > speedToPlay)
         {
