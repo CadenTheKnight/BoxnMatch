@@ -189,6 +189,19 @@ namespace Assets.Scripts.Game.Managers
 
         private void OnLobbyChanged(ILobbyChanges lobbyChanges)
         {
+            if (lobbyChanges.HostId.Changed || lobbyChanges.MaxPlayers.Changed || lobbyChanges.IsPrivate.Changed || lobbyChanges.Name.Changed)
+                Lobby = new Lobby(
+                    id: Lobby.Id,
+                    lobbyCode: Lobby.LobbyCode,
+                    name: Lobby.Name,
+                    maxPlayers: Lobby.MaxPlayers,
+                    isPrivate: Lobby.IsPrivate,
+                    players: Lobby.Players,
+                    data: Lobby.Data,
+                    hostId: lobbyChanges.HostId.Value,
+                    lastUpdated: Lobby.LastUpdated
+                );
+
             if (lobbyChanges.HostId.Changed)
             {
                 if (showDebugMessages) Debug.Log($"Host changed to {lobbyChanges.HostId.Value}");
