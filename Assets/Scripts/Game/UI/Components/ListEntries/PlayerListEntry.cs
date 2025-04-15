@@ -123,11 +123,6 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             else SetTeam(true, (Team)team);
         }
 
-        // public void SetHost()
-        // {
-
-        // }
-
         public async void SetPlayer(string playerId)
         {
             PlayerId = playerId;
