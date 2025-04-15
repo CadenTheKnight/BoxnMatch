@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Assets.Scripts.Game.Managers;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Events;
+using Assets.Scripts.Framework.Utilities;
 using Assets.Scripts.Game.UI.Components.ListEntries;
 
 namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
@@ -21,6 +22,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             LobbyEvents.OnHostMigrated += OnHostMigrated;
             LobbyEvents.OnPlayerJoined += OnPlayerJoined;
             LobbyEvents.OnPlayerLeft += OnPlayerLeft;
+            LobbyEvents.OnPlayerKicked += OnPlayerKicked;
             GameLobbyEvents.OnPlayerTeamChanged += OnPlayerTeamChanged;
             GameLobbyEvents.OnPlayerReadyStatusChanged += OnPlayerReadyStatusChanged;
             GameLobbyEvents.OnPlayerConnectionStatusChanged += OnPlayerConnectionStatusChanged;
@@ -33,6 +35,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             LobbyEvents.OnHostMigrated -= OnHostMigrated;
             LobbyEvents.OnPlayerJoined -= OnPlayerJoined;
             LobbyEvents.OnPlayerLeft -= OnPlayerLeft;
+            LobbyEvents.OnPlayerKicked -= OnPlayerKicked;
             GameLobbyEvents.OnPlayerTeamChanged -= OnPlayerTeamChanged;
             GameLobbyEvents.OnPlayerReadyStatusChanged -= OnPlayerReadyStatusChanged;
             GameLobbyEvents.OnPlayerConnectionStatusChanged -= OnPlayerConnectionStatusChanged;
@@ -57,11 +60,19 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private void OnPlayerJoined(string playerId)
         {
+            _playerListEntries.Find(entry => entry.PlayerId == null).SetPlayer(playerId);
             ResetPlayerList();
         }
 
         private void OnPlayerLeft(string playerId)
         {
+            _playerListEntries.Find(entry => entry.PlayerId == playerId).SetEmpty();
+            ResetPlayerList();
+        }
+
+        private void OnPlayerKicked(OperationResult result)
+        {
+            _playerListEntries.Find(entry => entry.PlayerId == (string)result.Data).SetEmpty();
             ResetPlayerList();
         }
 

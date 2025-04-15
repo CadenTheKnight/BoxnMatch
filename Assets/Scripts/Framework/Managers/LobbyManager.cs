@@ -122,7 +122,7 @@ namespace Assets.Scripts.Framework.Managers
             try
             {
                 await LobbyService.Instance.RemovePlayerAsync(lobbyId, playerId);
-                LobbyEvents.InvokePlayerKicked(OperationResult.SuccessResult("KickPlayer", $"Kicked player {playerId} from lobby with ID {lobbyId}"));
+                LobbyEvents.InvokePlayerKicked(OperationResult.SuccessResult("KickPlayer", $"Kicked player {playerId} from lobby with ID {lobbyId}", playerId));
             }
             catch (Exception e) { LobbyEvents.InvokePlayerKicked(OperationResult.ErrorResult("KickPlayer", e.Message)); }
         }

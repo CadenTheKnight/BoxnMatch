@@ -93,6 +93,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private async void OnLobbyLeft(OperationResult result)
         {
+            Debug.Log($"OnLobbyLeft: {result.Status}");
             if (result.Status == ResultStatus.Error)
             {
                 leaveText.text = "Error Leaving";
