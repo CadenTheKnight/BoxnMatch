@@ -25,6 +25,7 @@ namespace Assets.Scripts.Game.Managers
 
         public Lobby Lobby { get; private set; }
         private Coroutine heartbeatCoroutine;
+        private static bool leavingVolunatirily = false;
         private ILobbyEvents lobbyEvents;
 
         public async void Initialize(Lobby lobby)
@@ -161,11 +162,17 @@ namespace Assets.Scripts.Game.Managers
             }
         }
 
+        public async Task LeaveLobby(string lobbyId)
+        {
+            leavingVolunatirily = true;
+            await LobbyManager.LeaveLobby(lobbyId);
+        }
         #region Unity Lobby Events
         private async Task SubscribeToLobbyEvents()
         {
             LobbyEventCallbacks lobbyEventCallbacks = new();
 
+            lobbyEventCallbacks.KickedFromLobby += OnKickedFromLobby;
             lobbyEventCallbacks.LobbyChanged += OnLobbyChanged;
             lobbyEventCallbacks.PlayerJoined += OnPlayerJoined;
             lobbyEventCallbacks.PlayerLeft += OnPlayerLeft;
@@ -185,6 +192,12 @@ namespace Assets.Scripts.Game.Managers
                 lobbyEvents = null;
                 if (showDebugMessages) Debug.Log("Unsubscribed from lobby events");
             }
+        }
+
+        private void OnKickedFromLobby()
+        {
+            if (leavingVolunatirily) LobbyEvents.InvokeLobbyLeft(OperationResult.SuccessResult("LeftLobby", "Left lobby"));
+            else LobbyEvents.InvokeLobbyKicked(OperationResult.WarningResult("KickedFromLobby", "You have been kicked from the lobby"));
         }
 
         private void OnLobbyChanged(ILobbyChanges lobbyChanges)

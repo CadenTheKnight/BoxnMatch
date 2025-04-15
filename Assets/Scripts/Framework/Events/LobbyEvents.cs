@@ -46,6 +46,13 @@ namespace Assets.Scripts.Framework.Events
         public static event LobbyLeftHandler OnLobbyLeft;
 
         /// <summary>
+        /// Triggered when the player is kicked from the lobby or there is an error in kicking the player.
+        /// </summary>
+        /// <param name="result">The result of the operation.</param>
+        public delegate void LobbyKickedHandler(OperationResult result);
+        public static event LobbyKickedHandler OnLobbyKicked;
+
+        /// <summary>
         /// Triggered when a new host is assigned to the lobby.
         /// </summary>
         /// <param name="playerId">The id of the new host.</param>
@@ -101,6 +108,7 @@ namespace Assets.Scripts.Framework.Events
         public static void InvokeLobbyJoined(OperationResult result) => OnLobbyJoined?.Invoke(result);
         public static void InvokeLobbyRejoined(OperationResult result) => OnLobbyRejoined?.Invoke(result);
         public static void InvokeLobbyLeft(OperationResult result) => OnLobbyLeft?.Invoke(result);
+        public static void InvokeLobbyKicked(OperationResult result) => OnLobbyKicked?.Invoke(result);
         public static void InvokeHostMigrated(string playerId) => OnHostMigrated?.Invoke(playerId);
         public static void InvokeMaxPlayersChanged(int maxPlayers) => OnMaxPlayersChanged?.Invoke(maxPlayers);
         public static void InvokePrivacyChanged(bool isPrivate) => OnPrivacyChanged?.Invoke(isPrivate);

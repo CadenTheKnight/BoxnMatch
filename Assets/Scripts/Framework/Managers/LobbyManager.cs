@@ -106,7 +106,6 @@ namespace Assets.Scripts.Framework.Managers
             try
             {
                 await LobbyService.Instance.RemovePlayerAsync(lobbyId, AuthenticationService.Instance.PlayerId);
-                LobbyEvents.InvokeLobbyLeft(OperationResult.SuccessResult("LeaveLobby", $"Left lobby with ID {lobbyId}"));
                 LobbyEvents.InvokePlayerLeft(AuthenticationService.Instance.PlayerId);
             }
             catch (Exception e) { LobbyEvents.InvokeLobbyLeft(OperationResult.ErrorResult("LeaveLobby", e.Message)); }

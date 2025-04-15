@@ -79,7 +79,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             leaveButton.interactable = false;
             leaveLoadingBar.StartLoading();
 
-            await LobbyManager.LeaveLobby(GameLobbyManager.Instance.Lobby.Id);
+            await GameLobbyManager.Instance.LeaveLobby(GameLobbyManager.Instance.Lobby.Id);
         }
 
         private async void OnReadyUnreadyClicked()
@@ -93,7 +93,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private async void OnLobbyLeft(OperationResult result)
         {
-            Debug.Log($"OnLobbyLeft: {result.Status}");
+            Debug.Log($"OnLobbyLeft: {result.Status} - {result.Message}");
             if (result.Status == ResultStatus.Error)
             {
                 leaveText.text = "Error Leaving";

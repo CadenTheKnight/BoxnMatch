@@ -21,6 +21,7 @@ namespace Assets.Scripts.Game.Managers
             LobbyEvents.OnLobbyJoined += OnLobbyEntered;
             LobbyEvents.OnLobbyRejoined += OnLobbyRejoined;
             LobbyEvents.OnLobbyLeft += OnLobbyExited;
+            LobbyEvents.OnLobbyKicked += OnLobbyExited;
 
             // GameEvents.OnGameStarted += OnGameStarted;
             // GameEvents.OnGameEnded += OnGameEnded;
@@ -34,6 +35,7 @@ namespace Assets.Scripts.Game.Managers
             LobbyEvents.OnLobbyJoined -= OnLobbyEntered;
             LobbyEvents.OnLobbyRejoined -= OnLobbyRejoined;
             LobbyEvents.OnLobbyLeft -= OnLobbyExited;
+            LobbyEvents.OnLobbyKicked -= OnLobbyExited;
 
             // GameEvents.OnGameStarted -= OnGameStarted;
             // GameEvents.OnGameEnded -= OnGameEnded;
