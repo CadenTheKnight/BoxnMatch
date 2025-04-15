@@ -14,8 +14,8 @@ namespace Assets.Scripts.Game.Events
         /// Triggered when the game settings are changed.
         /// </summary>
         /// <param name="success">Indicates if the settings change was successful.</param>
-        /// <param name="changes">A dictionary of changes made to the game settings.</param>
-        public delegate void GameSettingsChangedHandler(bool success, Dictionary<string, DataObject> changes);
+        /// <param name="lobbyData">A dictionary of changes made to the game settings.</param>
+        public delegate void GameSettingsChangedHandler(bool success, Dictionary<string, DataObject> lobbyData);
         public static event GameSettingsChangedHandler OnGameSettingsChanged;
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace Assets.Scripts.Game.Events
         #endregion
 
         #region Invocations
-        public static void InvokeGameSettingsChanged(bool success, Dictionary<string, DataObject> changes) => OnGameSettingsChanged?.Invoke(success, changes);
+        public static void InvokeGameSettingsChanged(bool success, Dictionary<string, DataObject> lobbyData) => OnGameSettingsChanged?.Invoke(success, lobbyData);
         public static void InvokePlayerTeamChanged(bool success, string playerId, Team team) => OnPlayerTeamChanged?.Invoke(success, playerId, team);
         public static void InvokePlayerReadyStatusChanged(bool success, string playerId, ReadyStatus readyStatus) => OnPlayerReadyStatusChanged?.Invoke(success, playerId, readyStatus);
         public static void InvokePlayerConnectionStatusChanged(bool success, string playerId, ConnectionStatus connectionStatus) => OnPlayerConnectionStatusChanged?.Invoke(success, playerId, connectionStatus);

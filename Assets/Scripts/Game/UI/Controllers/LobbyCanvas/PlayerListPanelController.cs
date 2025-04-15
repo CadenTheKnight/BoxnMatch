@@ -4,7 +4,6 @@ using Assets.Scripts.Game.Events;
 using System.Collections.Generic;
 using Assets.Scripts.Game.Managers;
 using Unity.Services.Lobbies.Models;
-using Unity.Services.Authentication;
 using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Game.UI.Components.ListEntries;
 
@@ -24,6 +23,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             LobbyEvents.OnPlayerLeft += OnPlayerLeft;
             GameLobbyEvents.OnPlayerTeamChanged += OnPlayerTeamChanged;
             GameLobbyEvents.OnPlayerReadyStatusChanged += OnPlayerReadyStatusChanged;
+            GameLobbyEvents.OnPlayerConnectionStatusChanged += OnPlayerConnectionStatusChanged;
 
             ResetPlayerList();
         }
@@ -35,6 +35,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             LobbyEvents.OnPlayerLeft -= OnPlayerLeft;
             GameLobbyEvents.OnPlayerTeamChanged -= OnPlayerTeamChanged;
             GameLobbyEvents.OnPlayerReadyStatusChanged -= OnPlayerReadyStatusChanged;
+            GameLobbyEvents.OnPlayerConnectionStatusChanged -= OnPlayerConnectionStatusChanged;
         }
 
         private void ResetPlayerList()
@@ -73,6 +74,11 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
         private void OnPlayerReadyStatusChanged(bool success, string playerId, ReadyStatus readyStatus)
         {
             _playerListEntries.Find(entry => entry.PlayerId == playerId).SetReadyStatus(success, readyStatus);
+        }
+
+        private void OnPlayerConnectionStatusChanged(bool success, string playerId, ConnectionStatus connectionStatus)
+        {
+            _playerListEntries.Find(entry => entry.PlayerId == playerId).SetConnectionStatus(success, connectionStatus);
         }
     }
 }

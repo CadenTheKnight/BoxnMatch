@@ -2,6 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Threading.Tasks;
+using Assets.Scripts.Game.Types;
 using Assets.Scripts.Game.Events;
 using System.Collections.Generic;
 using Assets.Scripts.Game.Managers;
@@ -12,7 +13,6 @@ using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Game.UI.Components;
 using Assets.Scripts.Game.UI.Components.Options;
 using Assets.Scripts.Game.UI.Components.Options.Selector;
-using Assets.Scripts.Game.Types;
 
 namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 {
@@ -37,6 +37,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
             LobbyEvents.OnHostMigrated += OnHostMigrated;
             GameLobbyEvents.OnGameSettingsChanged += OnGameSettingsChanged;
+            GameLobbyEvents.OnPlayerReadyStatusChanged += OnPlayerReadyStatusChanged;
 
             UpdateSelections(GameLobbyManager.Instance.Lobby.Data);
             UpdateOptionsInteractable(isEditing);
@@ -50,6 +51,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
             LobbyEvents.OnHostMigrated -= OnHostMigrated;
             GameLobbyEvents.OnGameSettingsChanged -= OnGameSettingsChanged;
+            GameLobbyEvents.OnPlayerReadyStatusChanged -= OnPlayerReadyStatusChanged;
 
             editUpdateLoadingBar.StopLoading();
         }
@@ -93,12 +95,27 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
                 && GameLobbyManager.Instance.Lobby.Players.Find(p => p.Id == AuthenticationService.Instance.PlayerId).Data["ReadyStatus"].Value == ((int)ReadyStatus.NotReady).ToString();
         }
 
+        private void OnPlayerReadyStatusChanged(bool success, string playerId, ReadyStatus readyStatus)
+        {
+            if (success && playerId == AuthenticationService.Instance.PlayerId)
+            {
+                editUpdateButton.interactable = AuthenticationService.Instance.PlayerId == GameLobbyManager.Instance.Lobby.HostId && readyStatus == ReadyStatus.NotReady;
+                if (readyStatus == ReadyStatus.Ready)
+                {
+                    if (isEditing) UpdateSelections(GameLobbyManager.Instance.Lobby.Data);
+                    isEditing = false;
+                    UpdateEditUpdateButtonState(isEditing);
+                    UpdateOptionsInteractable(isEditing);
+                }
+            }
+        }
+
         private void UpdateSelections(Dictionary<string, DataObject> lobbyData)
         {
-            mapChanger.SetValue(int.Parse(lobbyData["MapIndex"].Value));
-            roundCountIncrementer.SetValue(int.Parse(lobbyData["RoundCount"].Value));
-            roundTimeIncrementer.SetValue(int.Parse(lobbyData["RoundTime"].Value));
-            gameModeSelector.SetSelection(int.Parse(lobbyData["GameMode"].Value));
+            if (lobbyData.ContainsKey("MapIndex")) mapChanger.SetValue(int.Parse(lobbyData["MapIndex"].Value));
+            if (lobbyData.ContainsKey("RoundCount")) roundCountIncrementer.SetValue(int.Parse(lobbyData["RoundCount"].Value));
+            if (lobbyData.ContainsKey("RoundTime")) roundTimeIncrementer.SetValue(int.Parse(lobbyData["RoundTime"].Value));
+            if (lobbyData.ContainsKey("GameMode")) gameModeSelector.SetSelection(int.Parse(lobbyData["GameMode"].Value));
         }
 
         private void UpdateOptionsInteractable(bool isEditing)
