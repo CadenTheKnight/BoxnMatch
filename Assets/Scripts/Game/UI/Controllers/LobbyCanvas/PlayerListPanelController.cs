@@ -52,7 +52,6 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private void OnHostMigrated(string playerId)
         {
-            // _playerListEntries.Find(entry => entry.PlayerId == playerId).SetHost();
             ResetPlayerList();
         }
 

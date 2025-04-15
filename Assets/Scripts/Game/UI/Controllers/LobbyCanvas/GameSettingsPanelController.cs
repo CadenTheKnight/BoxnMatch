@@ -78,7 +78,8 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private void OnHostMigrated(string playerId)
         {
-            editUpdateButton.interactable = AuthenticationService.Instance.PlayerId == playerId;
+            editUpdateButton.interactable = AuthenticationService.Instance.PlayerId == playerId
+                && GameLobbyManager.Instance.Lobby.Players.Find(p => p.Id == AuthenticationService.Instance.PlayerId).Data["ReadyStatus"].Value == ((int)ReadyStatus.NotReady).ToString();
         }
 
         private async void OnGameSettingsChanged(bool success, Dictionary<string, DataObject> lobbyData)
