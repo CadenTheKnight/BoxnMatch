@@ -219,7 +219,7 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         public void SetConnectionStatus(bool success, ConnectionStatus status)
         {
-            if (success) return;
+            if (!success) return;
 
             switch (status)
             {

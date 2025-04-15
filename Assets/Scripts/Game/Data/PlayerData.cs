@@ -27,10 +27,10 @@ namespace Assets.Scripts.Game.Data
         {
             return new Dictionary<string, PlayerDataObject>
             {
-                { "SteamId", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, SteamId.ToString()) },
-                { "Team", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)Team).ToString()) },
-                { "ReadyStatus", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)ReadyStatus).ToString()) },
-                { "ConnectionStatus", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)ConnectionStatus).ToString()) }
+                { "SteamId", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Public, SteamId.ToString()) },
+                { "Team", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Public, ((int)Team).ToString()) },
+                { "ReadyStatus", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Public, ((int)ReadyStatus).ToString()) },
+                { "ConnectionStatus", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Public, ((int)ConnectionStatus).ToString()) }
             };
         }
     }

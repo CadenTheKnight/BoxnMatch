@@ -57,12 +57,12 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private void OnPlayerJoined(string playerId)
         {
-            _playerListEntries.Find(entry => entry.PlayerId == null).SetPlayer(playerId);
+            ResetPlayerList();
         }
 
         private void OnPlayerLeft(string playerId)
         {
-            _playerListEntries.Find(entry => entry.PlayerId == playerId).SetEmpty();
+            ResetPlayerList();
         }
 
         private void OnPlayerTeamChanged(bool success, string playerId, Team team)

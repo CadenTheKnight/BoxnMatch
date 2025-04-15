@@ -88,8 +88,8 @@ namespace Assets.Scripts.Game.Managers
             Dictionary<string, DataObject> changedData = new()
             {
                 ["MapIndex"] = new DataObject(DataObject.VisibilityOptions.Public, mapValue.ToString()),
-                ["RoundCount"] = new DataObject(DataObject.VisibilityOptions.Member, roundCountValue.ToString()),
-                ["RoundTime"] = new DataObject(DataObject.VisibilityOptions.Member, roundTimeValue.ToString()),
+                ["RoundCount"] = new DataObject(DataObject.VisibilityOptions.Public, roundCountValue.ToString()),
+                ["RoundTime"] = new DataObject(DataObject.VisibilityOptions.Public, roundTimeValue.ToString()),
                 ["GameMode"] = new DataObject(DataObject.VisibilityOptions.Public, gameModeSelection.ToString())
             };
 
@@ -118,7 +118,7 @@ namespace Assets.Scripts.Game.Managers
         /// <param name="team">The new team for the player.</param>
         public async Task ChangePlayerTeam(string playerId, Team team)
         {
-            Task<OperationResult> updateTask = LobbyManager.UpdatePlayerData(Lobby.Id, playerId, new() { ["Team"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)team).ToString()) });
+            Task<OperationResult> updateTask = LobbyManager.UpdatePlayerData(Lobby.Id, playerId, new() { ["Team"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Public, ((int)team).ToString()) });
             Task completedTask = await Task.WhenAny(updateTask, Task.Delay(5000));
             if (completedTask == updateTask)
             {
@@ -143,7 +143,7 @@ namespace Assets.Scripts.Game.Managers
         /// <param name="readyStatus">The new ready status for the player.</param>
         public async Task TogglePlayerReadyStatus(string playerId, ReadyStatus readyStatus)
         {
-            Task<OperationResult> updateTask = LobbyManager.UpdatePlayerData(Lobby.Id, playerId, new() { ["ReadyStatus"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)readyStatus).ToString()) });
+            Task<OperationResult> updateTask = LobbyManager.UpdatePlayerData(Lobby.Id, playerId, new() { ["ReadyStatus"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Public, ((int)readyStatus).ToString()) });
             Task completedTask = await Task.WhenAny(updateTask, Task.Delay(5000));
             if (completedTask == updateTask)
             {
@@ -296,7 +296,7 @@ namespace Assets.Scripts.Game.Managers
             };
 
             if (showDebugMessages) Debug.Log($"Lobby event connection state changed to {connectionStatus}");
-            await LobbyManager.UpdatePlayerData(Lobby.Id, AuthenticationService.Instance.PlayerId, new() { ["ConnectionStatus"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)connectionStatus).ToString()) });
+            await LobbyManager.UpdatePlayerData(Lobby.Id, AuthenticationService.Instance.PlayerId, new() { ["ConnectionStatus"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Public, ((int)connectionStatus).ToString()) });
         }
         #endregion
 

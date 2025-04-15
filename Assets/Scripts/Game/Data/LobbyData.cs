@@ -21,11 +21,11 @@ namespace Assets.Scripts.Game.Data
             return new Dictionary<string, DataObject>
             {
                 { "MapIndex", new DataObject(DataObject.VisibilityOptions.Public, MapIndex.ToString()) },
-                { "RoundCount", new DataObject(DataObject.VisibilityOptions.Member, RoundCount.ToString()) },
-                { "RoundTime", new DataObject(DataObject.VisibilityOptions.Member, RoundTime.ToString()) },
+                { "RoundCount", new DataObject(DataObject.VisibilityOptions.Public, RoundCount.ToString()) },
+                { "RoundTime", new DataObject(DataObject.VisibilityOptions.Public, RoundTime.ToString()) },
                 { "GameMode", new DataObject(DataObject.VisibilityOptions.Public, ((int)GameMode).ToString()) },
                 { "Status", new DataObject(DataObject.VisibilityOptions.Public, ((int)Status).ToString()) },
-                { "RelayJoinCode", new DataObject(DataObject.VisibilityOptions.Member, RelayJoinCode) }
+                { "RelayJoinCode", new DataObject(DataObject.VisibilityOptions.Public, RelayJoinCode) }
             };
         }
     }
