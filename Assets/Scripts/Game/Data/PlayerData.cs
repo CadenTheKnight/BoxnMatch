@@ -12,13 +12,15 @@ namespace Assets.Scripts.Game.Data
     {
         public CSteamID SteamId { get; set; } = CSteamID.Nil;
         public Team Team { get; set; } = Team.Blue;
-        public PlayerStatus Status { get; set; } = PlayerStatus.NotReady;
+        public ReadyStatus ReadyStatus { get; set; } = ReadyStatus.NotReady;
+        public ConnectionStatus ConnectionStatus { get; set; } = ConnectionStatus.Disconnected;
 
-        public PlayerData(CSteamID steamId, Team team = Team.Blue, PlayerStatus status = PlayerStatus.NotReady)
+        public PlayerData(CSteamID steamId, Team team = Team.Blue, ReadyStatus readyStatus = ReadyStatus.NotReady, ConnectionStatus connectionStatus = ConnectionStatus.Disconnected)
         {
             SteamId = steamId;
             Team = team;
-            Status = status;
+            ReadyStatus = readyStatus;
+            ConnectionStatus = connectionStatus;
         }
 
         public Dictionary<string, PlayerDataObject> Serialize()
@@ -27,7 +29,8 @@ namespace Assets.Scripts.Game.Data
             {
                 { "SteamId", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, SteamId.ToString()) },
                 { "Team", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)Team).ToString()) },
-                { "Status", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)Status).ToString()) }
+                { "ReadyStatus", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)ReadyStatus).ToString()) },
+                { "ConnectionStatus", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)ConnectionStatus).ToString()) }
             };
         }
     }

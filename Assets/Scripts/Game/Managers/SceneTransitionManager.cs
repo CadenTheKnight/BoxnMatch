@@ -44,36 +44,36 @@ namespace Assets.Scripts.Game.Managers
             if (showDebugMessages) Debug.Log($"Scene Loaded: {scene.name} in mode {mode}");
         }
 
-        private async void OnLobbyEntered(OperationResult result)
+        private void OnLobbyEntered(OperationResult result)
         {
             if (result.Status == ResultStatus.Success)
             {
                 GameObject.Find("GameManager").AddComponent<GameLobbyManager>();
-                await GameLobbyManager.Instance.Initialize((Lobby)result.Data);
+                GameLobbyManager.Instance.Initialize((Lobby)result.Data);
 
                 TransitionToScene("Lobby");
             }
         }
 
-        private async void OnLobbyRejoined(OperationResult result)
+        private void OnLobbyRejoined(OperationResult result)
         {
             if (result.Status == ResultStatus.Success)
             {
                 GameObject.Find("GameManager").AddComponent<GameLobbyManager>();
-                await GameLobbyManager.Instance.Initialize((Lobby)result.Data);
+                GameLobbyManager.Instance.Initialize((Lobby)result.Data);
 
                 TransitionToScene("Lobby");
             }
             else TransitionToScene("Main");
         }
 
-        private async void OnLobbyExited(OperationResult result)
+        private void OnLobbyExited(OperationResult result)
         {
             if (result.Status == ResultStatus.Success)
             {
                 TransitionToScene("Main");
 
-                await GameLobbyManager.Instance.Cleanup();
+                GameLobbyManager.Instance.Cleanup();
                 Destroy(GameObject.Find("GameManager").GetComponent<GameLobbyManager>());
             }
         }

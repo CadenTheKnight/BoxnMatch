@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using System.Collections;
 using Unity.Services.Lobbies;
@@ -9,10 +8,8 @@ using System.Collections.Generic;
 using Assets.Scripts.Framework.Core;
 using Unity.Services.Lobbies.Models;
 using Unity.Services.Authentication;
-using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Framework.Utilities;
-using Assets.Scripts.Framework.Types;
 
 namespace Assets.Scripts.Game.Managers
 {
@@ -24,31 +21,22 @@ namespace Assets.Scripts.Game.Managers
         [Header("Debug Options")]
         [SerializeField] private bool showDebugMessages = true;
 
-        public Lobby Lobby { get; private set; } = null;
-        private Coroutine _heartbeatCoroutine = null;
-        private ILobbyEvents lobbyEvents = null;
-        private bool leftVolunatarily = false;
+        public Lobby Lobby { get; private set; }
+        private Coroutine heartbeatCoroutine;
 
-        public async Task Initialize(Lobby lobby)
+        public void Initialize(Lobby lobby)
         {
-            if (Lobby != null) await Cleanup();
-
             Lobby = lobby;
-            if (AuthenticationService.Instance.PlayerId == Lobby.HostId) _heartbeatCoroutine = StartCoroutine(HeartbeatCoroutine(Lobby.Id, 6f));
-            await SubscribeToLobbyEvents();
+            if (AuthenticationService.Instance.PlayerId == Lobby.HostId) StartHeartbeat(Lobby.Id, 15f);
 
-            if (showDebugMessages) Debug.Log($"GameLobbyManager initialized: {Lobby.Name} (ID: {Lobby.Id})");
+            if (showDebugMessages) Debug.Log($"GameLobbyManager initialized with lobby {lobby.Name} ({lobby.Id})");
         }
 
-        public async Task Cleanup()
+        public void Cleanup()
         {
-            if (_heartbeatCoroutine != null)
-            {
-                StopCoroutine(_heartbeatCoroutine);
-                _heartbeatCoroutine = null;
-            }
-            await UnsubscribeFromLobbyEvents();
+            StopHeartbeat();
             Lobby = null;
+
             if (showDebugMessages) Debug.Log($"GameLobbyManager cleaned up");
         }
 
@@ -60,7 +48,6 @@ namespace Assets.Scripts.Game.Managers
         /// <returns>Coroutine for the heartbeat process.</returns>
         private IEnumerator HeartbeatCoroutine(string lobbyId, float waitTimeSeconds)
         {
-            if (showDebugMessages) Debug.Log($"Starting heartbeat coroutine for lobby {lobbyId} every {waitTimeSeconds} seconds");
             while (true)
             {
                 LobbyService.Instance.SendHeartbeatPingAsync(lobbyId);
@@ -68,62 +55,20 @@ namespace Assets.Scripts.Game.Managers
             }
         }
 
-        /// <summary>
-        /// Returns the current player in the lobby with the given id.
-        /// </summary>
-        /// <param name="playerId">The id of the player to find.</param>
-        /// <returns>The player object if found, otherwise null.</returns>
-        public Player GetPlayerById(string playerId)
+        private void StartHeartbeat(string lobbyId, float waitTimeSeconds)
         {
-            return Lobby.Players.Find(player => player.Id == playerId);
+            if (heartbeatCoroutine != null) StopCoroutine(heartbeatCoroutine);
+            heartbeatCoroutine = StartCoroutine(HeartbeatCoroutine(lobbyId, waitTimeSeconds));
+
+            if (showDebugMessages) Debug.Log($"Started heartbeat coroutine for lobby {lobbyId} every {waitTimeSeconds} seconds");
         }
 
-        /// <summary>
-        /// Gets the number of players that are ready in the lobby.
-        /// </summary>
-        /// <returns>The number of players that are ready.</returns>
-        public int GetPlayersReady()
+        private void StopHeartbeat()
         {
-            int playersReady = 0;
+            if (heartbeatCoroutine != null) StopCoroutine(heartbeatCoroutine);
+            heartbeatCoroutine = null;
 
-            foreach (Player player in Lobby.Players)
-                if ((PlayerStatus)int.Parse(player.Data["Status"].Value) == PlayerStatus.Ready)
-                    playersReady++;
-
-            if (showDebugMessages) Debug.Log($"Total players ready: {playersReady} / {Lobby.MaxPlayers}");
-            return playersReady;
-        }
-
-        /// <summary>
-        /// Toggle the ready status of the current player.
-        /// </summary>
-        /// <param name="player">The player to toggle.</param>
-        /// <param name="setReady">True to set the player as ready.</param>
-        /// <param name="setUnready">True to set the player as not ready.</param>
-        /// <returns>An OperationResult.</returns>
-        public async Task<OperationResult> TogglePlayerStatus(Player player, bool setReady = false, bool setUnready = false)
-        {
-            PlayerStatus status;
-            if (setReady) status = PlayerStatus.Ready;
-            else if (setUnready) status = PlayerStatus.NotReady;
-            else status = (PlayerStatus)int.Parse(player.Data["Status"].Value) == PlayerStatus.NotReady ? PlayerStatus.Ready : PlayerStatus.NotReady;
-
-            OperationResult result = await LobbyManager.UpdatePlayerData(Lobby.Id, player.Id, new() { ["Status"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)status).ToString()) });
-            if (result.Status == ResultStatus.Success) player.Data["Status"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)status).ToString());
-            return result;
-        }
-
-        /// <summary>
-        /// Changes the team of a player.
-        /// </summary>
-        /// <param name="player">The player to change.</param>
-        /// <param name="team">The new team for the player.</param>
-        /// <returns>An OperationResult.</returns>
-        public async Task<OperationResult> ChangePlayerTeam(Player player, Team team)
-        {
-            OperationResult result = await LobbyManager.UpdatePlayerData(Lobby.Id, player.Id, new() { ["Team"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)team).ToString()) });
-            if (result.Status == ResultStatus.Success) player.Data["Team"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)team).ToString());
-            return result;
+            if (showDebugMessages) Debug.Log("Stopped heartbeat coroutine");
         }
 
         /// <summary>
@@ -133,8 +78,7 @@ namespace Assets.Scripts.Game.Managers
         /// <param name="roundCountValue">The updated round count.</param>
         /// <param name="roundTimeValue">The updated round time.</param>
         /// <param name="gameModeSelection">The updated game mode.</param>
-        /// <returns>An OperationResult.</returns> 
-        public async Task<OperationResult> UpdateGameSettings(int mapValue, int roundCountValue, int roundTimeValue, int gameModeSelection)
+        public async Task UpdateGameSettings(int mapValue, int roundCountValue, int roundTimeValue, int gameModeSelection)
         {
             Dictionary<string, DataObject> changedData = new()
             {
@@ -144,200 +88,211 @@ namespace Assets.Scripts.Game.Managers
                 ["GameMode"] = new DataObject(DataObject.VisibilityOptions.Public, gameModeSelection.ToString())
             };
 
-            OperationResult result = await LobbyManager.UpdateLobbyData(Lobby.Id, changedData);
-            if (result.Status == ResultStatus.Success)
+            Task<OperationResult> updateTask = LobbyManager.UpdateLobbyData(Lobby.Id, changedData);
+            Task completedTask = await Task.WhenAny(updateTask, Task.Delay(5000));
+            if (completedTask == updateTask)
             {
-                Lobby.Data["MapIndex"] = new DataObject(DataObject.VisibilityOptions.Public, mapValue.ToString());
-                Lobby.Data["RoundCount"] = new DataObject(DataObject.VisibilityOptions.Member, roundCountValue.ToString());
-                Lobby.Data["RoundTime"] = new DataObject(DataObject.VisibilityOptions.Member, roundTimeValue.ToString());
-                Lobby.Data["GameMode"] = new DataObject(DataObject.VisibilityOptions.Public, gameModeSelection.ToString());
+                await updateTask;
+                if (showDebugMessages) Debug.Log($"Game settings updated for lobby {Lobby.Id}");
+                Lobby = await LobbyService.Instance.GetLobbyAsync(Lobby.Id);
+                GameLobbyEvents.InvokeGameSettingsChanged(true, Lobby.Data);
             }
-            return result;
+            else
+            {
+                if (showDebugMessages) Debug.LogWarning($"UpdateGameSettings timed out for lobby {Lobby.Id}");
+                GameLobbyEvents.InvokeGameSettingsChanged(false, null);
+            }
         }
 
         /// <summary>
-        /// Leaves the current lobby.
+        /// Changes the team of a player.
         /// </summary>
-        /// <returns>An OperationResult.</returns>
-        public async Task<OperationResult> LeaveCurrentLobby()
+        /// <param name="playerId">The ID of the player whose team is being changed.</param>
+        /// <param name="team">The new team for the player.</param>
+        public async Task ChangePlayerTeam(string playerId, Team team)
         {
-            try
+            Task<OperationResult> updateTask = LobbyManager.UpdatePlayerData(Lobby.Id, playerId, new() { ["Team"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)team).ToString()) });
+            Task completedTask = await Task.WhenAny(updateTask, Task.Delay(5000));
+            if (completedTask == updateTask)
             {
-                leftVolunatarily = true;
-                return await LobbyManager.LeaveLobby(Lobby.Id);
+                await updateTask;
+                if (showDebugMessages) Debug.Log($"Player {playerId} team changed to {(Team)int.Parse(((Dictionary<string, PlayerDataObject>)updateTask.Result.Data)["Team"].Value)}");
+                Lobby = await LobbyService.Instance.GetLobbyAsync(Lobby.Id);
+                GameLobbyEvents.InvokePlayerTeamChanged(true, playerId, (Team)int.Parse(Lobby.Players.Find(p => p.Id == playerId).Data["Team"].Value));
             }
-            catch (Exception e)
+            else
             {
-                leftVolunatarily = false;
-                return OperationResult.ErrorResult("LeaveLobby", e.Message);
+                if (showDebugMessages) Debug.LogWarning($"ChangePlayerTeam timed out for player {playerId}");
+                GameLobbyEvents.InvokePlayerTeamChanged(false, playerId, team);
+            }
+        }
+
+        /// <summary>
+        /// Toggle the ready status of the current player.
+        /// </summary>
+        /// <param name="playerId">The ID of the player whose ready status is being toggled.</param>
+        /// <param name="readyStatus">The new ready status for the player.</param>
+        public async Task TogglePlayerReadyStatus(string playerId, ReadyStatus readyStatus)
+        {
+            Task<OperationResult> updateTask = LobbyManager.UpdatePlayerData(Lobby.Id, playerId, new() { ["ReadyStatus"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)readyStatus).ToString()) });
+            Task completedTask = await Task.WhenAny(updateTask, Task.Delay(5000));
+            if (completedTask == updateTask)
+            {
+                await updateTask;
+                if (showDebugMessages) Debug.Log($"Player {playerId} ready status changed to {(ReadyStatus)int.Parse(((Dictionary<string, PlayerDataObject>)updateTask.Result.Data)["ReadyStatus"].Value)}");
+                Lobby = await LobbyService.Instance.GetLobbyAsync(Lobby.Id);
+                GameLobbyEvents.InvokePlayerReadyStatusChanged(true, playerId, (ReadyStatus)int.Parse(Lobby.Players.Find(p => p.Id == playerId).Data["ReadyStatus"].Value));
+            }
+            else
+            {
+                if (showDebugMessages) Debug.LogWarning($"TogglePlayerReadyStatus timed out for player {playerId}");
+                GameLobbyEvents.InvokePlayerReadyStatusChanged(false, playerId, readyStatus);
             }
         }
 
         #region Unity Lobby Events
-        /// <summary>
-        /// Sets up and subscribes to Unity's built-in lobby events.
-        /// </summary>
-        private async Task SubscribeToLobbyEvents()
-        {
-            LobbyEventCallbacks lobbyEventCallbacks = new();
+        // private async Task SubscribeToLobbyEvents()
+        // {
+        //     LobbyEventCallbacks lobbyEventCallbacks = new();
 
-            lobbyEventCallbacks.LobbyChanged += OnLobbyChanged;
-            lobbyEventCallbacks.PlayerJoined += OnPlayerJoined;
-            lobbyEventCallbacks.PlayerLeft += OnPlayerLeft;
-            lobbyEventCallbacks.DataChanged += OnDataChanged;
-            lobbyEventCallbacks.PlayerDataChanged += OnPlayerDataChanged;
-            lobbyEventCallbacks.KickedFromLobby += OnKickedFromLobby;
-            lobbyEventCallbacks.LobbyEventConnectionStateChanged += OnLobbyEventConnectionStateChanged;
+        //     lobbyEventCallbacks.LobbyChanged += OnLobbyChanged;
+        //     lobbyEventCallbacks.PlayerJoined += OnPlayerJoined;
+        //     lobbyEventCallbacks.PlayerLeft += OnPlayerLeft;
+        //     lobbyEventCallbacks.LobbyEventConnectionStateChanged += OnLobbyEventConnectionStateChanged;
 
-            lobbyEvents = await LobbyService.Instance.SubscribeToLobbyEventsAsync(Lobby.Id, lobbyEventCallbacks);
-            if (showDebugMessages) Debug.Log("Subscribed to lobby events");
-        }
+        //     lobbyEvents = await LobbyService.Instance.SubscribeToLobbyEventsAsync(Lobby.Id, lobbyEventCallbacks);
+        //     if (showDebugMessages) Debug.Log("Subscribed to lobby events");
+        // }
 
-        /// <summary>
-        /// Unsubscribes from all lobby events.
-        /// </summary>
-        private async Task UnsubscribeFromLobbyEvents()
-        {
-            if (lobbyEvents != null)
-            {
-                await lobbyEvents.UnsubscribeAsync();
-                lobbyEvents = null;
-                if (showDebugMessages) Debug.Log("Unsubscribed from lobby events");
-            }
-        }
+        // private async Task UnsubscribeFromLobbyEvents()
+        // {
+        //     if (lobbyEvents != null)
+        //     {
+        //         await lobbyEvents.UnsubscribeAsync();
+        //         lobbyEvents = null;
+        //         if (showDebugMessages) Debug.Log("Unsubscribed from lobby events");
+        //     }
+        // }
 
-        private void OnLobbyChanged(ILobbyChanges lobbyChanges)
-        {
-            if (showDebugMessages) Debug.Log("Lobby changed event received");
+        // private void OnLobbyChanged(ILobbyChanges lobbyChanges)
+        // {
+        //     if (lobbyChanges.HostId.Changed)
+        //     {
+        //         if (showDebugMessages) Debug.Log($"Host changed to {lobbyChanges.HostId.Value}");
 
-            if (lobbyChanges.HostId.Changed)
-            {
-                if (showDebugMessages) Debug.Log($"Host changed to {lobbyChanges.HostId.Value}");
-                if (AuthenticationService.Instance.PlayerId == lobbyChanges.HostId.Value)
-                {
-                    if (_heartbeatCoroutine == null)
-                    {
-                        _heartbeatCoroutine = StartCoroutine(HeartbeatCoroutine(Lobby.Id, 6f));
-                        if (showDebugMessages) Debug.Log("Started heartbeat coroutine as new host");
-                    }
-                }
-                LobbyEvents.InvokeLobbyHostMigrated(lobbyChanges.HostId.Value);
-            }
+        //         if (AuthenticationService.Instance.PlayerId == lobbyChanges.HostId.Value)
+        //         {
+        //             if (showDebugMessages) Debug.Log("You are now the host of the lobby");
+        //             StartHeartbeat(Lobby.Id, 15f);
+        //         }
+        //         else
+        //         {
+        //             if (showDebugMessages) Debug.Log("You are no longer the host of the lobby");
+        //             StopHeartbeat();
+        //         }
+        //         LobbyEvents.InvokeHostMigrated(lobbyChanges.HostId.Value);
+        //     }
+        //     if (lobbyChanges.MaxPlayers.Changed)
+        //     {
+        //         if (showDebugMessages) Debug.Log($"Max players changed to {lobbyChanges.MaxPlayers.Value}");
+        //         LobbyEvents.InvokeMaxPlayersChanged(lobbyChanges.MaxPlayers.Value);
+        //     }
+        //     if (lobbyChanges.IsPrivate.Changed)
+        //     {
+        //         if (showDebugMessages) Debug.Log($"Lobby privacy changed to {(lobbyChanges.IsPrivate.Value ? "Private" : "Public")}");
+        //         LobbyEvents.InvokePrivacyChanged(lobbyChanges.IsPrivate.Value);
+        //     }
+        //     if (lobbyChanges.Name.Changed)
+        //     {
+        //         if (showDebugMessages) Debug.Log($"Lobby name changed to {lobbyChanges.Name.Value}");
+        //         LobbyEvents.InvokeNameChanged(lobbyChanges.Name.Value);
+        //     }
+        // }
 
-            if (lobbyChanges.MaxPlayers.Changed)
-            {
-                if (showDebugMessages) Debug.Log($"Max players changed to {lobbyChanges.MaxPlayers.Value}");
-            }
+        // private void OnDataChanged(Dictionary<string, ChangedOrRemovedLobbyValue<DataObject>> dataChanges)
+        // {
+        //     Dictionary<string, DataObject> changedData = new();
+        //     foreach (var kvp in dataChanges)
+        //     {
+        //         if (kvp.Key == "MapIndex")
+        //         {
+        //             if (showDebugMessages) Debug.Log($"Map index changed to {kvp.Value.Value.Value}");
+        //             changedData["MapIndex"] = new DataObject(DataObject.VisibilityOptions.Public, kvp.Value.Value.Value);
+        //         }
+        //         else if (kvp.Key == "RoundCount")
+        //         {
+        //             if (showDebugMessages) Debug.Log($"Round count changed to {kvp.Value.Value.Value}");
+        //             changedData["RoundCount"] = new DataObject(DataObject.VisibilityOptions.Member, kvp.Value.Value.Value);
+        //         }
+        //         else if (kvp.Key == "RoundTime")
+        //         {
+        //             if (showDebugMessages) Debug.Log($"Round time changed to {kvp.Value.Value.Value}");
+        //             changedData["RoundTime"] = new DataObject(DataObject.VisibilityOptions.Member, kvp.Value.Value.Value);
+        //         }
+        //         else if (kvp.Key == "GameMode")
+        //         {
+        //             if (showDebugMessages) Debug.Log($"Game mode changed to {(GameMode)int.Parse(kvp.Value.Value.Value)}");
+        //             changedData["GameMode"] = new DataObject(DataObject.VisibilityOptions.Public, kvp.Value.Value.Value);
+        //         }
+        //         else if (kvp.Key == "Status")
+        //         {
+        //             if (showDebugMessages) Debug.Log($"Lobby status changed to {(LobbyStatus)int.Parse(kvp.Value.Value.Value)}");
+        //             changedData["Status"] = new DataObject(DataObject.VisibilityOptions.Public, kvp.Value.Value.Value);
+        //         }
+        //         else if (kvp.Key == "RelayJoinCode")
+        //         {
+        //             if (showDebugMessages) Debug.Log($"Relay join code changed to {kvp.Value.Value.Value}");
+        //             changedData["RelayJoinCode"] = new DataObject(DataObject.VisibilityOptions.Member, kvp.Value.Value.Value);
+        //         }
+        //     }
 
-            if (lobbyChanges.IsPrivate.Changed)
-            {
-                if (showDebugMessages) Debug.Log($"Lobby privacy changed to {(lobbyChanges.IsPrivate.Value ? "Private" : "Public")}");
-            }
+        //     GameLobbyEvents.InvokeGameSettingsChanged(true, changedData);
+        // }
 
-            if (lobbyChanges.Name.Changed)
-            {
-                if (showDebugMessages) Debug.Log($"Lobby name changed to {lobbyChanges.Name.Value}");
-            }
-        }
+        // private void OnPlayerDataChanged(Dictionary<int, Dictionary<string, ChangedOrRemovedLobbyValue<PlayerDataObject>>> changes)
+        // {
+        //     foreach (var kvp in changes)
+        //     {
+        //         if (kvp.Key < 0 || kvp.Key >= Lobby.Players.Count)
+        //         {
+        //             Debug.LogWarning($"Invalid player index in data change: {kvp.Key}");
+        //             continue;
+        //         }
+        //         foreach (var dataChange in kvp.Value)
+        //         {
+        //             if (dataChange.Key == "Team")
+        //             {
+        //                 if (showDebugMessages) Debug.Log($"Player {Lobby.Players[kvp.Key].Id} team changed to {(Team)int.Parse(dataChange.Value.Value.Value)}");
+        //                 GameLobbyEvents.InvokePlayerTeamChanged(true, Lobby.Players[kvp.Key].Id, (Team)int.Parse(dataChange.Value.Value.Value));
+        //             }
+        //             else if (dataChange.Key == "ReadyStatus")
+        //             {
+        //                 if (showDebugMessages) Debug.Log($"Player {Lobby.Players[kvp.Key].Id} ready status changed to {(ReadyStatus)int.Parse(dataChange.Value.Value.Value)}");
+        //                 GameLobbyEvents.InvokePlayerReadyStatusChanged(true, Lobby.Players[kvp.Key].Id, (ReadyStatus)int.Parse(dataChange.Value.Value.Value));
+        //             }
+        //             else if (dataChange.Key == "ConnectionStatus")
+        //             {
+        //                 if (showDebugMessages) Debug.Log($"Player {Lobby.Players[kvp.Key].Id} connection status changed to {(ConnectionStatus)int.Parse(dataChange.Value.Value.Value)}");
+        //                 GameLobbyEvents.InvokePlayerConnectionStatusChanged(true, Lobby.Players[kvp.Key].Id, (ConnectionStatus)int.Parse(dataChange.Value.Value.Value));
+        //             }
+        //         }
+        //     }
+        // }
 
-        private void OnPlayerJoined(List<LobbyPlayerJoined> playersJoined)
-        {
-            foreach (LobbyPlayerJoined playerJoined in playersJoined)
-            {
-                if (showDebugMessages) Debug.Log($"Player {playerJoined.Player.Id} joined the lobby");
-                LobbyEvents.InvokePlayerJoined(playerJoined.Player.Id);
-            }
-        }
+        // private async void OnLobbyEventConnectionStateChanged(LobbyEventConnectionState state)
+        // {
+        //     var connectionStatus = state switch
+        //     {
+        //         LobbyEventConnectionState.Subscribing => ConnectionStatus.Connecting,
+        //         LobbyEventConnectionState.Subscribed => ConnectionStatus.Connected,
+        //         LobbyEventConnectionState.Error => ConnectionStatus.Error,
+        //         LobbyEventConnectionState.Unknown or LobbyEventConnectionState.Unsubscribed or LobbyEventConnectionState.Unsynced => ConnectionStatus.Disconnected,
+        //         _ => ConnectionStatus.Disconnected,
+        //     };
 
-        private void OnPlayerLeft(List<int> playerIndices)
-        {
-            foreach (int playerIndex in playerIndices)
-            {
-                if (showDebugMessages) Debug.Log($"Player {playerIndex} left the lobby");
-                LobbyEvents.InvokePlayerLeft(playerIndex);
-            }
-        }
-
-        private void OnDataChanged(Dictionary<string, ChangedOrRemovedLobbyValue<DataObject>> dataChanges)
-        {
-            if (showDebugMessages) Debug.Log($"Lobby data changed: {dataChanges.Count} " + (dataChanges.Count == 1 ? "field" : "fields"));
-            foreach (var kvp in dataChanges)
-            {
-                if (kvp.Key == "MapIndex")
-                {
-                    if (showDebugMessages) Debug.Log($"Map index changed to {kvp.Value.Value.Value}");
-                    Lobby.Data["MapIndex"] = kvp.Value.Value;
-                }
-                else if (kvp.Key == "RoundCount")
-                {
-                    if (showDebugMessages) Debug.Log($"Round count changed to {kvp.Value.Value.Value}");
-                    Lobby.Data["RoundCount"] = kvp.Value.Value;
-                }
-                else if (kvp.Key == "RoundTime")
-                {
-                    if (showDebugMessages) Debug.Log($"Round time changed to {kvp.Value.Value.Value}");
-                    Lobby.Data["RoundTime"] = kvp.Value.Value;
-                }
-                else if (kvp.Key == "GameMode")
-                {
-                    if (showDebugMessages) Debug.Log($"Game mode changed to {kvp.Value.Value.Value}");
-                    Lobby.Data["GameMode"] = kvp.Value.Value;
-                }
-                else if (kvp.Key == "Status")
-                {
-                    if (showDebugMessages) Debug.Log($"Lobby status changed to {kvp.Value.Value.Value}");
-                    Lobby.Data["Status"] = kvp.Value.Value;
-                }
-                else if (kvp.Key == "RelayJoinCode")
-                {
-                    if (showDebugMessages) Debug.Log($"Relay join code changed to {kvp.Value.Value.Value}");
-                    Lobby.Data["RelayJoinCode"] = kvp.Value.Value;
-                }
-            }
-        }
-
-        private void OnPlayerDataChanged(Dictionary<int, Dictionary<string, ChangedOrRemovedLobbyValue<PlayerDataObject>>> changes)
-        {
-            if (showDebugMessages) Debug.Log($"Player data changed: {changes.Count} " + (changes.Count == 1 ? "player" : "players"));
-            foreach (var kvp in changes)
-                foreach (var dataChange in kvp.Value)
-                {
-                    if (dataChange.Key == "Status")
-                    {
-                        if (showDebugMessages) Debug.Log($"Player {kvp.Key} status changed to {(PlayerStatus)int.Parse(dataChange.Value.Value.Value)}");
-                        Lobby.Players[kvp.Key].Data["Status"] = dataChange.Value.Value;
-                        GameLobbyEvents.InvokePlayerStatusChanged(Lobby.Players[kvp.Key].Id);
-                    }
-                    else if (dataChange.Key == "Team")
-                    {
-                        if (showDebugMessages) Debug.Log($"Player {kvp.Key} team changed to {(Team)int.Parse(dataChange.Value.Value.Value)}");
-                        Lobby.Players[kvp.Key].Data["Team"] = dataChange.Value.Value;
-                        GameLobbyEvents.InvokePlayerTeamChanged(Lobby.Players[kvp.Key].Id);
-                    }
-                }
-        }
-
-        private void OnKickedFromLobby()
-        {
-            if (leftVolunatarily) LobbyEvents.InvokeLobbyLeft(OperationResult.SuccessResult("LeftLobby", null, $"Left lobby {Lobby.Name}"));
-            else LobbyEvents.InvokeLobbyLeft(OperationResult.WarningResult("LeftLobby", null, $"Kicked from lobby {Lobby.Name}"));
-        }
-
-        private void OnLobbyEventConnectionStateChanged(LobbyEventConnectionState state)
-        {
-            Debug.Log($"Lobby connection state changed to: {state}");
-
-            if (state == LobbyEventConnectionState.Subscribing)
-                LobbyEvents.InvokePlayerConnecting(AuthenticationService.Instance.PlayerId);
-            else if (state == LobbyEventConnectionState.Subscribed)
-                LobbyEvents.InvokePlayerConnected(AuthenticationService.Instance.PlayerId);
-            else if (state == LobbyEventConnectionState.Unsynced)
-                LobbyEvents.InvokePlayerDisconnected(AuthenticationService.Instance.PlayerId);
-            // else if (state == LobbyEventConnectionState.Unsubscribed)
-            //     LobbyEvents.InvokePlayerDisconnected(AuthenticationService.Instance.PlayerId);
-            // else if (state == LobbyEventConnectionState.Error)
-            //     LobbyEvents.InvokePlayerDisconnected(AuthenticationService.Instance.PlayerId);
-        }
+        //     if (showDebugMessages) Debug.Log($"Lobby event connection state changed to {connectionStatus}");
+        //     await LobbyManager.UpdatePlayerData(Lobby.Id, AuthenticationService.Instance.PlayerId, new() { ["ConnectionStatus"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)connectionStatus).ToString()) });
+        // }
         #endregion
 
         #region Game Flow

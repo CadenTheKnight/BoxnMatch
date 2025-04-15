@@ -59,6 +59,7 @@ namespace Assets.Scripts.Framework.Managers
             {
                 Lobby lobby = await LobbyService.Instance.JoinLobbyByCodeAsync(lobbyCode, new() { Player = new Player(AuthenticationService.Instance.PlayerId) { Data = new PlayerData(SteamUser.GetSteamID()).Serialize() } });
                 LobbyEvents.InvokeLobbyJoined(OperationResult.SuccessResult("JoinLobbyByCode", $"Joined lobby {lobby.Name} with ID {lobby.Id}", lobby));
+                LobbyEvents.InvokePlayerJoined(AuthenticationService.Instance.PlayerId);
             }
             catch (Exception e) { LobbyEvents.InvokeLobbyJoined(OperationResult.ErrorResult("JoinLobbyByCode", e.Message)); }
         }
@@ -73,6 +74,7 @@ namespace Assets.Scripts.Framework.Managers
             {
                 Lobby lobby = await LobbyService.Instance.JoinLobbyByIdAsync(lobbyId, new() { Player = new Player(AuthenticationService.Instance.PlayerId) { Data = new PlayerData(SteamUser.GetSteamID()).Serialize() } });
                 LobbyEvents.InvokeLobbyJoined(OperationResult.SuccessResult("JoinLobbyById", $"Joined lobby {lobby.Name} with ID {lobby.Id}", lobby));
+                LobbyEvents.InvokePlayerJoined(AuthenticationService.Instance.PlayerId);
             }
             catch (Exception e) { LobbyEvents.InvokeLobbyJoined(OperationResult.ErrorResult("JoinLobbyById", e.Message)); }
         }
@@ -99,15 +101,15 @@ namespace Assets.Scripts.Framework.Managers
         /// Leaves the current lobby with the specified ID.
         /// </summary>
         /// <param name="lobbyId">The ID of the lobby to leave.</param>
-        /// <returns>An OperationResult.</returns>
-        public static async Task<OperationResult> LeaveLobby(string lobbyId)
+        public static async Task LeaveLobby(string lobbyId)
         {
             try
             {
                 await LobbyService.Instance.RemovePlayerAsync(lobbyId, AuthenticationService.Instance.PlayerId);
-                return OperationResult.SuccessResult("LeaveLobby", $"Left lobby with ID {lobbyId}");
+                LobbyEvents.InvokeLobbyLeft(OperationResult.SuccessResult("LeaveLobby", $"Left lobby with ID {lobbyId}"));
+                LobbyEvents.InvokePlayerLeft(AuthenticationService.Instance.PlayerId);
             }
-            catch (Exception e) { return OperationResult.ErrorResult("LeaveLobby", e.Message); }
+            catch (Exception e) { LobbyEvents.InvokeLobbyLeft(OperationResult.ErrorResult("LeaveLobby", e.Message)); }
         }
 
         /// <summary>
@@ -155,7 +157,7 @@ namespace Assets.Scripts.Framework.Managers
             try
             {
                 Lobby lobby = await LobbyService.Instance.UpdateLobbyAsync(lobbyId, new() { Data = lobbyData });
-                return OperationResult.SuccessResult("UpdateLobbyData", $"Updated lobby data for {lobby.Name} with ID {lobby.Id}", lobby);
+                return OperationResult.SuccessResult("UpdateLobbyData", $"Updated lobby data for {lobby.Name} with ID {lobby.Id}", lobbyData);
             }
             catch (Exception e) { return OperationResult.ErrorResult("UpdateLobbyData", e.Message); }
         }

@@ -21,8 +21,6 @@ namespace Assets.Scripts.Game.Managers
             AuthEvents.OnInitializationError += ShowErrorPopup;
 
             SettingsPanelController.OnSettingsUpdated += ShowNotification;
-
-            LobbyEvents.OnLobbiesQueried += ShowNotification;
         }
 
         private void OnDisable()
@@ -30,8 +28,6 @@ namespace Assets.Scripts.Game.Managers
             AuthEvents.OnInitializationError -= ShowErrorPopup;
 
             SettingsPanelController.OnSettingsUpdated -= ShowNotification;
-
-            LobbyEvents.OnLobbiesQueried -= ShowNotification;
         }
 
         private void ShowNotification(OperationResult result)

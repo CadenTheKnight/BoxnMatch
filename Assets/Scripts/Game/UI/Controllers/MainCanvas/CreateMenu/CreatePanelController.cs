@@ -44,9 +44,6 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.CreateMenu
             LobbyEvents.OnLobbyCreated += OnLobbyCreated;
 
             UpdateCreateButtonState();
-            lobbyNameInput.interactable = true;
-            isPrivateToggle.UpdateInteractable(true);
-            maxPlayersSelector.UpdateInteractable(true);
         }
 
         protected override void OnDisable()
@@ -61,7 +58,6 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.CreateMenu
             LobbyEvents.OnLobbyCreated -= OnLobbyCreated;
 
             createLoadingBar.StopLoading();
-            createText.text = "Create";
         }
 
         private void OnLobbyNameChanged(string input)
@@ -87,13 +83,6 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.CreateMenu
             createButton.interactable = Regex.IsMatch(lobbyName, @"^[a-zA-Z0-9]{1,14}$") && (maxPlayers == 2 || maxPlayers == 4);
         }
 
-        protected override void Update()
-        {
-            base.Update();
-            if (gameObject.activeSelf && Input.GetKeyDown(KeyCode.Return) && createButton.interactable)
-                OnCreateClicked();
-        }
-
         private async void OnCreateClicked()
         {
             base.UpdateInteractable(false);
@@ -104,21 +93,21 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.CreateMenu
             createText.text = "Creating...";
             createLoadingBar.StartLoading();
 
-            await Task.Delay(1000);
-
             await LobbyManager.CreateLobby(lobbyName, isPrivate, maxPlayers, new LobbyData().Serialize());
         }
 
-        private void OnLobbyCreated(OperationResult result)
+        private async void OnLobbyCreated(OperationResult result)
         {
             if (result.Status == ResultStatus.Error)
             {
-                createText.text = "Create";
+                createText.text = "Errror Creating";
                 createLoadingBar.StopLoading();
                 maxPlayersSelector.UpdateInteractable(true);
                 isPrivateToggle.UpdateInteractable(true);
                 lobbyNameInput.interactable = true;
                 base.UpdateInteractable(true);
+
+                await Task.Delay(1000);
 
                 UpdateCreateButtonState();
             }

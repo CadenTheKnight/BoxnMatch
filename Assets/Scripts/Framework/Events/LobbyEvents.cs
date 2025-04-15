@@ -49,8 +49,29 @@ namespace Assets.Scripts.Framework.Events
         /// Triggered when a new host is assigned to the lobby.
         /// </summary>
         /// <param name="playerId">The id of the new host.</param>
-        public delegate void LobbyHostMigratedHandler(string playerId);
-        public static event LobbyHostMigratedHandler OnLobbyHostMigrated;
+        public delegate void HostMigratedHandler(string playerId);
+        public static event HostMigratedHandler OnHostMigrated;
+
+        /// <summary>
+        /// Triggered when the maximum number of players in the lobby is changed.
+        /// </summary>
+        /// <param name="maxPlayers">The new maximum number of players.</param>
+        public delegate void MaxPlayersChangedHandler(int maxPlayers);
+        public static event MaxPlayersChangedHandler OnMaxPlayersChanged;
+
+        /// <summary>
+        /// Triggered when the privacy setting of the lobby is changed.
+        /// </summary>
+        /// <param name="isPrivate">The new state of lobby privacy.</param>
+        public delegate void PrivacyChangedHandler(bool isPrivate);
+        public static event PrivacyChangedHandler OnPrivacyChanged;
+
+        /// <summary>
+        /// Triggered when the name of the lobby is changed.
+        /// </summary>
+        /// <param name="name">The new name of the lobby.</param>
+        public delegate void NameChangedHandler(string name);
+        public static event NameChangedHandler OnNameChanged;
 
         /// <summary>
         /// Triggered when a player joins the lobby.
@@ -62,8 +83,8 @@ namespace Assets.Scripts.Framework.Events
         /// <summary>
         /// Triggered when a player leaves the lobby.
         /// </summary>
-        /// <param name="playerIndex">The index of the player who left.</param>
-        public delegate void PlayerLeftHandler(int playerIndex);
+        /// <param name="playerId">The id of the player who left.</param>
+        public delegate void PlayerLeftHandler(string playerId);
         public static event PlayerLeftHandler OnPlayerLeft;
 
         /// <summary>
@@ -72,27 +93,6 @@ namespace Assets.Scripts.Framework.Events
         /// <param name="result">The result of the operation.</param>
         public delegate void PlayerKickedHandler(OperationResult result);
         public static event PlayerKickedHandler OnPlayerKicked;
-
-        /// <summary>
-        /// Triggered when a player is connecting to the lobby.
-        /// </summary>
-        /// <param name="playerId">The id of the player who is connecting.</param>
-        public delegate void PlayerConnectingHandler(string playerId);
-        public static event PlayerConnectingHandler OnPlayerConnecting;
-
-        /// <summary>
-        /// Triggered when a player is connected to the lobby.
-        /// </summary>
-        /// <param name="playerId">The id of the player who is connected.</param>
-        public delegate void PlayerConnectedHandler(string playerId);
-        public static event PlayerConnectedHandler OnPlayerConnected;
-
-        /// <summary>
-        /// Triggered when a player is disconnected from the lobby.
-        /// </summary>
-        /// <param name="playerId">The id of the player who is disconnected.</param>
-        public delegate void PlayerDisconnectedHandler(string playerId);
-        public static event PlayerDisconnectedHandler OnPlayerDisconnected;
         #endregion
 
         #region Invocations
@@ -101,13 +101,13 @@ namespace Assets.Scripts.Framework.Events
         public static void InvokeLobbyJoined(OperationResult result) => OnLobbyJoined?.Invoke(result);
         public static void InvokeLobbyRejoined(OperationResult result) => OnLobbyRejoined?.Invoke(result);
         public static void InvokeLobbyLeft(OperationResult result) => OnLobbyLeft?.Invoke(result);
-        public static void InvokeLobbyHostMigrated(string playerId) => OnLobbyHostMigrated?.Invoke(playerId);
+        public static void InvokeHostMigrated(string playerId) => OnHostMigrated?.Invoke(playerId);
+        public static void InvokeMaxPlayersChanged(int maxPlayers) => OnMaxPlayersChanged?.Invoke(maxPlayers);
+        public static void InvokePrivacyChanged(bool isPrivate) => OnPrivacyChanged?.Invoke(isPrivate);
+        public static void InvokeNameChanged(string name) => OnNameChanged?.Invoke(name);
         public static void InvokePlayerJoined(string playerId) => OnPlayerJoined?.Invoke(playerId);
-        public static void InvokePlayerLeft(int playerIndex) => OnPlayerLeft?.Invoke(playerIndex);
+        public static void InvokePlayerLeft(string playerId) => OnPlayerLeft?.Invoke(playerId);
         public static void InvokePlayerKicked(OperationResult result) => OnPlayerKicked?.Invoke(result);
-        public static void InvokePlayerConnecting(string playerId) => OnPlayerConnecting?.Invoke(playerId);
-        public static void InvokePlayerConnected(string playerId) => OnPlayerConnected?.Invoke(playerId);
-        public static void InvokePlayerDisconnected(string playerId) => OnPlayerDisconnected?.Invoke(playerId);
         #endregion
     }
 }

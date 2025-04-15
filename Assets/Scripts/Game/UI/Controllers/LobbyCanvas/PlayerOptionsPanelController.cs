@@ -4,7 +4,6 @@ using UnityEngine.UI;
 using System.Threading.Tasks;
 using Assets.Scripts.Game.Types;
 using Assets.Scripts.Game.Events;
-using System.Collections.Generic;
 using Assets.Scripts.Game.Managers;
 using Unity.Services.Authentication;
 using Assets.Scripts.Game.UI.Colors;
@@ -12,6 +11,7 @@ using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Types;
 using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Game.UI.Components;
+using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Framework.Utilities;
 
 namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
@@ -27,53 +27,36 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
         [SerializeField] private Button lobbyCodeButton;
         [SerializeField] private TextMeshProUGUI lobbyCodeText;
         [SerializeField] private Button leaveButton;
+        [SerializeField] private TextMeshProUGUI leaveText;
         [SerializeField] private Button readyUnreadyButton;
         [SerializeField] private LoadingBar leaveLoadingBar;
         [SerializeField] private TextMeshProUGUI readyUnreadyText;
         [SerializeField] private LoadingBar readyUnreadyLoadingBar;
 
-        private void Start()
+        private void OnEnable()
         {
-            LobbyEvents.OnPlayerConnected += OnPlayerConnect;
-            LobbyEvents.OnPlayerDisconnected += OnPlayerDisconnect;
+            lobbyCodeButton.onClick.AddListener(OnLobbyCodeClicked);
+            leaveButton.onClick.AddListener(OnLeaveClicked);
+            readyUnreadyButton.onClick.AddListener(OnReadyUnreadyClicked);
 
-            if (GameLobbyManager.Instance.Lobby != null) OnPlayerConnect(AuthenticationService.Instance.PlayerId);
+            LobbyEvents.OnLobbyLeft += OnLobbyLeft;
+            GameLobbyEvents.OnPlayerReadyStatusChanged += OnPlayerReadyStatusChanged;
+
+            lobbyNameText.GetComponent<RectTransform>().anchorMin = new Vector2(GameLobbyManager.Instance.Lobby.IsPrivate ? 0.06f : 0f, 0f);
+            lobbyNameText.text = GameLobbyManager.Instance.Lobby.Name;
+            privateIndicator.gameObject.SetActive(GameLobbyManager.Instance.Lobby.IsPrivate);
+            UpdateStartButtonState();
+            lobbyCodeText.text = $"Code: {GameLobbyManager.Instance.Lobby.LobbyCode}";
         }
 
-        private void OnPlayerConnect(string playerId)
+        private void OnDisable()
         {
-            if (playerId == AuthenticationService.Instance.PlayerId)
-            {
-                lobbyCodeButton.onClick.AddListener(OnLobbyCodeClicked);
-                leaveButton.onClick.AddListener(OnLeaveClicked);
-                readyUnreadyButton.onClick.AddListener(OnReadyUnreadyClicked);
+            lobbyCodeButton.onClick.RemoveListener(OnLobbyCodeClicked);
+            leaveButton.onClick.RemoveListener(OnLeaveClicked);
+            readyUnreadyButton.onClick.RemoveListener(OnReadyUnreadyClicked);
 
-                GameLobbyEvents.OnPlayerStatusChanged += UpdateStartButtonState;
-
-                lobbyNameText.GetComponent<RectTransform>().anchorMin = new Vector2(GameLobbyManager.Instance.Lobby.IsPrivate ? 0.06f : 0f, 0f);
-                lobbyNameText.text = GameLobbyManager.Instance.Lobby.Name;
-                privateIndicator.gameObject.SetActive(GameLobbyManager.Instance.Lobby.IsPrivate);
-                UpdateStartButtonState();
-                lobbyCodeText.text = $"Code: {GameLobbyManager.Instance.Lobby.LobbyCode}";
-            }
-        }
-
-        private void OnPlayerDisconnect(string playerId)
-        {
-            if (playerId == AuthenticationService.Instance.PlayerId)
-            {
-                lobbyCodeButton.onClick.RemoveListener(OnLobbyCodeClicked);
-                leaveButton.onClick.RemoveListener(OnLeaveClicked);
-                readyUnreadyButton.onClick.RemoveListener(OnReadyUnreadyClicked);
-
-                GameLobbyEvents.OnPlayerStatusChanged -= UpdateStartButtonState;
-            }
-        }
-
-        private void OnDestroy()
-        {
-            LobbyEvents.OnPlayerConnected -= OnPlayerConnect;
-            LobbyEvents.OnPlayerDisconnected -= OnPlayerDisconnect;
+            LobbyEvents.OnLobbyLeft -= OnLobbyLeft;
+            GameLobbyEvents.OnPlayerReadyStatusChanged -= OnPlayerReadyStatusChanged;
 
             startLoadingBar.StopLoading();
             leaveLoadingBar.StopLoading();
@@ -96,70 +79,79 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             leaveButton.interactable = false;
             leaveLoadingBar.StartLoading();
 
-            Task<OperationResult> leaveTask = GameLobbyManager.Instance.LeaveCurrentLobby();
-            await Task.WhenAny(leaveTask, Task.Delay(5000));
-
-            leaveLoadingBar.StopLoading();
-            if (!leaveTask.IsCompletedSuccessfully || leaveTask.IsCompletedSuccessfully && leaveTask.Result.Status == ResultStatus.Error)
-            {
-                await Task.Delay(1000);
-
-                leaveButton.interactable = true;
-            }
+            await LobbyManager.LeaveLobby(GameLobbyManager.Instance.Lobby.Id);
         }
 
         private async void OnReadyUnreadyClicked()
         {
-            try
+
+            readyUnreadyButton.interactable = false;
+            readyUnreadyLoadingBar.StartLoading();
+
+            await GameLobbyManager.Instance.TogglePlayerReadyStatus(AuthenticationService.Instance.PlayerId, GameLobbyManager.Instance.Lobby.Players.Find(p => p.Id == AuthenticationService.Instance.PlayerId).Data["ReadyStatus"].Value == ((int)ReadyStatus.Ready).ToString() ? ReadyStatus.NotReady : ReadyStatus.Ready);
+        }
+
+        private async void OnLobbyLeft(OperationResult result)
+        {
+            if (result.Status == ResultStatus.Error)
             {
-                readyUnreadyButton.interactable = false;
-                readyUnreadyLoadingBar.StartLoading();
-
-                Task<OperationResult> toggleTask = GameLobbyManager.Instance.TogglePlayerStatus(GameLobbyManager.Instance.GetPlayerById(AuthenticationService.Instance.PlayerId));
-                await Task.WhenAny(toggleTask, Task.Delay(5000));
-
-                if (toggleTask.IsCompletedSuccessfully && toggleTask.Result.Status == ResultStatus.Success)
-                {
-                    if (toggleTask.Result.Data is Dictionary<string, PlayerDataObject> dataDict && dataDict.ContainsKey("Status"))
-                    {
-                        readyUnreadyText.text = (PlayerStatus)int.Parse(dataDict["Status"].Value) == PlayerStatus.Ready ? "Ready" : "Not Ready";
-
-                        ColorBlock colors = readyUnreadyButton.colors;
-                        if ((PlayerStatus)int.Parse(dataDict["Status"].Value) == PlayerStatus.Ready)
-                        {
-                            colors.normalColor = UIColors.Green.One;
-                            colors.highlightedColor = UIColors.Green.Two;
-                            colors.pressedColor = UIColors.Green.Three;
-                            colors.selectedColor = UIColors.Green.Three;
-                            colors.disabledColor = UIColors.Green.Five;
-                        }
-                        else
-                        {
-                            colors.normalColor = UIColors.Red.One;
-                            colors.highlightedColor = UIColors.Red.Two;
-                            colors.pressedColor = UIColors.Red.Three;
-                            colors.selectedColor = UIColors.Red.Three;
-                            colors.disabledColor = UIColors.Red.Five;
-                        }
-                        readyUnreadyButton.colors = colors;
-
-                        GameLobbyEvents.InvokePlayerStatusChanged(AuthenticationService.Instance.PlayerId);
-                    }
-                }
-            }
-            finally
-            {
-                readyUnreadyLoadingBar.StopLoading();
+                leaveText.text = "Error Leaving";
+                leaveLoadingBar.StopLoading();
 
                 await Task.Delay(1000);
-                readyUnreadyButton.interactable = true;
+
+                leaveText.text = "Leave";
+                leaveButton.interactable = true;
             }
         }
 
-        private void UpdateStartButtonState(string playerId = null)
+        private async void OnPlayerReadyStatusChanged(bool success, string playerId, ReadyStatus readyStatus)
         {
-            int playersReady = GameLobbyManager.Instance.GetPlayersReady();
+            readyUnreadyLoadingBar.StopLoading();
+
+            if (success)
+            {
+                UpdateReadyButtonState(readyStatus);
+                UpdateStartButtonState();
+            }
+
+            await Task.Delay(1000);
+
+            readyUnreadyButton.interactable = true;
+        }
+
+        private void UpdateReadyButtonState(ReadyStatus readyStatus)
+        {
+            readyUnreadyText.text = readyStatus == ReadyStatus.Ready ? "Ready" : "Not Ready";
+
+            ColorBlock colors = readyUnreadyButton.colors;
+            if (readyStatus == ReadyStatus.Ready)
+            {
+                colors.normalColor = UIColors.Green.One;
+                colors.highlightedColor = UIColors.Green.Two;
+                colors.pressedColor = UIColors.Green.Three;
+                colors.selectedColor = UIColors.Green.Three;
+                colors.disabledColor = UIColors.Green.Five;
+            }
+            else
+            {
+                colors.normalColor = UIColors.Red.One;
+                colors.highlightedColor = UIColors.Red.Two;
+                colors.pressedColor = UIColors.Red.Three;
+                colors.selectedColor = UIColors.Red.Three;
+                colors.disabledColor = UIColors.Red.Five;
+            }
+            readyUnreadyButton.colors = colors;
+        }
+
+        private void UpdateStartButtonState()
+        {
+            int playersReady = 0;
+            foreach (Player player in GameLobbyManager.Instance.Lobby.Players)
+                if (player.Data["ReadyStatus"].Value == ((int)ReadyStatus.Ready).ToString()) playersReady++;
+
             int maxPlayers = GameLobbyManager.Instance.Lobby.MaxPlayers;
+
             if (playersReady == maxPlayers)
             {
                 if (AuthenticationService.Instance.PlayerId == GameLobbyManager.Instance.Lobby.HostId)
