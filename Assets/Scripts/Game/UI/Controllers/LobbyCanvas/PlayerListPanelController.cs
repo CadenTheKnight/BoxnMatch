@@ -8,6 +8,7 @@ using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Utilities;
 using Assets.Scripts.Game.UI.Components.ListEntries;
 using Unity.Services.Authentication;
+using Assets.Scripts.Framework.Types;
 
 namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 {
@@ -61,26 +62,17 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private void OnPlayerJoined(string playerId)
         {
-            if (playerId == AuthenticationService.Instance.PlayerId) return;
-
-            _playerListEntries.Find(entry => entry.PlayerId == null).SetPlayer(playerId);
-            ResetPlayerList();
+            if (playerId != AuthenticationService.Instance.PlayerId) ResetPlayerList();
         }
 
         private void OnPlayerLeft(string playerId)
         {
-            if (playerId == AuthenticationService.Instance.PlayerId) return;
-
-            _playerListEntries.Find(entry => entry.PlayerId == playerId).SetEmpty();
-            ResetPlayerList();
+            if (playerId != AuthenticationService.Instance.PlayerId) ResetPlayerList();
         }
 
         private void OnPlayerKicked(OperationResult result)
         {
-            if ((string)result.Data == AuthenticationService.Instance.PlayerId) return;
-
-            _playerListEntries.Find(entry => entry.PlayerId == (string)result.Data).SetEmpty();
-            ResetPlayerList();
+            if (result.Status == ResultStatus.Success && (string)result.Data != AuthenticationService.Instance.PlayerId) ResetPlayerList();
         }
 
         private void OnPlayerTeamChanged(bool success, string playerId, Team team)

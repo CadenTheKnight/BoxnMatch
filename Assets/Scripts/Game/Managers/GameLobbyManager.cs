@@ -322,7 +322,10 @@ namespace Assets.Scripts.Game.Managers
             };
 
             if (showDebugMessages) Debug.Log($"Lobby event connection state changed to {connectionStatus}");
-            await LobbyManager.UpdatePlayerData(Lobby.Id, AuthenticationService.Instance.PlayerId, new() { ["ConnectionStatus"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Public, ((int)connectionStatus).ToString()) });
+
+            Dictionary<string, PlayerDataObject> updateData = new() { ["ConnectionStatus"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Public, ((int)connectionStatus).ToString()) };
+            if (connectionStatus == ConnectionStatus.Disconnected) updateData.Add("ReadyStatus", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Public, ((int)ReadyStatus.NotReady).ToString()));
+            await LobbyManager.UpdatePlayerData(Lobby.Id, AuthenticationService.Instance.PlayerId, updateData);
         }
         #endregion
 
