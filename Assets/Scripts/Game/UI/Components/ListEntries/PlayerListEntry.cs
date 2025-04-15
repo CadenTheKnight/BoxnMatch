@@ -86,6 +86,8 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             emptyStatePanel.SetActive(false);
             activeStatePanel.SetActive(true);
 
+            nameText.GetComponent<RectTransform>().anchorMax = new Vector2(PlayerId == GameLobbyManager.Instance.Lobby.HostId ? 0.7f : .85f, 1f);
+
             Player player = GameLobbyManager.Instance.Lobby.Players.Find(p => p.Id == PlayerId);
             if (player == null)
             {
@@ -102,7 +104,6 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
                     if (player == null) await Task.Delay(100);
                 }
             }
-
 
             SetTeam((Team)int.Parse(player.Data["Team"].Value));
             SetStatus((PlayerStatus)int.Parse(player.Data["Status"].Value));
@@ -250,7 +251,7 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             kickButton.gameObject.SetActive(kickablePlayer);
 
             nameText.GetComponent<RectTransform>().anchorMin = new Vector2(0.35f, 0f);
-            nameText.GetComponent<RectTransform>().anchorMax = new Vector2(kickablePlayer ? 0.7f : isHost ? 0.85f : 1f, 1f);
+            nameText.GetComponent<RectTransform>().anchorMax = new Vector2(kickablePlayer ? 0.8f : isHost ? 0.85f : 1f, 1f);
             hostIndicatorImage.GetComponent<RectTransform>().anchorMin = new Vector2(0.85f, 0f);
             hostIndicatorImage.GetComponent<RectTransform>().anchorMax = new Vector2(1f, 1f);
 
