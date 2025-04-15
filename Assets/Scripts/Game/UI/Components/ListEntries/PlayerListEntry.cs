@@ -118,7 +118,9 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             changeTeamButton.interactable = false;
             playerTeamSelectorLoadingBar.StartLoading();
 
-            await GameLobbyManager.Instance.ChangePlayerTeam(PlayerId, (Team)team);
+            if (team != int.Parse(GameLobbyManager.Instance.Lobby.Players.Find(player => player.Id == PlayerId).Data["Team"].Value))
+                await GameLobbyManager.Instance.ChangePlayerTeam(PlayerId, (Team)team);
+            else SetTeam(true, (Team)team);
         }
 
         // public void SetHost()

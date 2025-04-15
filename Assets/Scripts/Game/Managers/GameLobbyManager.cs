@@ -98,34 +98,7 @@ namespace Assets.Scripts.Game.Managers
             if (completedTask == updateTask)
             {
                 OperationResult result = await updateTask;
-                if (result.Status == ResultStatus.Success)
-                {
-                    // foreach (var kvp in changedData)
-                    // {
-                    //     if (kvp.Key == "MapIndex")
-                    //     {
-                    //         if (showDebugMessages) Debug.Log($"Map index changed to {mapValue}");
-                    //         Lobby.Data[kvp.Key] = new DataObject(DataObject.VisibilityOptions.Public, mapValue.ToString());
-                    //     }
-                    //     else if (kvp.Key == "RoundCount")
-                    //     {
-                    //         if (showDebugMessages) Debug.Log($"Round count changed to {roundCountValue}");
-                    //         Lobby.Data[kvp.Key] = new DataObject(DataObject.VisibilityOptions.Member, roundCountValue.ToString());
-                    //     }
-                    //     else if (kvp.Key == "RoundTime")
-                    //     {
-                    //         if (showDebugMessages) Debug.Log($"Round time changed to {roundTimeValue}");
-                    //         Lobby.Data[kvp.Key] = new DataObject(DataObject.VisibilityOptions.Member, roundTimeValue.ToString());
-                    //     }
-                    //     else if (kvp.Key == "GameMode")
-                    //     {
-                    //         if (showDebugMessages) Debug.Log($"Game mode changed to {gameModeSelection}");
-                    //         Lobby.Data[kvp.Key] = new DataObject(DataObject.VisibilityOptions.Public, gameModeSelection.ToString());
-                    //     }
-                    // }
-                    // GameLobbyEvents.InvokeGameSettingsChanged(true, Lobby.Data);
-                }
-                else
+                if (result.Status != ResultStatus.Success)
                 {
                     if (showDebugMessages) Debug.LogError($"Failed to update game settings: {result.Message}");
                     GameLobbyEvents.InvokeGameSettingsChanged(false, null);
@@ -150,13 +123,7 @@ namespace Assets.Scripts.Game.Managers
             if (completedTask == updateTask)
             {
                 OperationResult result = await updateTask;
-                if (result.Status == ResultStatus.Success)
-                {
-                    // if (showDebugMessages) Debug.Log($"Team changed for player {playerId} to {team}");
-                    // Lobby.Players.Find(p => p.Id == playerId).Data["Team"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)team).ToString());
-                    // GameLobbyEvents.InvokePlayerTeamChanged(true, playerId, team);
-                }
-                else
+                if (result.Status != ResultStatus.Success)
                 {
                     if (showDebugMessages) Debug.LogError($"Failed to change team: {result.Message}");
                     GameLobbyEvents.InvokePlayerTeamChanged(false, playerId, team);
@@ -181,13 +148,7 @@ namespace Assets.Scripts.Game.Managers
             if (completedTask == updateTask)
             {
                 OperationResult result = await updateTask;
-                if (result.Status == ResultStatus.Success)
-                {
-                    // if (showDebugMessages) Debug.Log($"Ready status changed for player {playerId} to {readyStatus}");
-                    // Lobby.Players.Find(p => p.Id == playerId).Data["ReadyStatus"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)readyStatus).ToString());
-                    // GameLobbyEvents.InvokePlayerReadyStatusChanged(true, playerId, readyStatus);
-                }
-                else
+                if (result.Status != ResultStatus.Success)
                 {
                     if (showDebugMessages) Debug.LogError($"Failed to change ready status: {result.Message}");
                     GameLobbyEvents.InvokePlayerReadyStatusChanged(false, playerId, readyStatus);
@@ -226,10 +187,8 @@ namespace Assets.Scripts.Game.Managers
             }
         }
 
-        private async void OnLobbyChanged(ILobbyChanges lobbyChanges)
+        private void OnLobbyChanged(ILobbyChanges lobbyChanges)
         {
-            Lobby = await LobbyService.Instance.GetLobbyAsync(Lobby.Id);
-
             if (lobbyChanges.HostId.Changed)
             {
                 if (showDebugMessages) Debug.Log($"Host changed to {lobbyChanges.HostId.Value}");
@@ -263,34 +222,33 @@ namespace Assets.Scripts.Game.Managers
             }
         }
 
-        private async void OnPlayerJoined(List<LobbyPlayerJoined> players)
+        private void OnPlayerJoined(List<LobbyPlayerJoined> players)
         {
-            Lobby = await LobbyService.Instance.GetLobbyAsync(Lobby.Id);
-
             foreach (LobbyPlayerJoined player in players)
             {
                 if (showDebugMessages) Debug.Log($"Player {player.Player.Id} joined the lobby");
+                Lobby.Players.Add(player.Player);
                 LobbyEvents.InvokePlayerJoined(player.Player.Id);
             }
         }
 
-        private async void OnPlayerLeft(List<int> playerIndices)
+        private void OnPlayerLeft(List<int> playerIndices)
         {
-            Lobby = await LobbyService.Instance.GetLobbyAsync(Lobby.Id);
-
             foreach (int index in playerIndices)
             {
                 if (showDebugMessages) Debug.Log($"Player {Lobby.Players[index].Id} left the lobby");
+                Lobby.Players.RemoveAt(index);
                 LobbyEvents.InvokePlayerLeft(Lobby.Players[index].Id);
             }
         }
 
-        private async void OnDataChanged(Dictionary<string, ChangedOrRemovedLobbyValue<DataObject>> dataChanges)
+        private void OnDataChanged(Dictionary<string, ChangedOrRemovedLobbyValue<DataObject>> dataChanges)
         {
-            Lobby = await LobbyService.Instance.GetLobbyAsync(Lobby.Id);
-
             foreach (var kvp in dataChanges)
             {
+                if (kvp.Value.Removed) Lobby.Data.Remove(kvp.Key);
+                else Lobby.Data[kvp.Key] = kvp.Value.Value;
+
                 if (kvp.Key == "MapIndex") { if (showDebugMessages) Debug.Log($"Map index changed to {kvp.Value.Value.Value}"); }
                 else if (kvp.Key == "RoundCount") { if (showDebugMessages) Debug.Log($"Round count changed to {kvp.Value.Value.Value}"); }
                 else if (kvp.Key == "RoundTime") { if (showDebugMessages) Debug.Log($"Round time changed to {kvp.Value.Value.Value}"); }
@@ -300,13 +258,14 @@ namespace Assets.Scripts.Game.Managers
             GameLobbyEvents.InvokeGameSettingsChanged(true, Lobby.Data);
         }
 
-        private async void OnPlayerDataChanged(Dictionary<int, Dictionary<string, ChangedOrRemovedLobbyValue<PlayerDataObject>>> changes)
+        private void OnPlayerDataChanged(Dictionary<int, Dictionary<string, ChangedOrRemovedLobbyValue<PlayerDataObject>>> changes)
         {
-            Lobby = await LobbyService.Instance.GetLobbyAsync(Lobby.Id);
-
             foreach (var kvp in changes)
                 foreach (var dataChange in kvp.Value)
                 {
+                    if (!dataChange.Value.Removed) Lobby.Players[kvp.Key].Data[dataChange.Key] = dataChange.Value.Value;
+                    else Lobby.Players[kvp.Key].Data.Remove(dataChange.Key);
+
                     if (dataChange.Key == "Team")
                     {
                         if (showDebugMessages) Debug.Log($"Player {Lobby.Players[kvp.Key].Id} team changed to {(Team)int.Parse(dataChange.Value.Value.Value)}");

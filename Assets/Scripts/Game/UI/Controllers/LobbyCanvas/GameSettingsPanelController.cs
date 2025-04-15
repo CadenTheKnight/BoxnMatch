@@ -67,7 +67,12 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
                 editUpdateLoadingBar.StartLoading();
                 UpdateOptionsInteractable(!isEditing);
 
-                await GameLobbyManager.Instance.UpdateGameSettings(mapChanger.Value, roundCountIncrementer.Value, roundTimeIncrementer.Value, gameModeSelector.Selection);
+                if (mapChanger.Value != int.Parse(GameLobbyManager.Instance.Lobby.Data["MapIndex"].Value)
+                    || roundCountIncrementer.Value != int.Parse(GameLobbyManager.Instance.Lobby.Data["RoundCount"].Value)
+                    || roundTimeIncrementer.Value != int.Parse(GameLobbyManager.Instance.Lobby.Data["RoundTime"].Value)
+                    || gameModeSelector.Selection != int.Parse(GameLobbyManager.Instance.Lobby.Data["GameMode"].Value))
+                    await GameLobbyManager.Instance.UpdateGameSettings(mapChanger.Value, roundCountIncrementer.Value, roundTimeIncrementer.Value, gameModeSelector.Selection);
+                else OnGameSettingsChanged(true, GameLobbyManager.Instance.Lobby.Data);
             }
             else
             {
