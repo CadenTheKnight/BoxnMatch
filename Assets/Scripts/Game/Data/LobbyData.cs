@@ -13,8 +13,6 @@ namespace Assets.Scripts.Game.Data
         public int RoundCount { get; set; }
         public int RoundTime { get; set; }
         public GameMode GameMode { get; set; }
-        public LobbyStatus Status { get; set; }
-        public string RelayJoinCode { get; set; }
 
         public LobbyData(GameMode gameMode)
         {
@@ -22,8 +20,6 @@ namespace Assets.Scripts.Game.Data
             RoundCount = 3;
             RoundTime = 60;
             GameMode = gameMode;
-            Status = LobbyStatus.InLobby;
-            RelayJoinCode = default;
         }
 
         public Dictionary<string, DataObject> Serialize()
@@ -34,8 +30,6 @@ namespace Assets.Scripts.Game.Data
                 { "RoundCount", new DataObject(DataObject.VisibilityOptions.Public, RoundCount.ToString()) },
                 { "RoundTime", new DataObject(DataObject.VisibilityOptions.Public, RoundTime.ToString()) },
                 { "GameMode", new DataObject(DataObject.VisibilityOptions.Public, ((int)GameMode).ToString()) },
-                { "Status", new DataObject(DataObject.VisibilityOptions.Public, ((int)Status).ToString()) },
-                { "RelayJoinCode", new DataObject(DataObject.VisibilityOptions.Public, RelayJoinCode) }
             };
         }
     }

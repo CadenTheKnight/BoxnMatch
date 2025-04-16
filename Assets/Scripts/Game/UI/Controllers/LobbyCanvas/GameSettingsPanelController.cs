@@ -36,7 +36,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             editUpdateButton.onClick.AddListener(OnEditUpdateClicked);
 
             LobbyEvents.OnHostMigrated += OnHostMigrated;
-            GameLobbyEvents.OnLobbyDataChanged += OnLobbyDataChanged;
+            GameLobbyEvents.OnGameSettingsChanged += OnGameSettingsChanged;
             GameLobbyEvents.OnPlayerReadyStatusChanged += OnPlayerReadyStatusChanged;
 
             UpdateSelections(GameLobbyManager.Instance.Lobby.Data);
@@ -50,7 +50,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             editUpdateButton.onClick.RemoveListener(OnEditUpdateClicked);
 
             LobbyEvents.OnHostMigrated -= OnHostMigrated;
-            GameLobbyEvents.OnLobbyDataChanged -= OnLobbyDataChanged;
+            GameLobbyEvents.OnGameSettingsChanged -= OnGameSettingsChanged;
             GameLobbyEvents.OnPlayerReadyStatusChanged -= OnPlayerReadyStatusChanged;
 
             editUpdateLoadingBar.StopLoading();
@@ -71,7 +71,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
                     || roundTimeIncrementer.Value != int.Parse(GameLobbyManager.Instance.Lobby.Data["RoundTime"].Value)
                     || gameModeSelector.Selection != int.Parse(GameLobbyManager.Instance.Lobby.Data["GameMode"].Value))
                     await GameLobbyManager.Instance.UpdateGameSettings(mapChanger.Value, roundCountIncrementer.Value, roundTimeIncrementer.Value, gameModeSelector.Selection);
-                else OnLobbyDataChanged(true, GameLobbyManager.Instance.Lobby.Data);
+                else OnGameSettingsChanged(true, GameLobbyManager.Instance.Lobby.Data);
             }
             else
             {
@@ -86,13 +86,13 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
                 && GameLobbyManager.Instance.Lobby.Players.Find(p => p.Id == AuthenticationService.Instance.PlayerId).Data["ReadyStatus"].Value == ((int)ReadyStatus.NotReady).ToString();
         }
 
-        private async void OnLobbyDataChanged(bool success, Dictionary<string, DataObject> lobbyData)
+        private async void OnGameSettingsChanged(bool success, Dictionary<string, DataObject> gameSettings)
         {
             editUpdateLoadingBar.StopLoading();
             UpdateEditUpdateButtonState(isEditing);
             UpdateOptionsInteractable(isEditing);
 
-            if (success) UpdateSelections(lobbyData);
+            if (success) UpdateSelections(gameSettings);
 
             await Task.Delay(1000);
 
@@ -115,12 +115,12 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             }
         }
 
-        private void UpdateSelections(Dictionary<string, DataObject> lobbyData)
+        private void UpdateSelections(Dictionary<string, DataObject> gameSettings)
         {
-            if (lobbyData.ContainsKey("MapIndex")) mapChanger.SetValue(int.Parse(lobbyData["MapIndex"].Value));
-            if (lobbyData.ContainsKey("RoundCount")) roundCountIncrementer.SetValue(int.Parse(lobbyData["RoundCount"].Value));
-            if (lobbyData.ContainsKey("RoundTime")) roundTimeIncrementer.SetValue(int.Parse(lobbyData["RoundTime"].Value));
-            if (lobbyData.ContainsKey("GameMode")) gameModeSelector.SetSelection(int.Parse(lobbyData["GameMode"].Value));
+            if (gameSettings.ContainsKey("MapIndex")) mapChanger.SetValue(int.Parse(gameSettings["MapIndex"].Value));
+            if (gameSettings.ContainsKey("RoundCount")) roundCountIncrementer.SetValue(int.Parse(gameSettings["RoundCount"].Value));
+            if (gameSettings.ContainsKey("RoundTime")) roundTimeIncrementer.SetValue(int.Parse(gameSettings["RoundTime"].Value));
+            if (gameSettings.ContainsKey("GameMode")) gameModeSelector.SetSelection(int.Parse(gameSettings["GameMode"].Value));
         }
 
         private void UpdateOptionsInteractable(bool isEditing)

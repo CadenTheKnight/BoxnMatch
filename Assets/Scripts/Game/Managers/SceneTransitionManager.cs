@@ -1,4 +1,5 @@
 using UnityEngine;
+using Assets.Scripts.Game.Events;
 using UnityEngine.SceneManagement;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Core;
@@ -23,8 +24,8 @@ namespace Assets.Scripts.Game.Managers
             LobbyEvents.OnLobbyLeft += OnLobbyExited;
             LobbyEvents.OnLobbyKicked += OnLobbyExited;
 
-            // GameEvents.OnGameStarted += OnGameStarted;
-            // GameEvents.OnGameEnded += OnGameEnded;
+            GameEvents.OnGameStarted += OnGameStarted;
+            GameEvents.OnGameEnded += OnGameEnded;
         }
 
         private void OnDisable()
@@ -37,8 +38,8 @@ namespace Assets.Scripts.Game.Managers
             LobbyEvents.OnLobbyLeft -= OnLobbyExited;
             LobbyEvents.OnLobbyKicked -= OnLobbyExited;
 
-            // GameEvents.OnGameStarted -= OnGameStarted;
-            // GameEvents.OnGameEnded -= OnGameEnded;
+            GameEvents.OnGameStarted -= OnGameStarted;
+            GameEvents.OnGameEnded -= OnGameEnded;
         }
 
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -50,7 +51,8 @@ namespace Assets.Scripts.Game.Managers
         {
             if (result.Status == ResultStatus.Success)
             {
-                GameObject.Find("GameManager").AddComponent<GameLobbyManager>();
+                GameObject gamelobbyManagerObject = new("GameLobbyManager");
+                gamelobbyManagerObject.AddComponent<GameLobbyManager>();
                 GameLobbyManager.Instance.Initialize((Lobby)result.Data);
 
                 TransitionToScene("Lobby");
@@ -61,7 +63,8 @@ namespace Assets.Scripts.Game.Managers
         {
             if (result.Status == ResultStatus.Success)
             {
-                GameObject.Find("GameManager").AddComponent<GameLobbyManager>();
+                GameObject gamelobbyManagerObject = new("GameLobbyManager");
+                gamelobbyManagerObject.AddComponent<GameLobbyManager>();
                 GameLobbyManager.Instance.Initialize((Lobby)result.Data);
 
                 TransitionToScene("Lobby");
@@ -76,18 +79,18 @@ namespace Assets.Scripts.Game.Managers
                 TransitionToScene("Main");
 
                 GameLobbyManager.Instance.Cleanup();
-                Destroy(GameObject.Find("GameManager").GetComponent<GameLobbyManager>());
+                Destroy(GameLobbyManager.Instance.gameObject);
             }
         }
 
-        private void OnGameStarted(OperationResult result)
+        private void OnGameStarted(bool success, string relayJoinCode)
         {
-            if (result.Status == ResultStatus.Success) SceneManager.LoadSceneAsync((string)result.Data, LoadSceneMode.Additive);
+            if (success) SceneManager.LoadSceneAsync("Loading", LoadSceneMode.Additive);
         }
 
-        private void OnGameEnded(OperationResult result)
+        private void OnGameEnded()
         {
-            if (result.Status == ResultStatus.Success) SceneManager.UnloadSceneAsync((string)result.Data);
+            SceneManager.UnloadSceneAsync("Loading");
         }
 
         private void TransitionToScene(string sceneName)

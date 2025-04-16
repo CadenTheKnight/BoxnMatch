@@ -7,7 +7,6 @@ using Assets.Scripts.Game.Events;
 using Assets.Scripts.Game.Managers;
 using Unity.Services.Authentication;
 using Assets.Scripts.Game.UI.Colors;
-using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Types;
 using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Game.UI.Components;
@@ -18,15 +17,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
     public class PlayerOptionsPanelController : MonoBehaviour
     {
         [Header("UI Components")]
-        [SerializeField] private Image privateIndicator;
-        [SerializeField] private TextMeshProUGUI lobbyNameText;
-        [SerializeField] private Button startButton;
-        [SerializeField] private TextMeshProUGUI startText;
-        [SerializeField] private LoadingBar startLoadingBar;
-        [SerializeField] private Button lobbyCodeButton;
-        [SerializeField] private TextMeshProUGUI lobbyCodeText;
         [SerializeField] private Button leaveButton;
-        [SerializeField] private TextMeshProUGUI leaveText;
         [SerializeField] private Button readyUnreadyButton;
         [SerializeField] private LoadingBar leaveLoadingBar;
         [SerializeField] private TextMeshProUGUI readyUnreadyText;
@@ -34,57 +25,23 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private void OnEnable()
         {
-            startButton.onClick.AddListener(OnStartClicked);
-            lobbyCodeButton.onClick.AddListener(OnLobbyCodeClicked);
             leaveButton.onClick.AddListener(OnLeaveClicked);
             readyUnreadyButton.onClick.AddListener(OnReadyUnreadyClicked);
 
             LobbyEvents.OnLobbyLeft += OnLobbyLeft;
-            LobbyEvents.OnPlayerLeft += OnPlayerLeft;
-            GameLobbyEvents.OnLobbyStatusChanged += OnLobbyStatusChanged;
             GameLobbyEvents.OnPlayerReadyStatusChanged += OnPlayerReadyStatusChanged;
-
-            lobbyNameText.GetComponent<RectTransform>().anchorMin = new Vector2(GameLobbyManager.Instance.Lobby.IsPrivate ? 0.06f : 0f, 0f);
-            lobbyNameText.text = GameLobbyManager.Instance.Lobby.Name;
-            privateIndicator.gameObject.SetActive(GameLobbyManager.Instance.Lobby.IsPrivate);
-            UpdateStartButtonState();
-            lobbyCodeText.text = $"Code: {GameLobbyManager.Instance.Lobby.LobbyCode}";
         }
 
         private void OnDisable()
         {
-            startButton.onClick.RemoveListener(OnStartClicked);
-            lobbyCodeButton.onClick.RemoveListener(OnLobbyCodeClicked);
             leaveButton.onClick.RemoveListener(OnLeaveClicked);
             readyUnreadyButton.onClick.RemoveListener(OnReadyUnreadyClicked);
 
             LobbyEvents.OnLobbyLeft -= OnLobbyLeft;
-            LobbyEvents.OnPlayerLeft -= OnPlayerLeft;
-            GameLobbyEvents.OnLobbyStatusChanged -= OnLobbyStatusChanged;
             GameLobbyEvents.OnPlayerReadyStatusChanged -= OnPlayerReadyStatusChanged;
 
-            startLoadingBar.StopLoading();
             leaveLoadingBar.StopLoading();
             readyUnreadyLoadingBar.StopLoading();
-        }
-
-        private async void OnStartClicked()
-        {
-            startButton.interactable = false;
-            startLoadingBar.StartLoading();
-
-            await GameLobbyManager.Instance.SetLobbyStatus(LobbyStatus.InGame);
-        }
-
-        private async void OnLobbyCodeClicked()
-        {
-            GUIUtility.systemCopyBuffer = GameLobbyManager.Instance.Lobby.LobbyCode;
-
-            lobbyCodeText.text = $"Copied!";
-
-            await Task.Delay(1000);
-
-            lobbyCodeText.text = $"Code: {GameLobbyManager.Instance.Lobby.LobbyCode}";
         }
 
         private async void OnLeaveClicked()
@@ -107,37 +64,10 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
         {
             if (result.Status == ResultStatus.Error)
             {
-                leaveText.text = "Error Leaving";
                 leaveLoadingBar.StopLoading();
 
                 await Task.Delay(1000);
-
-                leaveText.text = "Leave";
                 leaveButton.interactable = true;
-            }
-        }
-
-        private void OnPlayerLeft(string playerId)
-        {
-            if (playerId != AuthenticationService.Instance.PlayerId) UpdateStartButtonState();
-        }
-
-        private void OnLobbyStatusChanged(bool success, LobbyStatus lobbyStatus)
-        {
-            if (success)
-            {
-                startLoadingBar.StopLoading();
-
-                if (lobbyStatus == LobbyStatus.InGame)
-                {
-                    startText.text = "In Game";
-                    startButton.interactable = false;
-                }
-                else
-                {
-                    startButton.interactable = true;
-                    UpdateStartButtonState();
-                }
             }
         }
 
@@ -145,8 +75,6 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
         {
             if (success)
             {
-                UpdateStartButtonState();
-
                 if (playerId == AuthenticationService.Instance.PlayerId)
                 {
                     UpdateReadyButtonState(readyStatus);
@@ -181,53 +109,6 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
                 colors.disabledColor = UIColors.Red.Five;
             }
             readyUnreadyButton.colors = colors;
-        }
-
-        private void UpdateStartButtonState()
-        {
-            int playersReady = 0;
-            foreach (Player player in GameLobbyManager.Instance.Lobby.Players)
-                if (player.Data["ReadyStatus"].Value == ((int)ReadyStatus.Ready).ToString()) playersReady++;
-
-            int maxPlayers = GameLobbyManager.Instance.Lobby.MaxPlayers;
-
-            if (playersReady == maxPlayers)
-            {
-                if (CheckTeamBalance())
-                {
-                    if (AuthenticationService.Instance.PlayerId == GameLobbyManager.Instance.Lobby.HostId)
-                    {
-
-                        startButton.interactable = true;
-                        startText.text = "Start Game";
-                    }
-                    else startText.text = "Waiting for host...";
-                }
-                else
-                {
-                    startButton.interactable = false;
-                    startText.text = "Teams Unbalanced";
-                }
-            }
-            else
-            {
-                startButton.interactable = false;
-                startText.text = playersReady + " / " + maxPlayers + " Ready";
-            }
-        }
-
-        private bool CheckTeamBalance()
-        {
-            int redTeamCount = 0;
-            int blueTeamCount = 0;
-
-            foreach (Player player in GameLobbyManager.Instance.Lobby.Players)
-            {
-                if (player.Data["Team"].Value == ((int)Team.Red).ToString()) redTeamCount++;
-                else if (player.Data["Team"].Value == ((int)Team.Blue).ToString()) blueTeamCount++;
-            }
-
-            return redTeamCount == blueTeamCount || Mathf.Abs(redTeamCount - blueTeamCount) == 1;
         }
     }
 }

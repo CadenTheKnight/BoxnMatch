@@ -1,7 +1,12 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Threading.Tasks;
+using Assets.Scripts.Game.Data;
+using Assets.Scripts.Game.Managers;
 using Assets.Scripts.Game.UI.Components;
+using Assets.Scripts.Game.Events;
+using UnityEngine.SceneManagement;
 
 namespace Assets.Scripts.Game.UI.Controllers.LoadingCanvas
 {
@@ -12,26 +17,46 @@ namespace Assets.Scripts.Game.UI.Controllers.LoadingCanvas
         [SerializeField] private Image mapThumbnailImage;
         [SerializeField] private TextMeshProUGUI statusText;
         [SerializeField] private TextMeshProUGUI mapNameText;
+        [SerializeField] private MapSelectionData mapSelectionData;
 
-        public void StartLoading(string mapName, Sprite mapThumbnail, string loadingStatus)
+        private int connectedPlayers = 0;
+
+        private void OnEnable()
         {
-            mapThumbnailImage.sprite = mapThumbnail;
-            mapNameText.text = mapName;
-            statusText.text = loadingStatus;
+            mapThumbnailImage.sprite = mapSelectionData.GetMap(int.Parse(GameLobbyManager.Instance.Lobby.Data["MapIndex"].Value)).Thumbnail;
+            mapNameText.text = mapSelectionData.GetMap(int.Parse(GameLobbyManager.Instance.Lobby.Data["MapIndex"].Value)).Name;
+            UpdatePlayerCountDisplay();
             loadingBar.StartLoading();
+
+            OnPlayerConnect();
         }
 
-        public void SetStatus(string status)
+        private void OnDisable()
         {
-            statusText.text = status;
-        }
-
-        public void StopLoading()
-        {
-            mapThumbnailImage.sprite = null;
-            mapNameText.text = "";
-            statusText.text = "";
             loadingBar.StopLoading();
+        }
+
+        private async void OnPlayerConnect()
+        {
+            connectedPlayers++;
+
+            if (connectedPlayers == GameLobbyManager.Instance.Lobby.MaxPlayers)
+            {
+                loadingBar.StopLoading();
+                statusText.text = "All players connected!";
+                await Task.Delay(1000);
+                statusText.text = "Loading map...";
+
+
+                GameEvents.InvokeGameEnded();
+                SceneManager.UnloadSceneAsync("Loading");
+            }
+            else UpdatePlayerCountDisplay();
+        }
+
+        private void UpdatePlayerCountDisplay()
+        {
+            statusText.text = $"Waiting for players...";
         }
     }
 }

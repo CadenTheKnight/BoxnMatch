@@ -103,18 +103,18 @@ namespace Assets.Scripts.Game.Managers
                 {
                     if (showDebugMessages) Debug.Log($"Game settings updated successfully: {result.Message}");
                     foreach (var kvp in changedData) Lobby.Data[kvp.Key] = kvp.Value;
-                    GameLobbyEvents.InvokeLobbyDataChanged(true, changedData);
+                    GameLobbyEvents.InvokeGameSettingsChanged(true, changedData);
                 }
                 else
                 {
                     if (showDebugMessages) Debug.LogError($"Failed to update game settings: {result.Message}");
-                    GameLobbyEvents.InvokeLobbyDataChanged(false, null);
+                    GameLobbyEvents.InvokeGameSettingsChanged(false, null);
                 }
             }
             else
             {
                 if (showDebugMessages) Debug.LogWarning($"UpdateGameSettings timed out for lobby {Lobby.Id}");
-                GameLobbyEvents.InvokeLobbyDataChanged(false, null);
+                GameLobbyEvents.InvokeGameSettingsChanged(false, null);
             }
         }
 
@@ -185,36 +185,6 @@ namespace Assets.Scripts.Game.Managers
             leavingVolunatirily = true;
             await LobbyManager.LeaveLobby(lobbyId);
         }
-
-        public async Task SetLobbyStatus(LobbyStatus lobbyStatus)
-        {
-            Dictionary<string, DataObject> updateData;
-            if (lobbyStatus == LobbyStatus.InGame) updateData = new Dictionary<string, DataObject> { ["Status"] = new DataObject(DataObject.VisibilityOptions.Public, ((int)lobbyStatus).ToString()), ["GameStarted"] = new DataObject(DataObject.VisibilityOptions.Public, "true") };
-            else updateData = new Dictionary<string, DataObject> { ["Status"] = new DataObject(DataObject.VisibilityOptions.Public, ((int)lobbyStatus).ToString()) };
-            Task<OperationResult> updateTask = LobbyManager.UpdateLobbyData(Lobby.Id, updateData);
-            Task completedTask = await Task.WhenAny(updateTask, Task.Delay(5000));
-            if (completedTask == updateTask)
-            {
-                OperationResult result = await updateTask;
-                if (result.Status == ResultStatus.Success)
-                {
-                    if (showDebugMessages) Debug.Log($"Lobby status updated to {lobbyStatus} successfully: {result.Message}");
-                    Lobby.Data["Status"] = new DataObject(DataObject.VisibilityOptions.Public, ((int)lobbyStatus).ToString());
-                    GameLobbyEvents.InvokeLobbyDataChanged(true, updateData);
-                }
-                else
-                {
-                    if (showDebugMessages) Debug.LogError($"Failed to update lobby status to {lobbyStatus}: {result.Message}");
-                    GameLobbyEvents.InvokeLobbyDataChanged(false, updateData);
-                }
-            }
-            else
-            {
-                if (showDebugMessages) Debug.LogWarning($"SetInGame timed out for lobby {Lobby.Id}");
-                GameLobbyEvents.InvokeLobbyDataChanged(false, updateData);
-            }
-        }
-
         #region Unity Lobby Events
         private async Task SubscribeToLobbyEvents()
         {
@@ -329,12 +299,10 @@ namespace Assets.Scripts.Game.Managers
                 if (kvp.Key == "MapIndex") { if (showDebugMessages) Debug.Log($"Map index changed to {kvp.Value.Value.Value}"); }
                 else if (kvp.Key == "RoundCount") { if (showDebugMessages) Debug.Log($"Round count changed to {kvp.Value.Value.Value}"); }
                 else if (kvp.Key == "RoundTime") { if (showDebugMessages) Debug.Log($"Round time changed to {kvp.Value.Value.Value}"); }
-                else if (kvp.Key == "GameMode") { if (showDebugMessages) Debug.Log($"Game mode changed to {kvp.Value.Value.Value}"); }
-                else if (kvp.Key == "Status") { if (showDebugMessages) Debug.Log($"Lobby status changed to {(LobbyStatus)int.Parse(kvp.Value.Value.Value)}"); }
-                else if (kvp.Key == "RelayJoinCode") { if (showDebugMessages) Debug.Log($"Relay join code changed to {kvp.Value.Value.Value}"); }
+                else if (kvp.Key == "GameMode") { if (showDebugMessages) Debug.Log($"Game mode changed to {(GameMode)int.Parse(kvp.Value.Value.Value)}"); }
             }
 
-            GameLobbyEvents.InvokeLobbyDataChanged(true, Lobby.Data);
+            GameLobbyEvents.InvokeGameSettingsChanged(true, Lobby.Data);
         }
 
         private void OnPlayerDataChanged(Dictionary<int, Dictionary<string, ChangedOrRemovedLobbyValue<PlayerDataObject>>> changes)

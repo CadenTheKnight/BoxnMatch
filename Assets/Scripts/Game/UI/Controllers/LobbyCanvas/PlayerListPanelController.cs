@@ -24,7 +24,9 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             LobbyEvents.OnPlayerJoined += OnPlayerJoined;
             LobbyEvents.OnPlayerLeft += OnPlayerLeft;
             LobbyEvents.OnPlayerKicked += OnPlayerKicked;
-            GameLobbyEvents.OnPlayerTeamChanged += OnPlayerTeamChanged;
+            GameEvents.OnGameStarted += OnGameStarted;
+            GameEvents.OnGameEnded += OnGameEnded;
+            // GameLobbyEvents.OnPlayerTeamChanged += OnPlayerTeamChanged;
             GameLobbyEvents.OnPlayerReadyStatusChanged += OnPlayerReadyStatusChanged;
             GameLobbyEvents.OnPlayerConnectionStatusChanged += OnPlayerConnectionStatusChanged;
 
@@ -37,7 +39,9 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             LobbyEvents.OnPlayerJoined -= OnPlayerJoined;
             LobbyEvents.OnPlayerLeft -= OnPlayerLeft;
             LobbyEvents.OnPlayerKicked -= OnPlayerKicked;
-            GameLobbyEvents.OnPlayerTeamChanged -= OnPlayerTeamChanged;
+            GameEvents.OnGameStarted -= OnGameStarted;
+            GameEvents.OnGameEnded -= OnGameEnded;
+            // GameLobbyEvents.OnPlayerTeamChanged -= OnPlayerTeamChanged;
             GameLobbyEvents.OnPlayerReadyStatusChanged -= OnPlayerReadyStatusChanged;
             GameLobbyEvents.OnPlayerConnectionStatusChanged -= OnPlayerConnectionStatusChanged;
         }
@@ -74,10 +78,20 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             _playerListEntries.Find(entry => entry.PlayerId == result.Data.ToString()).SetKicked((string)result.Data);
         }
 
-        private void OnPlayerTeamChanged(bool success, string playerId, Team team)
+        private void OnGameStarted(bool success, string relayJoinCode)
         {
-            _playerListEntries.Find(entry => entry.PlayerId == playerId).SetTeam(success, team);
+            if (success) foreach (PlayerListEntry entry in _playerListEntries) entry.SetInGame(true);
         }
+
+        private void OnGameEnded()
+        {
+            foreach (PlayerListEntry entry in _playerListEntries) entry.SetInGame(false);
+        }
+
+        // private void OnPlayerTeamChanged(bool success, string playerId, Team team)
+        // {
+        //     _playerListEntries.Find(entry => entry.PlayerId == playerId).SetTeam(success, team);
+        // }
 
         private void OnPlayerReadyStatusChanged(bool success, string playerId, ReadyStatus readyStatus)
         {

@@ -11,20 +11,12 @@ namespace Assets.Scripts.Game.Events
     {
         #region Events
         /// <summary>
-        /// Triggered when the lobby data changes.
+        /// Triggered when the game settings change.
         /// </summary>
         /// <param name="success">Indicates if the changes were successful.</param>
-        /// <param name="lobbyData">A dictionary of changes made to the lobby data.</param>
-        public delegate void LobbyDataChangedHandler(bool success, Dictionary<string, DataObject> lobbyData);
-        public static event LobbyDataChangedHandler OnLobbyDataChanged;
-
-        /// <summary>
-        /// Triggered when the lobby status changes.
-        /// </summary>
-        /// <param name="success">Indicates if the lobby status change was successful.</param>
-        /// <param name="lobbyStatus">The new status of the lobby.</param>
-        public delegate void LobbyStatusChangedHandler(bool success, LobbyStatus lobbyStatus);
-        public static event LobbyStatusChangedHandler OnLobbyStatusChanged;
+        /// <param name="gameSettings">A dictionary of changes made to the game settings.</param>
+        public delegate void GameSettingsChangedHandler(bool success, Dictionary<string, DataObject> gameSettings);
+        public static event GameSettingsChangedHandler OnGameSettingsChanged;
 
         /// <summary>
         /// Triggered when a player changes their team.
@@ -55,8 +47,7 @@ namespace Assets.Scripts.Game.Events
         #endregion
 
         #region Invocations
-        public static void InvokeLobbyDataChanged(bool success, Dictionary<string, DataObject> lobbyData) => OnLobbyDataChanged?.Invoke(success, lobbyData);
-        public static void InvokeLobbyStatusChanged(bool success, LobbyStatus lobbyStatus) => OnLobbyStatusChanged?.Invoke(success, lobbyStatus);
+        public static void InvokeGameSettingsChanged(bool success, Dictionary<string, DataObject> gameSettings) => OnGameSettingsChanged?.Invoke(success, gameSettings);
         public static void InvokePlayerTeamChanged(bool success, string playerId, Team team) => OnPlayerTeamChanged?.Invoke(success, playerId, team);
         public static void InvokePlayerReadyStatusChanged(bool success, string playerId, ReadyStatus readyStatus) => OnPlayerReadyStatusChanged?.Invoke(success, playerId, readyStatus);
         public static void InvokePlayerConnectionStatusChanged(bool success, string playerId, ConnectionStatus connectionStatus) => OnPlayerConnectionStatusChanged?.Invoke(success, playerId, connectionStatus);
