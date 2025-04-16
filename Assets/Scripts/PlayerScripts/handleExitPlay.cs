@@ -17,22 +17,36 @@ public class handleExitPlay : MonoBehaviour
     {
         GameObject colObj = collision.gameObject;
 
+        //Debug.Log("Handle Exit " + colObj.name);
+
         // Ensure one trigger per exit
         if (debounceList.Contains(colObj)) return; 
-        StartCoroutine(HandleDebouncing(colObj));
         
-        if (collision.gameObject.CompareTag("Player")) // handle player exiting
+        if (colObj.CompareTag("Player")) // handle player exiting
         {
+            Debug.Log("Handle Exit 1 " + colObj.name);
+
+            // Add players to the debounce list
+            StartCoroutine(HandleDebouncing(colObj));
+            Debug.Log("Handle Exit 2 " + colObj.name);
+
             GetComponent<AudioSource>().Play();
+            Debug.Log("Handle Exit 3 " + colObj.name);
 
             //Debug.Log("exit");
             DamageableObject damagableObj = colObj.GetComponent<DamageableObject>();
+            Debug.Log("Handle Exit 4 " + colObj.name);
 
-            damagableObj.Die();
-            damagableObj.currentDamage = 0;
             colObj.GetComponent<Rigidbody2D>().velocity = Vector3.zero;
-            colObj.transform.position = respawnPoint;
+            Debug.Log("Handle Exit 5 " + colObj.name);
             damagableObj.MakeInvincible(respawnInvincibilityTimer);
+            Debug.Log("Handle Exit 6 " + colObj.name);
+            damagableObj.Die();
+            Debug.Log("Handle Exit 7 " + colObj.name);
+            damagableObj.currentDamage = 0;
+            Debug.Log("Handle Exit 8 " + colObj.name);
+            colObj.transform.position = respawnPoint;
+            Debug.Log("Reset " + colObj.name + " to spawn point");
         }
         else // Destroy everything that exits thats not a player
         {
@@ -44,9 +58,11 @@ public class handleExitPlay : MonoBehaviour
     private IEnumerator HandleDebouncing(GameObject obj)
     {
         debounceList.Add(obj);
+        Debug.Log(obj + " added to the debounce list");
 
         yield return new WaitForSeconds(debounceTimer);
 
         debounceList.Remove(obj);
+        Debug.Log(obj + " removed from the debounce list");
     }
 }
