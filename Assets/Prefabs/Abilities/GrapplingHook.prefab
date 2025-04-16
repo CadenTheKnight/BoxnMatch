@@ -361,12 +361,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dir: 3
   speed: 20
-  retractForce: 40
+  retractForce: 100
   extend: 1
   retract: 0
   minimumRopeLength: 0.5
   maximumRopeLength: 30
-  knockbackMult: 50
+  knockbackMult: 500
+  verticalKnockbackAddition: 5
   hookedPlayer: {fileID: 0}
   pr: {fileID: 0}
   extending: {fileID: 8300000, guid: 58ee48301b8b0c34f98df612131359c2, type: 3}
