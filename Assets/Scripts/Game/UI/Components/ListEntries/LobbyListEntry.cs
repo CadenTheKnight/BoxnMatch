@@ -19,7 +19,6 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
         [SerializeField] private TextMeshProUGUI nameText;
         [SerializeField] private TextMeshProUGUI playerCountText;
         [SerializeField] private TextMeshProUGUI gameModeText;
-        [SerializeField] private TextMeshProUGUI statusText;
         [SerializeField] private Image mapImage;
         [SerializeField] private MapSelectionData mapSelectionData;
 
@@ -71,7 +70,6 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             nameText.text = lobby.Name;
             playerCountText.text = $"{lobby.Players.Count}/{lobby.MaxPlayers}";
             gameModeText.text = ((GameMode)int.Parse(lobby.Data["GameMode"].Value)).ToString();
-            statusText.text = ((LobbyStatus)int.Parse(lobby.Data["Status"].Value)).ToString();
             mapImage.sprite = mapSelectionData.GetMap(int.Parse(lobby.Data["MapIndex"].Value)).Thumbnail;
 
             SetSelected(false);
