@@ -34,12 +34,14 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private void OnEnable()
         {
+            startButton.onClick.AddListener(OnStartClicked);
             lobbyCodeButton.onClick.AddListener(OnLobbyCodeClicked);
             leaveButton.onClick.AddListener(OnLeaveClicked);
             readyUnreadyButton.onClick.AddListener(OnReadyUnreadyClicked);
 
             LobbyEvents.OnLobbyLeft += OnLobbyLeft;
             LobbyEvents.OnPlayerLeft += OnPlayerLeft;
+            GameLobbyEvents.OnLobbyStatusChanged += OnLobbyStatusChanged;
             GameLobbyEvents.OnPlayerReadyStatusChanged += OnPlayerReadyStatusChanged;
 
             lobbyNameText.GetComponent<RectTransform>().anchorMin = new Vector2(GameLobbyManager.Instance.Lobby.IsPrivate ? 0.06f : 0f, 0f);
@@ -51,17 +53,27 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private void OnDisable()
         {
+            startButton.onClick.RemoveListener(OnStartClicked);
             lobbyCodeButton.onClick.RemoveListener(OnLobbyCodeClicked);
             leaveButton.onClick.RemoveListener(OnLeaveClicked);
             readyUnreadyButton.onClick.RemoveListener(OnReadyUnreadyClicked);
 
             LobbyEvents.OnLobbyLeft -= OnLobbyLeft;
             LobbyEvents.OnPlayerLeft -= OnPlayerLeft;
+            GameLobbyEvents.OnLobbyStatusChanged -= OnLobbyStatusChanged;
             GameLobbyEvents.OnPlayerReadyStatusChanged -= OnPlayerReadyStatusChanged;
 
             startLoadingBar.StopLoading();
             leaveLoadingBar.StopLoading();
             readyUnreadyLoadingBar.StopLoading();
+        }
+
+        private async void OnStartClicked()
+        {
+            startButton.interactable = false;
+            startLoadingBar.StartLoading();
+
+            await GameLobbyManager.Instance.SetLobbyStatus(LobbyStatus.InGame);
         }
 
         private async void OnLobbyCodeClicked()
@@ -88,7 +100,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             readyUnreadyButton.interactable = false;
             readyUnreadyLoadingBar.StartLoading();
 
-            await GameLobbyManager.Instance.TogglePlayerReadyStatus(AuthenticationService.Instance.PlayerId, GameLobbyManager.Instance.Lobby.Players.Find(p => p.Id == AuthenticationService.Instance.PlayerId).Data["ReadyStatus"].Value == ((int)ReadyStatus.Ready).ToString() ? ReadyStatus.NotReady : ReadyStatus.Ready);
+            await GameLobbyManager.Instance.SetPlayerReadyStatus(AuthenticationService.Instance.PlayerId, GameLobbyManager.Instance.Lobby.Players.Find(p => p.Id == AuthenticationService.Instance.PlayerId).Data["ReadyStatus"].Value == ((int)ReadyStatus.Ready).ToString() ? ReadyStatus.NotReady : ReadyStatus.Ready);
         }
 
         private async void OnLobbyLeft(OperationResult result)
@@ -108,6 +120,25 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
         private void OnPlayerLeft(string playerId)
         {
             if (playerId != AuthenticationService.Instance.PlayerId) UpdateStartButtonState();
+        }
+
+        private void OnLobbyStatusChanged(bool success, LobbyStatus lobbyStatus)
+        {
+            if (success)
+            {
+                startLoadingBar.StopLoading();
+
+                if (lobbyStatus == LobbyStatus.InGame)
+                {
+                    startText.text = "In Game";
+                    startButton.interactable = false;
+                }
+                else
+                {
+                    startButton.interactable = true;
+                    UpdateStartButtonState();
+                }
+            }
         }
 
         private async void OnPlayerReadyStatusChanged(bool success, string playerId, ReadyStatus readyStatus)

@@ -1,12 +1,10 @@
 using UnityEngine;
-using System.Threading.Tasks;
 using Assets.Scripts.Game.Types;
 using Assets.Scripts.Game.Events;
 using System.Collections.Generic;
 using Assets.Scripts.Game.Managers;
 using Unity.Services.Authentication;
 using Unity.Services.Lobbies.Models;
-using Assets.Scripts.Framework.Types;
 using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Framework.Utilities;
 using Assets.Scripts.Game.UI.Components.ListEntries;
@@ -25,6 +23,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             LobbyEvents.OnHostMigrated += OnHostMigrated;
             LobbyEvents.OnPlayerJoined += OnPlayerJoined;
             LobbyEvents.OnPlayerLeft += OnPlayerLeft;
+            LobbyEvents.OnPlayerKicked += OnPlayerKicked;
             GameLobbyEvents.OnPlayerTeamChanged += OnPlayerTeamChanged;
             GameLobbyEvents.OnPlayerReadyStatusChanged += OnPlayerReadyStatusChanged;
             GameLobbyEvents.OnPlayerConnectionStatusChanged += OnPlayerConnectionStatusChanged;
@@ -37,6 +36,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             LobbyEvents.OnHostMigrated -= OnHostMigrated;
             LobbyEvents.OnPlayerJoined -= OnPlayerJoined;
             LobbyEvents.OnPlayerLeft -= OnPlayerLeft;
+            LobbyEvents.OnPlayerKicked -= OnPlayerKicked;
             GameLobbyEvents.OnPlayerTeamChanged -= OnPlayerTeamChanged;
             GameLobbyEvents.OnPlayerReadyStatusChanged -= OnPlayerReadyStatusChanged;
             GameLobbyEvents.OnPlayerConnectionStatusChanged -= OnPlayerConnectionStatusChanged;
@@ -67,6 +67,11 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
         private void OnPlayerLeft(string playerId)
         {
             if (playerId != AuthenticationService.Instance.PlayerId) ResetPlayerList();
+        }
+
+        private void OnPlayerKicked(OperationResult result)
+        {
+            _playerListEntries.Find(entry => entry.PlayerId == result.Data.ToString()).SetKicked((string)result.Data);
         }
 
         private void OnPlayerTeamChanged(bool success, string playerId, Team team)

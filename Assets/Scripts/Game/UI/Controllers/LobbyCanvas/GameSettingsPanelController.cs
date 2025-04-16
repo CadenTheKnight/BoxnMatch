@@ -36,7 +36,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             editUpdateButton.onClick.AddListener(OnEditUpdateClicked);
 
             LobbyEvents.OnHostMigrated += OnHostMigrated;
-            GameLobbyEvents.OnGameSettingsChanged += OnGameSettingsChanged;
+            GameLobbyEvents.OnLobbyDataChanged += OnLobbyDataChanged;
             GameLobbyEvents.OnPlayerReadyStatusChanged += OnPlayerReadyStatusChanged;
 
             UpdateSelections(GameLobbyManager.Instance.Lobby.Data);
@@ -50,7 +50,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             editUpdateButton.onClick.RemoveListener(OnEditUpdateClicked);
 
             LobbyEvents.OnHostMigrated -= OnHostMigrated;
-            GameLobbyEvents.OnGameSettingsChanged -= OnGameSettingsChanged;
+            GameLobbyEvents.OnLobbyDataChanged -= OnLobbyDataChanged;
             GameLobbyEvents.OnPlayerReadyStatusChanged -= OnPlayerReadyStatusChanged;
 
             editUpdateLoadingBar.StopLoading();
@@ -71,7 +71,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
                     || roundTimeIncrementer.Value != int.Parse(GameLobbyManager.Instance.Lobby.Data["RoundTime"].Value)
                     || gameModeSelector.Selection != int.Parse(GameLobbyManager.Instance.Lobby.Data["GameMode"].Value))
                     await GameLobbyManager.Instance.UpdateGameSettings(mapChanger.Value, roundCountIncrementer.Value, roundTimeIncrementer.Value, gameModeSelector.Selection);
-                else OnGameSettingsChanged(true, GameLobbyManager.Instance.Lobby.Data);
+                else OnLobbyDataChanged(true, GameLobbyManager.Instance.Lobby.Data);
             }
             else
             {
@@ -86,7 +86,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
                 && GameLobbyManager.Instance.Lobby.Players.Find(p => p.Id == AuthenticationService.Instance.PlayerId).Data["ReadyStatus"].Value == ((int)ReadyStatus.NotReady).ToString();
         }
 
-        private async void OnGameSettingsChanged(bool success, Dictionary<string, DataObject> lobbyData)
+        private async void OnLobbyDataChanged(bool success, Dictionary<string, DataObject> lobbyData)
         {
             editUpdateLoadingBar.StopLoading();
             UpdateEditUpdateButtonState(isEditing);

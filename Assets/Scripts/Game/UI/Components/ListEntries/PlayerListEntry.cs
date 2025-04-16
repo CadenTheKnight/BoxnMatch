@@ -8,6 +8,7 @@ using Assets.Scripts.Game.Managers;
 using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Game.UI.Colors;
 using Unity.Services.Authentication;
+using Assets.Scripts.Framework.Types;
 using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Framework.Utilities;
 using Assets.Scripts.Game.UI.Components.Options.Selector;
@@ -70,27 +71,12 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         private void OnOptionsButtonClicked()
         {
-            optionsButton.gameObject.SetActive(false);
-            nameText.GetComponent<RectTransform>().anchorMin = new Vector2(0.35f, 0f);
-            nameText.GetComponent<RectTransform>().anchorMax = new Vector2(
-                PlayerId != AuthenticationService.Instance.PlayerId && AuthenticationService.Instance.PlayerId == GameLobbyManager.Instance.Lobby.HostId ? 0.8f
-                : PlayerId == GameLobbyManager.Instance.Lobby.HostId ? 0.85f : 1f, 1f);
-            hostIndicatorImage.GetComponent<RectTransform>().anchorMin = new Vector2(0.85f, 0f);
-            hostIndicatorImage.GetComponent<RectTransform>().anchorMax = new Vector2(1f, 1f);
-
-            optionsPanel.SetActive(true);
+            OpenOptionsPanel();
         }
 
         private void OnBackButtonClicked()
         {
-            optionsPanel.SetActive(false);
-
-            nameText.GetComponent<RectTransform>().anchorMin = new Vector2(0.15f, 0f);
-            nameText.GetComponent<RectTransform>().anchorMax = new Vector2(PlayerId == GameLobbyManager.Instance.Lobby.HostId ? 0.7f : 0.85f, 1f);
-            hostIndicatorImage.GetComponent<RectTransform>().anchorMin = new Vector2(0.7f, 0f);
-            hostIndicatorImage.GetComponent<RectTransform>().anchorMax = new Vector2(0.85f, 1f);
-
-            optionsButton.gameObject.SetActive(true);
+            CloseOptionsPanel();
         }
 
         private void OnSteamProfileButtonClicked()
@@ -112,6 +98,14 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             teamPanel.SetActive(true);
         }
 
+        public async void SetKicked(string playerId)
+        {
+            kickLoadingBar.StopLoading();
+
+            await Task.Delay(1000);
+            kickButton.interactable = true;
+        }
+
         private async void ChangeTeam(int team)
         {
             playerTeamSelector.UpdateInteractable(false);
@@ -129,8 +123,8 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
             emptyStatePanel.SetActive(false);
             activeStatePanel.SetActive(true);
-            optionsPanel.SetActive(false);
             teamPanel.SetActive(false);
+            CloseOptionsPanel();
 
             nameText.GetComponent<RectTransform>().anchorMax = new Vector2(PlayerId == GameLobbyManager.Instance.Lobby.HostId ? 0.7f : .85f, 1f);
 
@@ -157,7 +151,6 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
             hostIndicatorImage.gameObject.SetActive(player.Id == GameLobbyManager.Instance.Lobby.HostId);
             optionsButton.gameObject.SetActive(player.Id != AuthenticationService.Instance.PlayerId);
-            kickButton.gameObject.SetActive(player.Id != AuthenticationService.Instance.PlayerId && AuthenticationService.Instance.PlayerId == GameLobbyManager.Instance.Lobby.HostId);
         }
 
         public void SetEmpty()
@@ -289,6 +282,32 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
             playerTeamSelector.UpdateInteractable((Team)int.Parse(GameLobbyManager.Instance.Lobby.Players.Find(p => p.Id == PlayerId).Data["Team"].Value) == Team.Red || redTeamCount < blueTeamCount, 0);
             playerTeamSelector.UpdateInteractable((Team)int.Parse(GameLobbyManager.Instance.Lobby.Players.Find(p => p.Id == PlayerId).Data["Team"].Value) == Team.Blue || blueTeamCount < redTeamCount, 1);
+        }
+
+        private void OpenOptionsPanel()
+        {
+            optionsButton.gameObject.SetActive(false);
+            nameText.GetComponent<RectTransform>().anchorMin = new Vector2(0.35f, 0f);
+            nameText.GetComponent<RectTransform>().anchorMax = new Vector2(
+                PlayerId != AuthenticationService.Instance.PlayerId && AuthenticationService.Instance.PlayerId == GameLobbyManager.Instance.Lobby.HostId ? 0.8f
+                : PlayerId == GameLobbyManager.Instance.Lobby.HostId ? 0.85f : 1f, 1f);
+            hostIndicatorImage.GetComponent<RectTransform>().anchorMin = new Vector2(0.85f, 0f);
+            hostIndicatorImage.GetComponent<RectTransform>().anchorMax = new Vector2(1f, 1f);
+            kickButton.gameObject.SetActive(PlayerId != AuthenticationService.Instance.PlayerId && AuthenticationService.Instance.PlayerId == GameLobbyManager.Instance.Lobby.HostId);
+
+            optionsPanel.SetActive(true);
+        }
+
+        private void CloseOptionsPanel()
+        {
+            optionsPanel.SetActive(false);
+
+            nameText.GetComponent<RectTransform>().anchorMin = new Vector2(0.15f, 0f);
+            nameText.GetComponent<RectTransform>().anchorMax = new Vector2(PlayerId == GameLobbyManager.Instance.Lobby.HostId ? 0.7f : 0.85f, 1f);
+            hostIndicatorImage.GetComponent<RectTransform>().anchorMin = new Vector2(0.7f, 0f);
+            hostIndicatorImage.GetComponent<RectTransform>().anchorMax = new Vector2(0.85f, 1f);
+
+            optionsButton.gameObject.SetActive(true);
         }
     }
 }

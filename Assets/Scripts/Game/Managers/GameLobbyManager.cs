@@ -78,7 +78,7 @@ namespace Assets.Scripts.Game.Managers
         }
 
         /// <summary>
-        /// Updates the game settings in the lobby data.
+        /// Updates the game settings in the lobby.
         /// </summary>
         /// <param name="mapValue">The updated map index.</param>
         /// <param name="roundCountValue">The updated round count.</param>
@@ -103,18 +103,18 @@ namespace Assets.Scripts.Game.Managers
                 {
                     if (showDebugMessages) Debug.Log($"Game settings updated successfully: {result.Message}");
                     foreach (var kvp in changedData) Lobby.Data[kvp.Key] = kvp.Value;
-                    GameLobbyEvents.InvokeGameSettingsChanged(true, changedData);
+                    GameLobbyEvents.InvokeLobbyDataChanged(true, changedData);
                 }
                 else
                 {
                     if (showDebugMessages) Debug.LogError($"Failed to update game settings: {result.Message}");
-                    GameLobbyEvents.InvokeGameSettingsChanged(false, null);
+                    GameLobbyEvents.InvokeLobbyDataChanged(false, null);
                 }
             }
             else
             {
                 if (showDebugMessages) Debug.LogWarning($"UpdateGameSettings timed out for lobby {Lobby.Id}");
-                GameLobbyEvents.InvokeGameSettingsChanged(false, null);
+                GameLobbyEvents.InvokeLobbyDataChanged(false, null);
             }
         }
 
@@ -154,7 +154,7 @@ namespace Assets.Scripts.Game.Managers
         /// </summary>
         /// <param name="playerId">The ID of the player whose ready status is being toggled.</param>
         /// <param name="readyStatus">The new ready status for the player.</param>
-        public async Task TogglePlayerReadyStatus(string playerId, ReadyStatus readyStatus)
+        public async Task SetPlayerReadyStatus(string playerId, ReadyStatus readyStatus)
         {
             Task<OperationResult> updateTask = LobbyManager.UpdatePlayerData(Lobby.Id, playerId, new() { ["ReadyStatus"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Public, ((int)readyStatus).ToString()) });
             Task completedTask = await Task.WhenAny(updateTask, Task.Delay(5000));
@@ -185,6 +185,36 @@ namespace Assets.Scripts.Game.Managers
             leavingVolunatirily = true;
             await LobbyManager.LeaveLobby(lobbyId);
         }
+
+        public async Task SetLobbyStatus(LobbyStatus lobbyStatus)
+        {
+            Dictionary<string, DataObject> updateData;
+            if (lobbyStatus == LobbyStatus.InGame) updateData = new Dictionary<string, DataObject> { ["Status"] = new DataObject(DataObject.VisibilityOptions.Public, ((int)lobbyStatus).ToString()), ["GameStarted"] = new DataObject(DataObject.VisibilityOptions.Public, "true") };
+            else updateData = new Dictionary<string, DataObject> { ["Status"] = new DataObject(DataObject.VisibilityOptions.Public, ((int)lobbyStatus).ToString()) };
+            Task<OperationResult> updateTask = LobbyManager.UpdateLobbyData(Lobby.Id, updateData);
+            Task completedTask = await Task.WhenAny(updateTask, Task.Delay(5000));
+            if (completedTask == updateTask)
+            {
+                OperationResult result = await updateTask;
+                if (result.Status == ResultStatus.Success)
+                {
+                    if (showDebugMessages) Debug.Log($"Lobby status updated to {lobbyStatus} successfully: {result.Message}");
+                    Lobby.Data["Status"] = new DataObject(DataObject.VisibilityOptions.Public, ((int)lobbyStatus).ToString());
+                    GameLobbyEvents.InvokeLobbyDataChanged(true, updateData);
+                }
+                else
+                {
+                    if (showDebugMessages) Debug.LogError($"Failed to update lobby status to {lobbyStatus}: {result.Message}");
+                    GameLobbyEvents.InvokeLobbyDataChanged(false, updateData);
+                }
+            }
+            else
+            {
+                if (showDebugMessages) Debug.LogWarning($"SetInGame timed out for lobby {Lobby.Id}");
+                GameLobbyEvents.InvokeLobbyDataChanged(false, updateData);
+            }
+        }
+
         #region Unity Lobby Events
         private async Task SubscribeToLobbyEvents()
         {
@@ -215,7 +245,7 @@ namespace Assets.Scripts.Game.Managers
         private void OnKickedFromLobby()
         {
             if (leavingVolunatirily) LobbyEvents.InvokeLobbyLeft(OperationResult.SuccessResult("LeftLobby", "Left lobby"));
-            else LobbyEvents.InvokeLobbyKicked(OperationResult.WarningResult("KickedFromLobby", "You have been kicked from the lobby"));
+            else LobbyEvents.InvokeLobbyKicked(OperationResult.SuccessResult("KickedFromLobby", "You have been kicked from the lobby"));
         }
 
         private void OnLobbyChanged(ILobbyChanges lobbyChanges)
@@ -300,9 +330,11 @@ namespace Assets.Scripts.Game.Managers
                 else if (kvp.Key == "RoundCount") { if (showDebugMessages) Debug.Log($"Round count changed to {kvp.Value.Value.Value}"); }
                 else if (kvp.Key == "RoundTime") { if (showDebugMessages) Debug.Log($"Round time changed to {kvp.Value.Value.Value}"); }
                 else if (kvp.Key == "GameMode") { if (showDebugMessages) Debug.Log($"Game mode changed to {kvp.Value.Value.Value}"); }
+                else if (kvp.Key == "Status") { if (showDebugMessages) Debug.Log($"Lobby status changed to {(LobbyStatus)int.Parse(kvp.Value.Value.Value)}"); }
+                else if (kvp.Key == "RelayJoinCode") { if (showDebugMessages) Debug.Log($"Relay join code changed to {kvp.Value.Value.Value}"); }
             }
 
-            GameLobbyEvents.InvokeGameSettingsChanged(true, Lobby.Data);
+            GameLobbyEvents.InvokeLobbyDataChanged(true, Lobby.Data);
         }
 
         private void OnPlayerDataChanged(Dictionary<int, Dictionary<string, ChangedOrRemovedLobbyValue<PlayerDataObject>>> changes)
