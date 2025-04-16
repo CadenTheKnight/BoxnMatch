@@ -133,7 +133,9 @@ public class DamageableObject : MonoBehaviour
         GameObject explo = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
         explo.GetComponent<ParticleSystem>().Play();
         Destroy(explo, 5f);
-        screenShakeImpulse.GenerateImpulse();
+
+        // In if statement in case none have been attached
+        if(screenShakeImpulse) screenShakeImpulse.GenerateImpulse();
     }
 
     public void Die()
