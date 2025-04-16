@@ -574,8 +574,6 @@ MonoBehaviour:
   selectionButtons:
   - {fileID: 7298622859219637158}
   - {fileID: 3754521602694802649}
-  - {fileID: 641356319815252997}
-  - {fileID: 3970396761763485256}
   allowDeselection: 0
 --- !u!1001 &382912882012958931
 PrefabInstance:
@@ -591,7 +589,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3708290448822058192, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       propertyPath: m_Name
-      value: RText
+      value: RedText
       objectReference: {fileID: 0}
     - target: {fileID: 4484541223686774273, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       propertyPath: m_Pivot.x
@@ -603,7 +601,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4484541223686774273, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0.25
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 4484541223686774273, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       propertyPath: m_AnchorMax.y
@@ -791,7 +789,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8680193151002354585, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       propertyPath: m_text
-      value: R
+      value: Red
       objectReference: {fileID: 0}
     - target: {fileID: 8680193151002354585, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       propertyPath: m_fontSize
@@ -863,7 +861,7 @@ MonoBehaviour:
   normalHoverColor: {r: 0.9, g: 0.1, b: 0.1, a: 1}
   normalPressedColor: {r: 0.8, g: 0.1, b: 0.1, a: 1}
   normalSelectedColor: {r: 0.8, g: 0.1, b: 0.1, a: 1}
-  normalDisabledColor: {r: 0.9, g: 0.9, b: 0.95, a: 1}
+  normalDisabledColor: {r: 0.2, g: 0.2, b: 0.25, a: 1}
   selectedColor: {r: 0.9, g: 0.1, b: 0.1, a: 1}
   selectedHoverColor: {r: 0.8, g: 0.1, b: 0.1, a: 1}
   selectedPressedColor: {r: 0.6, g: 0.1, b: 0.1, a: 1}
@@ -3029,7 +3027,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3708290448822058192, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       propertyPath: m_Name
-      value: BText
+      value: BlueText
       objectReference: {fileID: 0}
     - target: {fileID: 4484541223686774273, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       propertyPath: m_Pivot.x
@@ -3041,7 +3039,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4484541223686774273, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0.5
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4484541223686774273, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       propertyPath: m_AnchorMax.y
@@ -3049,7 +3047,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4484541223686774273, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       propertyPath: m_AnchorMin.x
-      value: 0.25
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 4484541223686774273, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       propertyPath: m_AnchorMin.y
@@ -3241,7 +3239,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8680193151002354585, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       propertyPath: m_text
-      value: B
+      value: Blue
       objectReference: {fileID: 0}
     - target: {fileID: 8680193151002354585, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       propertyPath: m_fontSize
@@ -3308,7 +3306,7 @@ MonoBehaviour:
   normalHoverColor: {r: 0.1, g: 0.1, b: 0.9, a: 1}
   normalPressedColor: {r: 0.1, g: 0.1, b: 0.8, a: 1}
   normalSelectedColor: {r: 0.1, g: 0.1, b: 0.8, a: 1}
-  normalDisabledColor: {r: 0.9, g: 0.9, b: 0.95, a: 1}
+  normalDisabledColor: {r: 0.2, g: 0.2, b: 0.25, a: 1}
   selectedColor: {r: 0.1, g: 0.1, b: 0.9, a: 1}
   selectedHoverColor: {r: 0.1, g: 0.1, b: 0.8, a: 1}
   selectedPressedColor: {r: 0.1, g: 0.1, b: 0.6, a: 1}
@@ -3440,6 +3438,10 @@ PrefabInstance:
     - target: {fileID: 5080152395878186778, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       propertyPath: m_Name
       value: OrangeTeam
+      objectReference: {fileID: 0}
+    - target: {fileID: 5080152395878186778, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6924719759885378421, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       propertyPath: m_TargetGraphic
@@ -3628,17 +3630,6 @@ MonoBehaviour:
   selectedPressedColor: {r: 0.6, g: 0.3, b: 0.1, a: 1}
   selectedSelectedColor: {r: 0.6, g: 0.3, b: 0.1, a: 1}
   selectedDisabledColor: {r: 0.4, g: 0.2, b: 0.1, a: 1}
---- !u!114 &3970396761763485256 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6924719759885378421, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
-  m_PrefabInstance: {fileID: 6269051635077395773}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1261138254270663207}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &4405411143803544393 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7647973254005233268, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
@@ -4246,6 +4237,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: GreenTeam
       objectReference: {fileID: 0}
+    - target: {fileID: 5080152395878186778, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6924719759885378421, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       propertyPath: m_TargetGraphic
       value: 
@@ -4415,17 +4410,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &641356319815252997 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6924719759885378421, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
-  m_PrefabInstance: {fileID: 7565772230057172848}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3350491695970623594}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &3350491695970623594 stripped

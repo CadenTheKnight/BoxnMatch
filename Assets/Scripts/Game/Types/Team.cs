@@ -7,7 +7,5 @@ namespace Assets.Scripts.Game.Types
     {
         Red,
         Blue,
-        Green,
-        Orange,
     }
 }

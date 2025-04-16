@@ -39,6 +39,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             readyUnreadyButton.onClick.AddListener(OnReadyUnreadyClicked);
 
             LobbyEvents.OnLobbyLeft += OnLobbyLeft;
+            LobbyEvents.OnPlayerLeft += OnPlayerLeft;
             GameLobbyEvents.OnPlayerReadyStatusChanged += OnPlayerReadyStatusChanged;
 
             lobbyNameText.GetComponent<RectTransform>().anchorMin = new Vector2(GameLobbyManager.Instance.Lobby.IsPrivate ? 0.06f : 0f, 0f);
@@ -55,6 +56,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             readyUnreadyButton.onClick.RemoveListener(OnReadyUnreadyClicked);
 
             LobbyEvents.OnLobbyLeft -= OnLobbyLeft;
+            LobbyEvents.OnPlayerLeft -= OnPlayerLeft;
             GameLobbyEvents.OnPlayerReadyStatusChanged -= OnPlayerReadyStatusChanged;
 
             startLoadingBar.StopLoading();
@@ -83,7 +85,6 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private async void OnReadyUnreadyClicked()
         {
-
             readyUnreadyButton.interactable = false;
             readyUnreadyLoadingBar.StartLoading();
 
@@ -104,19 +105,27 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             }
         }
 
+        private void OnPlayerLeft(string playerId)
+        {
+            if (playerId != AuthenticationService.Instance.PlayerId) UpdateStartButtonState();
+        }
+
         private async void OnPlayerReadyStatusChanged(bool success, string playerId, ReadyStatus readyStatus)
         {
-            readyUnreadyLoadingBar.StopLoading();
-
             if (success)
             {
-                UpdateReadyButtonState(readyStatus);
                 UpdateStartButtonState();
+
+                if (playerId == AuthenticationService.Instance.PlayerId)
+                {
+                    UpdateReadyButtonState(readyStatus);
+                    readyUnreadyLoadingBar.StopLoading();
+
+                    await Task.Delay(1000);
+
+                    readyUnreadyButton.interactable = true;
+                }
             }
-
-            await Task.Delay(1000);
-
-            readyUnreadyButton.interactable = true;
         }
 
         private void UpdateReadyButtonState(ReadyStatus readyStatus)
@@ -153,18 +162,41 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
             if (playersReady == maxPlayers)
             {
-                if (AuthenticationService.Instance.PlayerId == GameLobbyManager.Instance.Lobby.HostId)
+                if (CheckTeamBalance())
                 {
-                    startButton.interactable = true;
-                    startText.text = "Start Game";
+                    if (AuthenticationService.Instance.PlayerId == GameLobbyManager.Instance.Lobby.HostId)
+                    {
+
+                        startButton.interactable = true;
+                        startText.text = "Start Game";
+                    }
+                    else startText.text = "Waiting for host...";
                 }
-                else startText.text = "Waiting for host...";
+                else
+                {
+                    startButton.interactable = false;
+                    startText.text = "Teams Unbalanced";
+                }
             }
             else
             {
                 startButton.interactable = false;
-                startText.text = playersReady + " / " + maxPlayers + " ready";
+                startText.text = playersReady + " / " + maxPlayers + " Ready";
             }
+        }
+
+        private bool CheckTeamBalance()
+        {
+            int redTeamCount = 0;
+            int blueTeamCount = 0;
+
+            foreach (Player player in GameLobbyManager.Instance.Lobby.Players)
+            {
+                if (player.Data["Team"].Value == ((int)Team.Red).ToString()) redTeamCount++;
+                else if (player.Data["Team"].Value == ((int)Team.Blue).ToString()) blueTeamCount++;
+            }
+
+            return redTeamCount == blueTeamCount || Mathf.Abs(redTeamCount - blueTeamCount) == 1;
         }
     }
 }

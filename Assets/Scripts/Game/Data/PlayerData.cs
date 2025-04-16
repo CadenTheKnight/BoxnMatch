@@ -10,17 +10,17 @@ namespace Assets.Scripts.Game.Data
     /// </summary>
     public class PlayerData
     {
-        public CSteamID SteamId { get; set; } = CSteamID.Nil;
-        public Team Team { get; set; } = Team.Blue;
-        public ReadyStatus ReadyStatus { get; set; } = ReadyStatus.NotReady;
-        public ConnectionStatus ConnectionStatus { get; set; } = ConnectionStatus.Disconnected;
+        public CSteamID SteamId { get; set; }
+        public Team Team { get; set; }
+        public ReadyStatus ReadyStatus { get; set; }
+        public ConnectionStatus ConnectionStatus { get; set; }
 
-        public PlayerData(CSteamID steamId, Team team = Team.Blue, ReadyStatus readyStatus = ReadyStatus.NotReady, ConnectionStatus connectionStatus = ConnectionStatus.Disconnected)
+        public PlayerData(CSteamID steamId)
         {
             SteamId = steamId;
-            Team = team;
-            ReadyStatus = readyStatus;
-            ConnectionStatus = connectionStatus;
+            Team = Team.Blue;
+            ReadyStatus = ReadyStatus.NotReady;
+            ConnectionStatus = ConnectionStatus.Disconnected;
         }
 
         public Dictionary<string, PlayerDataObject> Serialize()

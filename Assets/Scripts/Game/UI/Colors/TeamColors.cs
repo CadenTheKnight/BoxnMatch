@@ -8,33 +8,25 @@ namespace Assets.Scripts.Game.UI.Colors
         public static Color GetColor(Team team)
         {
             if (team == Team.Red) return UIColors.Red.One;
-            if (team == Team.Blue) return UIColors.Blue.One;
-            if (team == Team.Green) return UIColors.Green.One;
-            else return UIColors.Orange.One;
+            else return UIColors.Blue.One;
         }
 
         public static Color GetHoverColor(Team team)
         {
             if (team == Team.Red) return UIColors.Red.Two;
-            if (team == Team.Blue) return UIColors.Blue.Two;
-            if (team == Team.Green) return UIColors.Green.Two;
-            else return UIColors.Orange.Two;
+            else return UIColors.Blue.Two;
         }
 
         public static Color GetSelectedColor(Team team)
         {
             if (team == Team.Red) return UIColors.Red.Three;
-            if (team == Team.Blue) return UIColors.Blue.Three;
-            if (team == Team.Green) return UIColors.Green.Three;
-            else return UIColors.Orange.Three;
+            else return UIColors.Blue.Three;
         }
 
         public static Color GetDisabledColor(Team team)
         {
             if (team == Team.Red) return UIColors.Red.Four;
-            if (team == Team.Blue) return UIColors.Blue.Four;
-            if (team == Team.Green) return UIColors.Green.Four;
-            else return UIColors.Orange.Four;
+            else return UIColors.Blue.Four;
         }
     }
 }

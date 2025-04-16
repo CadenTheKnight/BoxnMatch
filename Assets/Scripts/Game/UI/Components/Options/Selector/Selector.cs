@@ -75,10 +75,10 @@ namespace Assets.Scripts.Game.UI.Components.Options.Selector
             }
         }
 
-        public void UpdateInteractable(bool isInteractable)
+        public void UpdateInteractable(bool isInteractable, int index = -1)
         {
-            foreach (Button selectionButton in selectionButtons)
-                selectionButton.interactable = isInteractable;
+            if (index >= 0 && index < selectionButtons.Count) selectionButtons[index].interactable = isInteractable;
+            else foreach (Button selectionButton in selectionButtons) selectionButton.interactable = isInteractable;
         }
     }
 }

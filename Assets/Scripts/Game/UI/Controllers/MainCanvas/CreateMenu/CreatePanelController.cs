@@ -94,7 +94,7 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.CreateMenu
             createText.text = "Creating...";
             createLoadingBar.StartLoading();
 
-            await LobbyManager.CreateLobby(lobbyName, isPrivate, gameMode == GameMode.AI ? 1 : 2, new LobbyData(gameMode).Serialize());
+            await LobbyManager.CreateLobby(lobbyName, isPrivate, (int)gameMode + 1, new LobbyData(gameMode).Serialize());
         }
 
         private async void OnLobbyCreated(OperationResult result)

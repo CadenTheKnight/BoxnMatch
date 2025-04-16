@@ -43,7 +43,7 @@ namespace Assets.Scripts.Framework.Managers
         {
             try
             {
-                Lobby lobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, 2, new() { IsPrivate = isPrivate, Player = new Player(AuthenticationService.Instance.PlayerId) { Data = new PlayerData(SteamUser.GetSteamID()).Serialize() }, Data = lobbyData });
+                Lobby lobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, maxPlayers, new() { IsPrivate = isPrivate, Player = new Player(AuthenticationService.Instance.PlayerId) { Data = new PlayerData(SteamUser.GetSteamID()).Serialize() }, Data = lobbyData });
                 LobbyEvents.InvokeLobbyCreated(OperationResult.SuccessResult("CreateLobby", $"Created lobby {lobby.Name} with ID {lobby.Id}", lobby));
             }
             catch (Exception e) { LobbyEvents.InvokeLobbyCreated(OperationResult.ErrorResult("CreateLobby", e.Message)); }

@@ -99,7 +99,13 @@ namespace Assets.Scripts.Game.Managers
             if (completedTask == updateTask)
             {
                 OperationResult result = await updateTask;
-                if (result.Status != ResultStatus.Success)
+                if (result.Status == ResultStatus.Success)
+                {
+                    if (showDebugMessages) Debug.Log($"Game settings updated successfully: {result.Message}");
+                    foreach (var kvp in changedData) Lobby.Data[kvp.Key] = kvp.Value;
+                    GameLobbyEvents.InvokeGameSettingsChanged(true, changedData);
+                }
+                else
                 {
                     if (showDebugMessages) Debug.LogError($"Failed to update game settings: {result.Message}");
                     GameLobbyEvents.InvokeGameSettingsChanged(false, null);
@@ -124,9 +130,15 @@ namespace Assets.Scripts.Game.Managers
             if (completedTask == updateTask)
             {
                 OperationResult result = await updateTask;
-                if (result.Status != ResultStatus.Success)
+                if (result.Status == ResultStatus.Success)
                 {
-                    if (showDebugMessages) Debug.LogError($"Failed to change team: {result.Message}");
+                    if (showDebugMessages) Debug.Log($"Player {playerId} changed to team {team} successfully: {result.Message}");
+                    Lobby.Players.Find(p => p.Id == playerId).Data["Team"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Public, ((int)team).ToString());
+                    GameLobbyEvents.InvokePlayerTeamChanged(true, playerId, team);
+                }
+                else
+                {
+                    if (showDebugMessages) Debug.LogError($"Failed to change player {playerId} to team {team}: {result.Message}");
                     GameLobbyEvents.InvokePlayerTeamChanged(false, playerId, team);
                 }
             }
@@ -149,9 +161,15 @@ namespace Assets.Scripts.Game.Managers
             if (completedTask == updateTask)
             {
                 OperationResult result = await updateTask;
-                if (result.Status != ResultStatus.Success)
+                if (result.Status == ResultStatus.Success)
                 {
-                    if (showDebugMessages) Debug.LogError($"Failed to change ready status: {result.Message}");
+                    if (showDebugMessages) Debug.Log($"Player {playerId} ready status changed to {readyStatus} successfully: {result.Message}");
+                    Lobby.Players.Find(p => p.Id == playerId).Data["ReadyStatus"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Public, ((int)readyStatus).ToString());
+                    GameLobbyEvents.InvokePlayerReadyStatusChanged(true, playerId, readyStatus);
+                }
+                else
+                {
+                    if (showDebugMessages) Debug.LogError($"Failed to change player {playerId} ready status to {readyStatus}: {result.Message}");
                     GameLobbyEvents.InvokePlayerReadyStatusChanged(false, playerId, readyStatus);
                 }
             }
@@ -271,6 +289,8 @@ namespace Assets.Scripts.Game.Managers
 
         private void OnDataChanged(Dictionary<string, ChangedOrRemovedLobbyValue<DataObject>> dataChanges)
         {
+            if (Lobby.HostId == AuthenticationService.Instance.PlayerId) return;
+
             foreach (var kvp in dataChanges)
             {
                 if (kvp.Value.Removed) Lobby.Data.Remove(kvp.Key);
@@ -290,6 +310,8 @@ namespace Assets.Scripts.Game.Managers
             foreach (var kvp in changes)
                 foreach (var dataChange in kvp.Value)
                 {
+                    if (Lobby.Players[kvp.Key].Id == AuthenticationService.Instance.PlayerId) continue;
+
                     if (!dataChange.Value.Removed) Lobby.Players[kvp.Key].Data[dataChange.Key] = dataChange.Value.Value;
                     else Lobby.Players[kvp.Key].Data.Remove(dataChange.Key);
 

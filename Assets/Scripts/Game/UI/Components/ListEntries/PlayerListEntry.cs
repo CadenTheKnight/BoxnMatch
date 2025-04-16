@@ -108,12 +108,12 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         private void OnChangeTeamButtonClicked()
         {
+            UpdateTeamSelectorOptions();
             teamPanel.SetActive(true);
         }
 
         private async void ChangeTeam(int team)
         {
-
             playerTeamSelector.UpdateInteractable(false);
             changeTeamButton.interactable = false;
             playerTeamSelectorLoadingBar.StartLoading();
@@ -273,6 +273,22 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             int imageHandle = callback.m_iImage;
             if (imageHandle > 0) profilePictureRawImage.texture = GetSteamInfo.SteamImageToUnityImage(imageHandle);
             nameText.text = SteamFriends.GetFriendPersonaName(callback.m_steamID);
+        }
+
+        private void UpdateTeamSelectorOptions()
+        {
+            int redTeamCount = 0;
+            int blueTeamCount = 0;
+
+            foreach (var player in GameLobbyManager.Instance.Lobby.Players)
+            {
+                Team playerTeam = (Team)int.Parse(player.Data["Team"].Value);
+                if (playerTeam == Team.Red) redTeamCount++;
+                else if (playerTeam == Team.Blue) blueTeamCount++;
+            }
+
+            playerTeamSelector.UpdateInteractable((Team)int.Parse(GameLobbyManager.Instance.Lobby.Players.Find(p => p.Id == PlayerId).Data["Team"].Value) == Team.Red || redTeamCount < blueTeamCount, 0);
+            playerTeamSelector.UpdateInteractable((Team)int.Parse(GameLobbyManager.Instance.Lobby.Players.Find(p => p.Id == PlayerId).Data["Team"].Value) == Team.Blue || blueTeamCount < redTeamCount, 1);
         }
     }
 }
