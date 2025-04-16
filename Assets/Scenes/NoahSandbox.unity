@@ -1171,6 +1171,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: PlayBox
       objectReference: {fileID: 0}
+    - target: {fileID: 4280333962911432283, guid: b45d0fd47cbdf474c8ae54e0518fcbd7, type: 3}
+      propertyPath: OutputAudioMixerGroup
+      value: 
+      objectReference: {fileID: 24300002, guid: 1034bd7824ba8854a987be3cc548e5e6, type: 2}
     - target: {fileID: 4909502932456131198, guid: b45d0fd47cbdf474c8ae54e0518fcbd7, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.027542114
