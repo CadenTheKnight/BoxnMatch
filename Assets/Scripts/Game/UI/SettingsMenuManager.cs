@@ -12,6 +12,8 @@ public class SettingsMenuManager : MonoBehaviour
 
     Resolution[] resolutions;
 
+    private ScreenshakeSetter screenshakeSetter;
+
     private void Start()
     {
         resolutions = Screen.resolutions;
@@ -19,6 +21,8 @@ public class SettingsMenuManager : MonoBehaviour
         resolutionDropdown.ClearOptions();
 
         List<string> options = new List<string>();
+
+        screenshakeSetter = FindObjectOfType<ScreenshakeSetter>();
 
         int currentResolutionIndex = 0;
 
@@ -56,5 +60,10 @@ public class SettingsMenuManager : MonoBehaviour
     public void SetFullScreen (bool isFullscreen)
     {
         Screen.fullScreen = isFullscreen;
+    }
+
+    public void SetScreenshake(bool screenshakeOn)
+    {
+        screenshakeSetter.UpdateScreenshakeSetting(screenshakeOn);
     }
 }
