@@ -22,7 +22,7 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
         [SerializeField] private Image mapImage;
         [SerializeField] private MapSelectionData mapSelectionData;
 
-        private string lobbyId;
+        private Lobby lobby;
         private float lastClickTime;
         private bool doubleClickCooldown = false;
 
@@ -41,7 +41,7 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         private void HandleClick()
         {
-            if (doubleClickCooldown) return;
+            if (doubleClickCooldown || lobby.AvailableSlots == 0) return;
 
             if (Time.time - lastClickTime <= 0.5f)
             {
@@ -51,7 +51,7 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
             }
             else
             {
-                lobbySingleClicked?.Invoke(lobbyId, this);
+                lobbySingleClicked?.Invoke(lobby.Id, this);
                 SetSelected(true);
             }
 
@@ -66,7 +66,7 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
         public void SetLobby(Lobby lobby)
         {
-            lobbyId = lobby.Id;
+            this.lobby = lobby;
             nameText.text = lobby.Name;
             playerCountText.text = $"{lobby.Players.Count}/{lobby.MaxPlayers}";
             gameModeText.text = ((GameMode)int.Parse(lobby.Data["GameMode"].Value)).ToString();

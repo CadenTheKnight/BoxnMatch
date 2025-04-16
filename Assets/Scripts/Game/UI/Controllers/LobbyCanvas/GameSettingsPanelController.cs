@@ -31,7 +31,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private bool isEditing = false;
 
-        private void OnEnable()
+        private void Start()
         {
             editUpdateButton.onClick.AddListener(OnEditUpdateClicked);
 
@@ -45,7 +45,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             editUpdateButton.interactable = AuthenticationService.Instance.PlayerId == GameLobbyManager.Instance.Lobby.HostId;
         }
 
-        private void OnDisable()
+        private void OnDestroy()
         {
             editUpdateButton.onClick.RemoveListener(OnEditUpdateClicked);
 

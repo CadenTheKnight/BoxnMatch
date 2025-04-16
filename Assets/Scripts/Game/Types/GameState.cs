@@ -5,10 +5,8 @@ namespace Assets.Scripts.Game.Types
     /// </summary>
     public enum GameState
     {
-        GameStarting,
         RoundStarting,
         RoundInProgress,
         RoundEnding,
-        GameEnding,
     }
 }

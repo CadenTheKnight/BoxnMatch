@@ -11,7 +11,6 @@ using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Game.UI.Components;
 using Assets.Scripts.Game.UI.Components.Options.Selector;
 using Assets.Scripts.Game.UI.Controllers.LobbyCanvas.CharacterCustomizationPanel;
-using UnityEngine.SceneManagement;
 
 namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 {
@@ -110,9 +109,16 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             {
                 startText.text = "In Game";
                 await GameLobbyManager.Instance.SetPlayerReadyStatus(AuthenticationService.Instance.PlayerId, ReadyStatus.NotReady);
-                if (AuthenticationService.Instance.PlayerId != GameLobbyManager.Instance.Lobby.HostId) await GameManager.Instance.JoinGame(relayJoinCode);
+
+                if (AuthenticationService.Instance.PlayerId != GameLobbyManager.Instance.Lobby.HostId)
+                {
+                    GameObject gameManagerObject = new("GameManager");
+                    gameManagerObject.AddComponent<GameManager>();
+                    await GameManager.Instance.JoinGame(relayJoinCode);
+
+                }
+                else UpdateStartButtonState();
             }
-            else UpdateStartButtonState();
         }
 
         private void OnGameEnded()
