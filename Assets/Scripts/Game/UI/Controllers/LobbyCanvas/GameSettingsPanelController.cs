@@ -61,7 +61,6 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             isEditing = !isEditing;
             if (!isEditing)
             {
-
                 editUpdateButton.interactable = false;
                 editUpdateText.text = "Updating...";
                 editUpdateLoadingBar.StartLoading();
@@ -129,7 +128,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             mapChanger.UpdateInteractable(isEditing);
             roundCountIncrementer.UpdateInteractable(isEditing);
             roundTimeIncrementer.UpdateInteractable(isEditing);
-            gameModeSelector.UpdateInteractable(isEditing);
+            gameModeSelector.UpdateInteractable(false);
         }
 
         private void UpdateEditUpdateButtonState(bool isEditing)

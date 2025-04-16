@@ -21,8 +21,6 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
         [SerializeField] private TextMeshProUGUI gameModeText;
         [SerializeField] private TextMeshProUGUI statusText;
         [SerializeField] private Image mapImage;
-
-        [Header("Data References - might replace")]
         [SerializeField] private MapSelectionData mapSelectionData;
 
         private string lobbyId;

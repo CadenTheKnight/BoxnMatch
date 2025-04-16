@@ -3398,7 +3398,7 @@ MonoBehaviour:
   backgroundButton: {fileID: 59803088}
   lobbyNameInput: {fileID: 624152107}
   isPrivateToggle: {fileID: 1010246492}
-  maxPlayersSelector: {fileID: 2035125904}
+  gameModeSelector: {fileID: 2035125904}
   createButton: {fileID: 674630169}
   createLoadingBar: {fileID: 2141128558}
   createText: {fileID: 674630171}
@@ -5028,11 +5028,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8680193151002354585, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       propertyPath: m_text
-      value: 4
+      value: PvP
       objectReference: {fileID: 0}
     - target: {fileID: 8680193151002354585, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       propertyPath: m_fontSize
-      value: 39.3
+      value: 27.35
       objectReference: {fileID: 0}
     - target: {fileID: 8680193151002354585, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       propertyPath: m_fontColor.b
@@ -5810,11 +5810,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1396302586089823723, guid: 465547bc725a50d4cbcf5c2ef5206f53, type: 3}
       propertyPath: m_text
-      value: 2
+      value: AI
       objectReference: {fileID: 0}
     - target: {fileID: 1396302586089823723, guid: 465547bc725a50d4cbcf5c2ef5206f53, type: 3}
       propertyPath: m_fontSize
-      value: 39.3
+      value: 39.35
       objectReference: {fileID: 0}
     - target: {fileID: 1396302586089823723, guid: 465547bc725a50d4cbcf5c2ef5206f53, type: 3}
       propertyPath: m_fontColor.b
@@ -5860,6 +5860,18 @@ PrefabInstance:
       propertyPath: m_Colors.m_SelectedColor.r
       value: 0.18039216
       objectReference: {fileID: 0}
+    - target: {fileID: 3759141121684541939, guid: 465547bc725a50d4cbcf5c2ef5206f53, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 3759141121684541939, guid: 465547bc725a50d4cbcf5c2ef5206f53, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3759141121684541939, guid: 465547bc725a50d4cbcf5c2ef5206f53, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3764045805031143746, guid: 465547bc725a50d4cbcf5c2ef5206f53, type: 3}
       propertyPath: m_text
       value: 2
@@ -5870,11 +5882,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4447664966931041559, guid: 465547bc725a50d4cbcf5c2ef5206f53, type: 3}
       propertyPath: m_text
-      value: Players
+      value: Game Mode
       objectReference: {fileID: 0}
     - target: {fileID: 4447664966931041559, guid: 465547bc725a50d4cbcf5c2ef5206f53, type: 3}
       propertyPath: m_fontSize
-      value: 113.75
+      value: 39.35
       objectReference: {fileID: 0}
     - target: {fileID: 4713226130626968353, guid: 465547bc725a50d4cbcf5c2ef5206f53, type: 3}
       propertyPath: selectedSelectedColor.b
@@ -5888,9 +5900,21 @@ PrefabInstance:
       propertyPath: selectedSelectedColor.r
       value: 0.10196079
       objectReference: {fileID: 0}
+    - target: {fileID: 4991278498642926852, guid: 465547bc725a50d4cbcf5c2ef5206f53, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 4991278498642926852, guid: 465547bc725a50d4cbcf5c2ef5206f53, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4991278498642926852, guid: 465547bc725a50d4cbcf5c2ef5206f53, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5454185042439488122, guid: 465547bc725a50d4cbcf5c2ef5206f53, type: 3}
       propertyPath: allowDeselection
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5454185042439488122, guid: 465547bc725a50d4cbcf5c2ef5206f53, type: 3}
       propertyPath: unselectedHoverColor.b
@@ -6034,7 +6058,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8853483357625029038, guid: 465547bc725a50d4cbcf5c2ef5206f53, type: 3}
       propertyPath: m_Name
-      value: MaxPlayersSelector
+      value: GameModeSelector
+      objectReference: {fileID: 0}
+    - target: {fileID: 8853483357625029038, guid: 465547bc725a50d4cbcf5c2ef5206f53, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

@@ -9,12 +9,22 @@ namespace Assets.Scripts.Game.Data
     /// </summary>
     public class LobbyData
     {
-        public int MapIndex { get; set; } = 0;
-        public int RoundCount { get; set; } = 3;
-        public int RoundTime { get; set; } = 90;
-        public GameMode GameMode { get; set; } = GameMode.Teams;
-        public LobbyStatus Status { get; set; } = LobbyStatus.InLobby;
-        public string RelayJoinCode { get; set; } = default;
+        public int MapIndex { get; set; }
+        public int RoundCount { get; set; }
+        public int RoundTime { get; set; }
+        public GameMode GameMode { get; set; }
+        public LobbyStatus Status { get; set; }
+        public string RelayJoinCode { get; set; }
+
+        public LobbyData(GameMode gameMode)
+        {
+            MapIndex = 0;
+            RoundCount = 3;
+            RoundTime = 60;
+            GameMode = gameMode;
+            Status = LobbyStatus.InLobby;
+            RelayJoinCode = default;
+        }
 
         public Dictionary<string, DataObject> Serialize()
         {

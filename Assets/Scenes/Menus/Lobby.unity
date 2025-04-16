@@ -1146,11 +1146,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8680193151002354585, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       propertyPath: m_text
-      value: FreeForAll
+      value: PvP
       objectReference: {fileID: 0}
     - target: {fileID: 8680193151002354585, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       propertyPath: m_fontSize
-      value: 35.15
+      value: 46.55
       objectReference: {fileID: 0}
     - target: {fileID: 8680193151002354585, guid: f264953bbdeefba40ae6d0c101af20ea, type: 3}
       propertyPath: m_fontColor.b
@@ -7442,11 +7442,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1396302586089823723, guid: 465547bc725a50d4cbcf5c2ef5206f53, type: 3}
       propertyPath: m_text
-      value: Teams
+      value: AI
       objectReference: {fileID: 0}
     - target: {fileID: 1396302586089823723, guid: 465547bc725a50d4cbcf5c2ef5206f53, type: 3}
       propertyPath: m_fontSize
-      value: 83.35
+      value: 46.55
       objectReference: {fileID: 0}
     - target: {fileID: 1396302586089823723, guid: 465547bc725a50d4cbcf5c2ef5206f53, type: 3}
       propertyPath: m_fontColor.b

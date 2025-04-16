@@ -11,7 +11,6 @@ using Unity.Services.Lobbies.Models;
 using Assets.Scripts.Framework.Types;
 using Assets.Scripts.Framework.Events;
 using Assets.Scripts.Game.UI.Components;
-using Assets.Scripts.Framework.Managers;
 using Assets.Scripts.Framework.Utilities;
 
 namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
@@ -93,7 +92,6 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
 
         private async void OnLobbyLeft(OperationResult result)
         {
-            Debug.Log($"OnLobbyLeft: {result.Status} - {result.Message}");
             if (result.Status == ResultStatus.Error)
             {
                 leaveText.text = "Error Leaving";

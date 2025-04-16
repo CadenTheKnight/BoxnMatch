@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Threading.Tasks;
 using Assets.Scripts.Game.Data;
+using Assets.Scripts.Game.Types;
 using Assets.Scripts.Framework.Types;
 using System.Text.RegularExpressions;
 using Assets.Scripts.Framework.Events;
@@ -22,14 +23,14 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.CreateMenu
         [Header("Options Components")]
         [SerializeField] private TMP_InputField lobbyNameInput;
         [SerializeField] private ToggleSwitchColorChange isPrivateToggle;
-        [SerializeField] private Selector maxPlayersSelector;
+        [SerializeField] private Selector gameModeSelector;
         [SerializeField] private Button createButton;
         [SerializeField] private LoadingBar createLoadingBar;
         [SerializeField] private TextMeshProUGUI createText;
 
         private string lobbyName = string.Empty;
         private bool isPrivate = false;
-        private int maxPlayers = 0;
+        private GameMode gameMode = GameMode.PvP;
 
         protected override void OnEnable()
         {
@@ -38,12 +39,13 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.CreateMenu
 
             lobbyNameInput.onValueChanged.AddListener(OnLobbyNameChanged);
             isPrivateToggle.onToggle += OnPrivacyChanged;
-            maxPlayersSelector.onSelectionChanged += OnMaxPlayersChanged;
+            gameModeSelector.onSelectionChanged += OnGameModeChanged;
             createButton.onClick.AddListener(OnCreateClicked);
 
             LobbyEvents.OnLobbyCreated += OnLobbyCreated;
 
             UpdateCreateButtonState();
+            gameModeSelector.SetSelection((int)gameMode);
         }
 
         protected override void OnDisable()
@@ -52,7 +54,7 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.CreateMenu
 
             lobbyNameInput.onValueChanged.RemoveListener(OnLobbyNameChanged);
             isPrivateToggle.onToggle -= OnPrivacyChanged;
-            maxPlayersSelector.onSelectionChanged -= OnMaxPlayersChanged;
+            gameModeSelector.onSelectionChanged -= OnGameModeChanged;
             createButton.onClick.RemoveListener(OnCreateClicked);
 
             LobbyEvents.OnLobbyCreated -= OnLobbyCreated;
@@ -71,16 +73,15 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.CreateMenu
             isPrivate = input;
         }
 
-        private void OnMaxPlayersChanged(int selectionIndex)
+        private void OnGameModeChanged(int selectionIndex)
         {
-            maxPlayers = selectionIndex == 0 ? 2 : selectionIndex == 1 ? 4 : 0;
-            UpdateCreateButtonState();
+            gameMode = (GameMode)selectionIndex;
         }
 
         private void UpdateCreateButtonState()
         {
             createText.text = "Create";
-            createButton.interactable = Regex.IsMatch(lobbyName, @"^[a-zA-Z0-9]{1,14}$") && (maxPlayers == 2 || maxPlayers == 4);
+            createButton.interactable = Regex.IsMatch(lobbyName, @"^[a-zA-Z0-9]{1,14}$");
         }
 
         private async void OnCreateClicked()
@@ -88,21 +89,21 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.CreateMenu
             base.UpdateInteractable(false);
             lobbyNameInput.interactable = false;
             isPrivateToggle.UpdateInteractable(false);
-            maxPlayersSelector.UpdateInteractable(false);
+            gameModeSelector.UpdateInteractable(false);
             createButton.interactable = false;
             createText.text = "Creating...";
             createLoadingBar.StartLoading();
 
-            await LobbyManager.CreateLobby(lobbyName, isPrivate, maxPlayers, new LobbyData().Serialize());
+            await LobbyManager.CreateLobby(lobbyName, isPrivate, gameMode == GameMode.AI ? 1 : 2, new LobbyData(gameMode).Serialize());
         }
 
         private async void OnLobbyCreated(OperationResult result)
         {
             if (result.Status == ResultStatus.Error)
             {
-                createText.text = "Errror Creating";
+                createText.text = "Error Creating";
                 createLoadingBar.StopLoading();
-                maxPlayersSelector.UpdateInteractable(true);
+                gameModeSelector.UpdateInteractable(true);
                 isPrivateToggle.UpdateInteractable(true);
                 lobbyNameInput.interactable = true;
                 base.UpdateInteractable(true);

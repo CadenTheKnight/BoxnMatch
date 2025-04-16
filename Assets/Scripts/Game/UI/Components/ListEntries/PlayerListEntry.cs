@@ -129,6 +129,8 @@ namespace Assets.Scripts.Game.UI.Components.ListEntries
 
             emptyStatePanel.SetActive(false);
             activeStatePanel.SetActive(true);
+            optionsPanel.SetActive(false);
+            teamPanel.SetActive(false);
 
             nameText.GetComponent<RectTransform>().anchorMax = new Vector2(PlayerId == GameLobbyManager.Instance.Lobby.HostId ? 0.7f : .85f, 1f);
 

@@ -263,8 +263,9 @@ namespace Assets.Scripts.Game.Managers
             foreach (int index in playerIndices)
             {
                 if (showDebugMessages) Debug.Log($"Player {Lobby.Players[index].Id} left the lobby");
-                LobbyEvents.InvokePlayerLeft(Lobby.Players[index].Id);
+                string leftId = Lobby.Players[index].Id;
                 Lobby.Players.RemoveAt(index);
+                LobbyEvents.InvokePlayerLeft(leftId);
             }
         }
 

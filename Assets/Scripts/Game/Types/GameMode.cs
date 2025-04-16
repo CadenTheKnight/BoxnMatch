@@ -6,13 +6,13 @@ namespace Assets.Scripts.Game.Types
     public enum GameMode
     {
         /// <summary>
-        /// Team based game mode, where players are divided into teams. (2 for now)
-        /// /// </summary>
-        Teams,
+        /// Single player game mode, where the player plays against AI.
+        /// </summary>
+        AI,
 
         /// <summary>
-        /// Free for all game mode, where players compete against each other without teams.
-        /// </summary>
-        FreeForAll,
+        /// Multiplayer 1v1 game mode, where two players compete against each other.
+        /// /// </summary>
+        PvP,
     }
 }
