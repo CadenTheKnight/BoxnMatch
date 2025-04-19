@@ -184,6 +184,62 @@ public class CPUController : MonoBehaviour
         return closest;
     }
 
+    private Vector2? FindNearestPlatform(Vector2 target)
+    {
+        RaycastHit2D[] hits = Physics2D.BoxCastAll(
+            target + Vector2.up * 5f,
+            new Vector2(3f, 1f),
+            0f,
+            Vector2.down,
+            10f,
+            groundLayer
+        );
+
+        float minDist = Mathf.Infinity;
+        Vector2? best = null;
+
+        foreach (var hit in hits)
+        {
+            if (hit.collider != null)
+            {
+                float dist = Vector2.Distance(transform.position, hit.point);
+                if (dist < minDist)
+                {
+                    minDist = dist;
+                    best = hit.point;
+                }
+            }
+        }
+
+        return best;
+    }
+
+    private IEnumerator NavigateToTargetPosition(Vector2 target)
+    {
+        while (Vector2.Distance(transform.position, target) > 1.5f)
+        {
+            Vector2 direction = target - (Vector2)transform.position;
+
+            int moveDir = Mathf.Abs(direction.x) > 0.1f ? (direction.x > 0 ? 1 : -1) : 0;
+            cpuM.HorizontalMove(moveDir);
+
+            // Decide if we need to jump
+            if (direction.y > 1f || !IsAbovePlatform())
+            {
+                if (cpuM.RemainingJumps() > 0)
+                {
+                    cpuM.Jump();
+                }
+            }
+
+            yield return new WaitForEndOfFrame();
+        }
+
+        cpuM.HorizontalMove(0);
+        yield return StartCoroutine(StopHorizontal());
+    }
+
+
 
 
     /* ------------ Ability Handling ------------ */
@@ -374,36 +430,17 @@ public class CPUController : MonoBehaviour
 
 
 
-    private IEnumerator Recover() // Recovers to a platform when falling
+    private IEnumerator Recover()
     {
-        // Set the recovery direction to the center of the map
-        int direction = (int)-(transform.position.x / (Mathf.Abs(transform.position.x)));
-
-        // Set Move Direction
-        cpuM.HorizontalMove(direction);
-
-        // Jump to help get back to platforms
-        Coroutine jumpRoutine = StartCoroutine(OptimalJumps());
-
-        // Loop until there is a platform under the cpu
-        while(!IsAbovePlatform())
+        Vector2? platform = FindNearestPlatform(Vector2.zero);
+        if (platform.HasValue)
         {
-            yield return new WaitForEndOfFrame(); // Delay to prevent overloading
+            yield return StartCoroutine(NavigateToTargetPosition(platform.Value));
         }
 
-        // Stop jump routine if already over a platform before it finishes
-        StopCoroutine(jumpRoutine);
-
-        // stops horizontal movement
-        Coroutine stop = StartCoroutine(StopHorizontal());
-
-        // fast falls to the platform
         cpuM.Crouch();
-
-        // End this coroutine to return to previous Node
-        yield return stop;
-        
     }
+
 
     private IEnumerator Idle() // Moves back and forth on the current platform
     {
