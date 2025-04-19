@@ -291,16 +291,16 @@ public class CPUController : MonoBehaviour
     switch (dir)
     {
         case AbilityDirection.EAST:
-            velocity = new Vector2(15f, 20f); // Arced right
+            velocity = new Vector2(15f, 10f); // Arced right
             break;
         case AbilityDirection.WEST:
-            velocity = new Vector2(-15f, 20f); // Arced left
+            velocity = new Vector2(-15f, 10f); // Arced left
             break;
         case AbilityDirection.NORTH:
-            velocity = new Vector2(0f, 20f); // Straight up
+            velocity = new Vector2(0f, 10f); // Straight up
             break;
         case AbilityDirection.SOUTH:
-            velocity = new Vector2(0f, -20f); // Shot downward
+            velocity = new Vector2(0f, -10f); // Shot downward
             break;
         default:
             return false;
@@ -641,7 +641,7 @@ public class CPUController : MonoBehaviour
 
     private void DrawFireballArc()
     {
-        Vector2 velocity = new(15f, 20f);
+        Vector2 velocity = new(15f, 10f);
         float gravity = Physics2D.gravity.y * 4f;
         float timestep = 0.05f;
         float totalTime = 2f;
