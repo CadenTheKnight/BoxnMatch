@@ -509,28 +509,10 @@ public class CPUController : MonoBehaviour
         int numShields = numDefenseAbilities;
 
         // Navigate to orb
-        Vector2 distanceFromOrb;
-        while (abilityOrb) // Navigate to the orb until it is collected and therefore destroyed
+        if (abilityOrb)
         {
-            distanceFromOrb = abilityOrb.transform.position - transform.position;
-
-            // Horizontal Navigation
-            cpuM.HorizontalMove(distanceFromOrb.x/Mathf.Abs(distanceFromOrb.x)); // Normalize the horizontal input to 1 or -1
-
-            // If the Orb is above then jump to get it
-            if(distanceFromOrb.x < 1.5 && distanceFromOrb.y > 0.5)
-            {
-                cpuM.Jump();
-            }
-            else if(rb.velocity.y < -0.1) // If falling off a platform to get it
-            {
-                cpuM.Jump();
-            }
-
-            // Calculate once per frame
-            yield return new WaitForEndOfFrame();
+            yield return StartCoroutine(NavigateToTargetPosition(abilityOrb.transform.position));
         }
-
 
         // Handle ability
         Coroutine count = StartCoroutine(CountAbilities());
