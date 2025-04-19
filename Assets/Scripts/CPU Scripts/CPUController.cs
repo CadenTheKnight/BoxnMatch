@@ -460,22 +460,30 @@ public class CPUController : MonoBehaviour
             // If no collision with the ground, break out of the loop
             if (!ray.collider)
             {
-                direction = -direction;
-                cpuM.HorizontalMove(direction);
+                Vector2? newPlatform = FindNearestPlatform((Vector2)transform.position + 3f * direction * Vector2.right);
+                if (newPlatform.HasValue)
+                {
+                    yield return StartCoroutine(NavigateToTargetPosition(newPlatform.Value));
+                }
+                else
+                {
+                    direction = -direction;
+                    cpuM.HorizontalMove(direction);
+                }
             }
-            
+
+
 
 
             // Check if not Above a platform
             if (!IsAbovePlatform())
             {
                 Debug.Log("RECOVER!");
-                Coroutine recover = StartCoroutine(Recover()); // Recover back to a platform
-                yield return recover;
+                yield return StartCoroutine(Recover());
             }
 
             // Check if an orb is nearby
-            if((numAttackAbilities + numDefenseAbilities + numRecoverAbilites < 4) && nearby && nearby.CompareTag("AbilityOrb"))
+            if ((numAttackAbilities + numDefenseAbilities + numRecoverAbilites < 4) && nearby && nearby.CompareTag("AbilityOrb"))
             {
                 Debug.Log("ORB!");
                 Coroutine collectOrb = StartCoroutine(CollectOrb(nearby.gameObject));
