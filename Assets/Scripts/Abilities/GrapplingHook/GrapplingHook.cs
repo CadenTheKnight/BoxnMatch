@@ -13,7 +13,10 @@ public class GrapplingHook : MonoBehaviour
     [SerializeField] public bool retract = false;
     [SerializeField] public float minimumRopeLength = 0.5f;
     [SerializeField] public float maximumRopeLength = 30f;
+
+    [Header("Knockback")]
     [SerializeField] private float knockbackMult = 1f;
+    [SerializeField] private float verticalKnockbackAddition;
 
     public Rigidbody2D hookedPlayer;
     [SerializeField] public PlayerRotator pr;
@@ -39,7 +42,7 @@ public class GrapplingHook : MonoBehaviour
             // Knockback the hooked player before deleting the hook
             if(hookedPlayer)
             {
-                hookedPlayer.AddForce(pr.GetComponentInParent<Rigidbody2D>().velocity * knockbackMult);
+                hookedPlayer.AddForce((pr.GetComponentInParent<Rigidbody2D>().velocity + new Vector2(0f, verticalKnockbackAddition)) * knockbackMult);
             }
             Destroy(gameObject);
         }
