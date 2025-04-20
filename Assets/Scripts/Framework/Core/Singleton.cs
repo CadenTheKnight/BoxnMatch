@@ -18,23 +18,27 @@ namespace Assets.Scripts.Framework.Core
             {
                 if (_instance == null)
                 {
-                    T[] instances = FindObjectsOfType<T>();
-                    if (instances.Length > 0)
+                    _instance = FindObjectOfType<T>();
+                    if (_instance == null)
                     {
-                        T instance = instances[0];
-                        _instance = instance;
-                    }
-                    else
-                    {
-                        GameObject obj = new()
-                        {
-                            name = typeof(T).Name
-                        };
-                        _instance = obj.AddComponent<T>();
-                        DontDestroyOnLoad(obj);
+                        GameObject singletonObject = new(typeof(T).Name);
+                        _instance = singletonObject.AddComponent<T>();
                     }
                 }
                 return _instance;
+            }
+        }
+
+        private void Awake()
+        {
+            if (_instance == null)
+            {
+                _instance = this as T;
+                DontDestroyOnLoad(gameObject);
+            }
+            else if (_instance != this)
+            {
+                Destroy(gameObject);
             }
         }
     }

@@ -1,131 +1,102 @@
-using UnityEngine;
-using UnityEngine.SceneManagement;
-using Unity.Services.Lobbies.Models;
-using Assets.Scripts.Framework.Events;
-using Assets.Scripts.Framework.Managers;
-using Assets.Scripts.Game.UI.Components;
-using Assets.Scripts.Framework.Utilities;
+// using UnityEngine;
+// using Assets.Scripts.Game.Events;
+// using UnityEngine.SceneManagement;
+// using Unity.Services.Lobbies.Models;
+// using Assets.Scripts.Framework.Core;
+// using Assets.Scripts.Framework.Types;
+// using Assets.Scripts.Framework.Events;
+// using Assets.Scripts.Framework.Utilities;
 
-namespace Assets.Scripts.Game.Managers
-{
-    /// <summary>
-    /// Manages scene transitions based on the game state.
-    /// </summary>
-    public class SceneTransitionManager : MonoBehaviour
-    {
-        private static SceneTransitionManager _instance;
-        public static SceneTransitionManager Instance => _instance;
+// namespace Assets.Scripts.Game.Managers
+// {
+//     public class SceneTransitionManager : Singleton<SceneTransitionManager>
+//     {
+//         [Header("Debug Options")]
+//         [SerializeField] private bool showDebugMessages = false;
 
-        private OperationResult pendingNotification;
-        private NotificationType pendingNotificationType;
-        private bool hasPendingNotification = false;
+//         private void OnEnable()
+//         {
+//             SceneManager.sceneLoaded += OnSceneLoaded;
 
-        void Awake()
-        {
-            if (_instance == null)
-            {
-                _instance = this;
-                DontDestroyOnLoad(gameObject);
-                SubscribeToEvents();
-            }
-            else
-                Destroy(gameObject);
-        }
+//             LobbyEvents.OnLobbyCreated += OnLobbyEntered;
+//             LobbyEvents.OnLobbyJoined += OnLobbyEntered;
+//             LobbyEvents.OnLobbyRejoined += OnLobbyRejoined;
+//             LobbyEvents.OnLobbyLeft += OnLobbyExited;
+//             LobbyEvents.OnLobbyKicked += OnLobbyExited;
 
-        void OnDestroy()
-        {
-            if (_instance == this)
-                UnsubscribeFromEvents();
-        }
+//             GameEvents.OnGameStarted += OnGameStarted;
+//             GameEvents.OnGameEnded += OnGameEnded;
+//         }
 
-        /// <summary>
-        /// Sets a notification to be displayed in the next scene.
-        /// </summary>
-        /// <param name="result">Operation result containing message data.</param>
-        /// <param name="type">The notification type.</param>
-        public void SetPendingNotification(OperationResult result, NotificationType type)
-        {
-            pendingNotification = result;
-            pendingNotificationType = type;
-            hasPendingNotification = true;
-        }
+//         private void OnDisable()
+//         {
+//             SceneManager.sceneLoaded -= OnSceneLoaded;
 
-        /// <summary>
-        /// Checks if there is a pending notification.
-        /// </summary>
-        public bool HasPendingNotification()
-        {
-            return hasPendingNotification;
-        }
+//             LobbyEvents.OnLobbyCreated -= OnLobbyEntered;
+//             LobbyEvents.OnLobbyJoined -= OnLobbyEntered;
+//             LobbyEvents.OnLobbyRejoined -= OnLobbyRejoined;
+//             LobbyEvents.OnLobbyLeft -= OnLobbyExited;
+//             LobbyEvents.OnLobbyKicked -= OnLobbyExited;
 
-        /// <summary>
-        /// Retrieves the pending notification and clears it.
-        /// </summary>
-        /// <param name="result">The operation result.</param>
-        /// <param name="type">The notification type.</param>
-        /// <returns>True if a notification was available.</returns>
-        public bool TryGetPendingNotification(out OperationResult result, out NotificationType type)
-        {
-            result = pendingNotification;
-            type = pendingNotificationType;
+//             GameEvents.OnGameStarted -= OnGameStarted;
+//             GameEvents.OnGameEnded -= OnGameEnded;
+//         }
 
-            if (hasPendingNotification)
-            {
-                hasPendingNotification = false;
-                return true;
-            }
+//         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+//         {
+//             if (showDebugMessages) Debug.Log($"Scene Loaded: {scene.name} in mode {mode}");
+//         }
 
-            return false;
-        }
+//         private void OnLobbyEntered(OperationResult result)
+//         {
+//             if (result.Status == ResultStatus.Success)
+//             {
+//                 GameObject gamelobbyManagerObject = new("GameLobbyManager");
+//                 gamelobbyManagerObject.AddComponent<GameLobbyManager>();
+//                 GameLobbyManager.Instance.Initialize((Lobby)result.Data);
 
-        private void SubscribeToEvents()
-        {
-            AuthenticationManager.OnAuthenticated += HandleAuthenticated;
+//                 TransitionToScene("Lobby");
+//             }
+//         }
 
-            LobbyEvents.OnLobbyCreated += HandleLobbyCreated;
-            LobbyEvents.OnLobbyJoined += HandleLobbyJoined;
-            LobbyEvents.OnLobbyLeft += HandleLobbyLeft;
-            LobbyEvents.OnLobbyKicked += HandleLobbyKicked;
-        }
+//         private void OnLobbyRejoined(OperationResult result)
+//         {
+//             if (result.Status == ResultStatus.Success)
+//             {
+//                 GameObject gamelobbyManagerObject = new("GameLobbyManager");
+//                 gamelobbyManagerObject.AddComponent<GameLobbyManager>();
+//                 GameLobbyManager.Instance.Initialize((Lobby)result.Data);
 
-        private void UnsubscribeFromEvents()
-        {
-            AuthenticationManager.OnAuthenticated -= HandleAuthenticated;
+//                 TransitionToScene("Lobby");
+//             }
+//             else TransitionToScene("Main");
+//         }
 
-            LobbyEvents.OnLobbyCreated -= HandleLobbyCreated;
-            LobbyEvents.OnLobbyJoined -= HandleLobbyJoined;
-            LobbyEvents.OnLobbyLeft -= HandleLobbyLeft;
-            LobbyEvents.OnLobbyKicked -= HandleLobbyKicked;
-        }
+//         private void OnLobbyExited(OperationResult result)
+//         {
+//             if (result.Status == ResultStatus.Success)
+//             {
+//                 TransitionToScene("Main");
 
-        private void HandleAuthenticated()
-        {
-            SetPendingNotification(OperationResult.SuccessResult("AUTH_SUCCESS", "Authentication successful!"), NotificationType.Success);
-            SceneManager.LoadScene("Main");
-        }
+//                 GameLobbyManager.Instance.Cleanup();
+//                 Destroy(GameLobbyManager.Instance.gameObject);
+//             }
+//         }
 
-        private void HandleLobbyCreated(Lobby lobby)
-        {
-            SetPendingNotification(OperationResult.SuccessResult("LOBBY_CREATED", $"Created lobby '{lobby.Name}'!"), NotificationType.Success);
-            SceneManager.LoadScene("Lobby");
-        }
+//         private void OnGameStarted(bool success, string relayJoinCode)
+//         {
+//             if (success) SceneManager.LoadSceneAsync("Loading", LoadSceneMode.Additive);
+//         }
 
-        private void HandleLobbyJoined(Lobby lobby)
-        {
-            SetPendingNotification(OperationResult.SuccessResult("LOBBY_JOINED", $"Joined lobby '{lobby.Name}'!"), NotificationType.Success);
-            SceneManager.LoadScene("Lobby");
-        }
+//         private void OnGameEnded()
+//         {
+//             SceneManager.UnloadSceneAsync("Loading");
+//         }
 
-        private void HandleLobbyLeft()
-        {
-            SetPendingNotification(OperationResult.SuccessResult("LOBBY_LEFT", "Left the lobby."), NotificationType.Success);
-            SceneManager.LoadScene("Main");
-        }
-
-        private void HandleLobbyKicked()
-        {
-            SetPendingNotification(OperationResult.WarningResult("LOBBY_KICKED", "Kicked from the lobby."), NotificationType.Warning);
-            SceneManager.LoadScene("Main");
-        }
-    }
-}
+//         private void TransitionToScene(string sceneName)
+//         {
+//             if (showDebugMessages) Debug.Log($"Transitioning to scene: {sceneName}");
+//             SceneManager.LoadSceneAsync(sceneName);
+//         }
+//     }
+// }

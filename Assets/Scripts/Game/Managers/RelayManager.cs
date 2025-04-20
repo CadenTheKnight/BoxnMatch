@@ -1,84 +1,58 @@
-using System;
-using System.Linq;
-using Unity.Services.Relay;
-using System.Threading.Tasks;
-using Unity.Services.Relay.Models;
-using Assets.Scripts.Framework.Core;
+// using System;
+// using Unity.Netcode;
+// using Unity.Services.Relay;
+// using System.Threading.Tasks;
+// using Unity.Services.Relay.Models;
+// using Unity.Netcode.Transports.UTP;
+// using Assets.Scripts.Framework.Core;
+// using Unity.Networking.Transport.Relay;
 
-namespace Assets.Scripts.Game.Managers
-{
-    public class RelayManager : Singleton<RelayManager>
-    {
-        private bool isHost = false;
-        public string relayJoinCode;
-        private string relayServerAddress;
-        private int relayServerPort;
-        private byte[] key;
-        private byte[] connectionData;
-        private byte[] hostConnectionData;
-        private Guid allocationId;
-        private byte[] allocationIdBytes;
+// namespace Assets.Scripts.Game.Managers
+// {
+//     public class RelayManager : Singleton<RelayManager>
+//     {
+//         private Allocation hostAllocation;
+//         private JoinAllocation playerAllocation;
 
-        public bool IsHost
-        {
-            get { return isHost; }
-            private set { isHost = value; }
-        }
+//         /// <summary>
+//         /// Creates a relay allocation for hosting.
+//         /// </summary>
+//         public async Task<string> CreateRelay(int maxConnections)
+//         {
+//             try
+//             {
+//                 hostAllocation = await RelayService.Instance.CreateAllocationAsync(maxConnections);
+//                 string joinCode = await RelayService.Instance.GetJoinCodeAsync(hostAllocation.AllocationId);
 
-        public string GetAllocationId()
-        {
-            return allocationId.ToString();
-        }
+//                 var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+//                 var relayServerData = new RelayServerData(hostAllocation, "dtls");
+//                 transport.SetRelayServerData(relayServerData);
 
-        public string GetConnectionData()
-        {
-            return connectionData.ToString();
-        }
+//                 NetworkManager.Singleton.StartHost();
 
-        public async Task<string> CreateRelay(int maxConnection)
-        {
-            Allocation allocation = await RelayService.Instance.CreateAllocationAsync(maxConnection);
-            relayJoinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
+//                 return joinCode;
+//             }
+//             catch (Exception) { return null; }
+//         }
 
-            RelayServerEndpoint dtlsEndpoint = allocation.ServerEndpoints.First(conn => conn.ConnectionType == "dtls");
-            relayServerAddress = dtlsEndpoint.Host;
-            relayServerPort = dtlsEndpoint.Port;
+//         /// <summary>
+//         /// Joins an existing relay allocation
+//         /// </summary>
+//         public async Task<bool> JoinRelay(string joinCode)
+//         {
+//             try
+//             {
+//                 playerAllocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
 
-            allocationId = allocation.AllocationId;
-            allocationIdBytes = allocation.AllocationIdBytes;
-            connectionData = allocation.ConnectionData;
-            key = allocation.Key;
+//                 var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+//                 var relayServerData = new RelayServerData(playerAllocation, "dtls");
+//                 transport.SetRelayServerData(relayServerData);
 
-            IsHost = true;
+//                 NetworkManager.Singleton.StartClient();
 
-            return relayJoinCode;
-        }
-
-        public async Task<bool> JoinRelay(string joinCode)
-        {
-            JoinAllocation joinAllocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
-
-            RelayServerEndpoint dtlsEndpoint = joinAllocation.ServerEndpoints.First(conn => conn.ConnectionType == "dtls");
-            relayServerAddress = dtlsEndpoint.Host;
-            relayServerPort = dtlsEndpoint.Port;
-
-            allocationId = joinAllocation.AllocationId;
-            allocationIdBytes = joinAllocation.AllocationIdBytes;
-            connectionData = joinAllocation.ConnectionData;
-            hostConnectionData = joinAllocation.HostConnectionData;
-            key = joinAllocation.Key;
-
-            return true;
-        }
-
-        public (byte[] AllocationId, byte[] Key, byte[] ConnectionData, string dtlsAddress, int dtlsPort) GetHostConnectionInfo()
-        {
-            return (allocationIdBytes, key, connectionData, relayServerAddress, relayServerPort);
-        }
-
-        public (byte[] AllocationId, byte[] Key, byte[] ConnectionData, byte[] HostConnectionData, string dtlsAddress, int dtlsPort) GetClientConnectionInfo()
-        {
-            return (allocationIdBytes, key, connectionData, hostConnectionData, relayServerAddress, relayServerPort);
-        }
-    }
-}
+//                 return true;
+//             }
+//             catch (Exception) { return false; }
+//         }
+//     }
+// }

@@ -1,9 +1,5 @@
 using UnityEngine;
 
-// Todo
-// 1. Check functionality on different screen sizes
-// 2. ?
-
 namespace Assets.Scripts.Game.UI.Components
 {
     /// <summary>
@@ -42,8 +38,7 @@ namespace Assets.Scripts.Game.UI.Components
             if (!isLoading) return;
 
             float newX = movingBar.anchoredPosition.x + speed * Time.deltaTime;
-            if (newX > endPosition)
-                newX = startPosition;
+            if (newX > endPosition) newX = startPosition;
 
             movingBar.anchoredPosition = new Vector2(newX, movingBar.anchoredPosition.y);
         }
@@ -53,6 +48,8 @@ namespace Assets.Scripts.Game.UI.Components
         /// </summary>
         public void StartLoading()
         {
+            if (isLoading) return;
+
             RecalculatePositions();
             movingBar.anchoredPosition = new Vector2(startPosition, movingBar.anchoredPosition.y);
             isLoading = true;
@@ -63,14 +60,10 @@ namespace Assets.Scripts.Game.UI.Components
         /// </summary>
         public void StopLoading()
         {
+            if (!isLoading) return;
+
             isLoading = false;
             movingBar.anchoredPosition = new Vector2(startPosition, movingBar.anchoredPosition.y);
-        }
-
-        private void OnRectTransformDimensionsChange()
-        {
-            if (isActiveAndEnabled)
-                RecalculatePositions();
         }
     }
 }

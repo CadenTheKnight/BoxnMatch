@@ -12,6 +12,8 @@ namespace Assets.Scripts.Game.UI.Components
         [SerializeField] protected Button closeButton;
         [SerializeField] protected Button backgroundButton;
 
+        private bool interactable = true;
+
         /// <summary>
         /// Adds listeners to the close and background buttons.
         /// </summary>
@@ -35,7 +37,7 @@ namespace Assets.Scripts.Game.UI.Components
         /// </summary>
         protected virtual void Update()
         {
-            if (gameObject.activeSelf && Input.GetKeyDown(KeyCode.Escape))
+            if (gameObject.activeSelf && Input.GetKeyDown(KeyCode.Escape) && interactable)
                 HidePanel();
         }
 
@@ -47,6 +49,13 @@ namespace Assets.Scripts.Game.UI.Components
         public virtual void HidePanel()
         {
             gameObject.SetActive(false);
+        }
+
+        public virtual void UpdateInteractable(bool state)
+        {
+            interactable = state;
+            closeButton.interactable = state;
+            backgroundButton.interactable = state;
         }
     }
 }
