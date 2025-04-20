@@ -18,6 +18,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
         // [SerializeField] private Button lobbyCodeButton;
         // [SerializeField] private TextMeshProUGUI lobbyCodeText;
         [SerializeField] private Selector optionsPanelSelector;
+        [SerializeField] private TextMeshProUGUI characterOptionsText;
         [SerializeField] private GameSettingsPanelController gameSettingsPanelController;
         [SerializeField] private CharacterCustomizationPanelController characterCustomizationPanelController;
 
@@ -27,13 +28,14 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             startButton.onClick.AddListener(OnStartClicked);
             // lobbyCodeButton.onClick.AddListener(OnLobbyCodeClicked);
             optionsPanelSelector.onSelectionChanged += SetActiveOptionsPanel;
+            gameSettingsPanelController.GameModeSelector.onSelectionChanged += SetGameMode;
 
             // LobbyEvents.OnPlayerLeft += OnPlayerLeft;
             // GameEvents.OnGameStarted += OnGameStarted;
             // GameEvents.OnGameEnded += OnGameEnded;
             // GameLobbyEvents.OnPlayerReadyStatusChanged += OnPlayerReadyStatusChanged;
 
-            // optionsPanelSelector.SetSelection(0, true);
+            optionsPanelSelector.SetSelection(0, true);
             // lobbyNameText.GetComponent<RectTransform>().anchorMin = new Vector2(GameLobbyManager.Instance.Lobby.IsPrivate ? 0.06f : 0f, 0f);
             // lobbyNameText.text = GameLobbyManager.Instance.Lobby.Name;
             // privateIndicator.gameObject.SetActive(GameLobbyManager.Instance.Lobby.IsPrivate);
@@ -47,6 +49,7 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             startButton.onClick.RemoveListener(OnStartClicked);
             // lobbyCodeButton.onClick.RemoveListener(OnLobbyCodeClicked);
             optionsPanelSelector.onSelectionChanged -= SetActiveOptionsPanel;
+            gameSettingsPanelController.GameModeSelector.onSelectionChanged -= SetGameMode;
         }
 
         private async void OnStartClicked()
@@ -55,6 +58,9 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             startText.text = "Starting...";
 
             await Task.Delay(1000);
+
+            Debug.Log($"Game settings: Map - {gameSettingsPanelController.MapChanger.Value}, Round Count - {gameSettingsPanelController.RoundCountIncrementer.Value}, Round Time - {gameSettingsPanelController.RoundTimeIncrementer.Value}, Game Mode - {gameSettingsPanelController.GameModeSelector.Selection}");
+            // Debug.Log($"Character customization: Character - {characterCustomizationPanelController.characterSelector.SelectedIndex}, Color - {characterCustomizationPanelController.colorSelector.SelectedIndex}");
 
             // start game
 
@@ -85,6 +91,11 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
                 gameSettingsPanelController.gameObject.SetActive(false);
                 characterCustomizationPanelController.gameObject.SetActive(true);
             }
+        }
+
+        private void SetGameMode(int selection)
+        {
+            characterOptionsText.text = selection == 0 ? "Character" : "Characters";
         }
 
         // private void OnPlayerLeft(string playerId)

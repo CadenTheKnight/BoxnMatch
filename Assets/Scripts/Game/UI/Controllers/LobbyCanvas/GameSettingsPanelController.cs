@@ -15,10 +15,31 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
         [SerializeField] private Incrementer roundTimeIncrementer;
         [SerializeField] private Selector gameModeSelector;
 
-        [Header("Settings Management")]
-        [SerializeField] private Button editUpdateButton;
-        [SerializeField] private LoadingBar editUpdateLoadingBar;
-        [SerializeField] private TextMeshProUGUI editUpdateText;
+        // [Header("Settings Management")]
+        // [SerializeField] private Button editUpdateButton;
+        // [SerializeField] private LoadingBar editUpdateLoadingBar;
+        // [SerializeField] private TextMeshProUGUI editUpdateText;
+
+        public MapChanger MapChanger => mapChanger;
+        public Incrementer RoundCountIncrementer => roundCountIncrementer;
+        public Incrementer RoundTimeIncrementer => roundTimeIncrementer;
+        public Selector GameModeSelector => gameModeSelector;
+
+        // private void OnEnable()
+        // {
+        //     mapChanger.OnValueChanged += OnMapIndexChanged;
+        //     roundCountIncrementer.OnValueChanged += OnRoundCountChanged;
+        //     roundTimeIncrementer.OnValueChanged += OnRoundTimeChanged;
+        //     gameModeSelector.OnSelectionChanged += OnGameModeChanged;
+        // }
+
+        // private void OnDisable()
+        // {
+        //     mapChanger.OnValueChanged -= OnMapIndexChanged;
+        //     roundCountIncrementer.OnValueChanged -= OnRoundCountChanged;
+        //     roundTimeIncrementer.OnValueChanged -= OnRoundTimeChanged;
+        //     gameModeSelector.OnSelectionChanged -= OnGameModeChanged;
+        // }
 
         // private bool isEditing = false;
 
@@ -34,18 +55,23 @@ namespace Assets.Scripts.Game.UI.Controllers.LobbyCanvas
             // UpdateOptionsInteractable(isEditing);
             // UpdateEditUpdateButtonState(isEditing);
             // editUpdateButton.interactable = AuthenticationService.Instance.PlayerId == GameLobbyManager.Instance.Lobby.HostId;
+
+            mapChanger.SetValue(0);
+            roundCountIncrementer.SetValue(5);
+            roundTimeIncrementer.SetValue(90);
+            gameModeSelector.SetSelection(0);
         }
 
-        private void OnDestroy()
-        {
-            // editUpdateButton.onClick.RemoveListener(OnEditUpdateClicked);
+        // private void OnDestroy()
+        // {
+        //     editUpdateButton.onClick.RemoveListener(OnEditUpdateClicked);
 
-            // LobbyEvents.OnHostMigrated -= OnHostMigrated;
-            // GameLobbyEvents.OnGameSettingsChanged -= OnGameSettingsChanged;
-            // GameLobbyEvents.OnPlayerReadyStatusChanged -= OnPlayerReadyStatusChanged;
+        //     LobbyEvents.OnHostMigrated -= OnHostMigrated;
+        //     GameLobbyEvents.OnGameSettingsChanged -= OnGameSettingsChanged;
+        //     GameLobbyEvents.OnPlayerReadyStatusChanged -= OnPlayerReadyStatusChanged;
 
-            // editUpdateLoadingBar.StopLoading();
-        }
+        //     editUpdateLoadingBar.StopLoading();
+        // }
 
         // private async void OnEditUpdateClicked()
         // {

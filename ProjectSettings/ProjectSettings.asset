@@ -733,11 +733,11 @@ PlayerSettings:
   apiCompatibilityLevel: 6
   activeInputHandler: 2
   windowsGamepadBackendHint: 0
-  cloudProjectId: 
+  cloudProjectId: 9ef2b49a-ac17-4570-a3ff-a5b78a6c0ce1
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: 
-  organizationId: 
+  projectName: BoxnMatch
+  organizationId: sanekeaitng
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
   hmiLoadingImage: {fileID: 0}
