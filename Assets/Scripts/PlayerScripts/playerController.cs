@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement; //NEW
 using UnityEngine.InputSystem;
 
-public class playerControllerPlayer2 : MonoBehaviour
+public class playerController: MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private PlayerInputManager input;
@@ -24,13 +24,10 @@ public class playerControllerPlayer2 : MonoBehaviour
     [SerializeField] private float sideDrag = 2f;
     public Vector2 groundCheckSize = new Vector2(0.5f, 0.1f);
     public LayerMask groundLayer;
-    public LayerMask player1Layer;
-    public LayerMask player2Layer;
     public int jumpCount = 0;
     public int maxJumps = 2;
     bool isGrounded = false;
-    bool isPlayer1 = false;
-    
+
     public float forceAmount = 10f;
     private bool isFalling = false;
 
@@ -76,7 +73,6 @@ public class playerControllerPlayer2 : MonoBehaviour
 
 
         isGrounded = Physics2D.OverlapBox(checkPosition, groundCheckSize, 0f, groundLayer);
-        isPlayer1 = Physics2D.OverlapBox(checkPosition, groundCheckSize, 0f, player1Layer);
 
         if (isGrounded)
         {
@@ -101,13 +97,13 @@ public class playerControllerPlayer2 : MonoBehaviour
 
         Vector2 force = new Vector2(horizontalInput * forceAmount, 0);
         rb.AddForce(force, ForceMode2D.Impulse);
-        
+
 
         if (Mathf.Abs(rb.velocity.x) > TOP_SPEED)
         {
             // Limit speed while keeping direction
             rb.velocity = new Vector2(Mathf.Sign(rb.velocity.x) * TOP_SPEED, rb.velocity.y);
-     
+
             Vector2 current_velocity = rb.velocity;
             current_velocity.x *= 1f - (sideDrag * Time.fixedDeltaTime);
 
