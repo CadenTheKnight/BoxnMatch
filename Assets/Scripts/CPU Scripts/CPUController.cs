@@ -424,16 +424,15 @@ public class CPUController : MonoBehaviour
 
     // Use Ability in the selected direction
     private IEnumerator UseAbility(string abilityTag, AbilityDirection dir)
-    {
+    { 
+        // Rotate ability to correct slot
+        yield return StartCoroutine(RotateAbility(abilityTag, dir));
 
-        Coroutine rotate = StartCoroutine(RotateAbility(abilityTag, dir));
-        yield return rotate;
-        yield return new WaitForSeconds(0.25f);
-
+        // Use ability
         cpuR.UseAbilityProgrammatically(dir);
-        Coroutine count = StartCoroutine(CountAbilities());
-        yield return count;
-        
+
+        // Recalculate ability count/types
+        yield return StartCoroutine(CountAbilities());
     }
 
     // Check if there if a launched fireball will hit a player
