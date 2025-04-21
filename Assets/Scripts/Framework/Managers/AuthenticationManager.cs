@@ -57,7 +57,7 @@ namespace Assets.Scripts.Framework.Managers
             catch (System.Exception authEx)
             {
 
-                return OperationResult.FailureResult("AuthenticationError", authEx.Message);
+                return OperationResult.ErrorResult("AuthenticationError", authEx.Message);
             }
         }
     }

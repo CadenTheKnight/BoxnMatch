@@ -12,13 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a7c893cd3e8dd641bad0c23e00e0e85, type: 3}
   m_Name: MapSelectionData
   m_EditorClassIdentifier: 
-  Maps:
-  - MapThumbnail: {r: 1, g: 0.2784314, b: 0.34117648, a: 1}
-    MapName: Red Map
-    MapSceneName: RedScene
-  - MapThumbnail: {r: 0.18039216, g: 0.8352941, b: 0.4509804, a: 1}
-    MapName: Green Map
-    MapSceneName: GreenScene
-  - MapThumbnail: {r: 0.4392157, g: 0.6313726, b: 1, a: 1}
-    MapName: Blue Map
-    MapSceneName: BlueScene
+  maps:
+  - Thumbnail: {fileID: 21300000, guid: 5ff3763f10f8d409e88a7e2719a4a99b, type: 3}
+    Name: Airplane
+  - Thumbnail: {fileID: 21300000, guid: b6a03639ae98b4404879a7a15b128b62, type: 3}
+    Name: City
+  - Thumbnail: {fileID: 21300000, guid: f1084eb43753c4dcfa91e443ce5df09f, type: 3}
+    Name: Pirate
+  - Thumbnail: {fileID: 21300000, guid: 22dfbe40abd5d47a9808cc471be07bbc, type: 3}
+    Name: Temple
