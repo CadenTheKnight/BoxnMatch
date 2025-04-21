@@ -1224,6 +1224,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1353816022486578334, guid: caa0392dd2a940d4f8e4a9d239e827ec, type: 3}
+      propertyPath: menuSceneName
+      value: Main
+      objectReference: {fileID: 0}
     - target: {fileID: 1754188471145486253, guid: caa0392dd2a940d4f8e4a9d239e827ec, type: 3}
       propertyPath: m_Pivot.x
       value: 0

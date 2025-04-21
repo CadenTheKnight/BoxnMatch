@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Assets.Scripts.Game.Managers;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
@@ -20,8 +21,8 @@ public class handleExitPlay : MonoBehaviour
         //Debug.Log("Handle Exit " + colObj.name);
 
         // Ensure one trigger per exit
-        if (debounceList.Contains(colObj)) return; 
-        
+        if (debounceList.Contains(colObj)) return;
+
         if (colObj.CompareTag("Player")) // handle player exiting
         {
             Debug.Log("Handle Exit 1 " + colObj.name);
@@ -45,6 +46,10 @@ public class handleExitPlay : MonoBehaviour
             Debug.Log("Handle Exit 7 " + colObj.name);
             damagableObj.currentDamage = 0;
             Debug.Log("Handle Exit 8 " + colObj.name);
+
+            int playerNumber = colObj.name == "Player-Couch-P1" ? 1 : 2;
+            GameManager.Instance.PlayerEliminated(playerNumber);
+
             colObj.transform.position = respawnPoint;
             Debug.Log("Reset " + colObj.name + " to spawn point");
         }

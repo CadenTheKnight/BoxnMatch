@@ -20,7 +20,7 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/Maps/GreenScene.unity
     guid: ec4f9418b63bd694e9cca6804bb67443
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Menus/Settings.unity
     guid: a03571c1af0acec4ca26051150ea6305
   - enabled: 0

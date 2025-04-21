@@ -359,6 +359,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player-Couch-P2
       objectReference: {fileID: 0}
+    - target: {fileID: 4355047756674615735, guid: ab2a0747063d98349987691ec999c1f7, type: 3}
+      propertyPath: m_TagString
+      value: Player2
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 2053785779397973030, guid: ab2a0747063d98349987691ec999c1f7, type: 3}
     m_RemovedGameObjects: []
@@ -598,6 +602,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1353816022486578334, guid: caa0392dd2a940d4f8e4a9d239e827ec, type: 3}
+      propertyPath: menuSceneName
+      value: Main
+      objectReference: {fileID: 0}
     - target: {fileID: 1754188471145486253, guid: caa0392dd2a940d4f8e4a9d239e827ec, type: 3}
       propertyPath: m_Pivot.x
       value: 0
