@@ -14,6 +14,7 @@ TagManager:
   - Shield
   - Rocket
   - Player2
+  - Explosive
   layers:
   - Default
   - TransparentFX

@@ -34,7 +34,7 @@ namespace Assets.Scripts.Game.Data
 
         public Map GetMapBySceneName(string sceneName)
         {
-            return maps.Find(map => map.Name == sceneName);
+            return maps.Find(map => map.SceneName == sceneName);
         }
     }
 
@@ -43,5 +43,6 @@ namespace Assets.Scripts.Game.Data
     {
         public Sprite Thumbnail;
         public string Name;
+        public string SceneName;
     }
 }

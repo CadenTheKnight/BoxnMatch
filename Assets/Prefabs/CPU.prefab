@@ -207,6 +207,7 @@ MonoBehaviour:
   damageModifier: 1
   currentDamage: 0
   startingLives: 3
+  currLives: 0
   isPlayer: 0
   distortionAmt: 45
   distortionDuration: 0.8
@@ -276,6 +277,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 8
   stopRange: 0.05
+  targetXrange: 0.1
 --- !u!114 &3753281330288951807
 MonoBehaviour:
   m_ObjectHideFlags: 0

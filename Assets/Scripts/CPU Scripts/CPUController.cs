@@ -41,8 +41,8 @@ public class CPUController : MonoBehaviour
     private void Update()
     {
         //Debug.Log(stuckCheck);
-        // Check if the CPU is stationary for too long and therefore stuck
-        if (previousPosition.Equals(transform.position))
+        // Check if the CPU is stationary/jittery for too long and therefore stuck
+        if (Mathf.Round(previousPosition.x) == Mathf.Round(transform.position.x) && Mathf.Round(previousPosition.y) == Mathf.Round(transform.position.y))
         {
             stuckCheck++;
         }
@@ -424,16 +424,15 @@ public class CPUController : MonoBehaviour
 
     // Use Ability in the selected direction
     private IEnumerator UseAbility(string abilityTag, AbilityDirection dir)
-    {
+    { 
+        // Rotate ability to correct slot
+        yield return StartCoroutine(RotateAbility(abilityTag, dir));
 
-        Coroutine rotate = StartCoroutine(RotateAbility(abilityTag, dir));
-        yield return rotate;
-        yield return new WaitForSeconds(0.25f);
-
+        // Use ability
         cpuR.UseAbilityProgrammatically(dir);
-        Coroutine count = StartCoroutine(CountAbilities());
-        yield return count;
-        
+
+        // Recalculate ability count/types
+        yield return StartCoroutine(CountAbilities());
     }
 
     // Check if there if a launched fireball will hit a player
@@ -526,10 +525,43 @@ public class CPUController : MonoBehaviour
 
     private IEnumerator Recover()
     {
-        GameObject platform = FindNearestPlatform(Vector2.zero);
+        GameObject platform = FindNearestPlatform(transform.position);
+
+        // Use a rocket if no platform is found
+        if(!platform)
+        {
+            yield return StartCoroutine(UseAbility("Rocket", AbilityDirection.SOUTH));
+        }
+        yield return new WaitForSeconds(1);
+
+        // Check for platform again
+        platform = FindNearestPlatform(transform.position);
+
+        // Navigate to nearest platform
         if (platform)
         {
-            yield return StartCoroutine(NavigateToTargetPosition(platform.GetComponent<Collider2D>().bounds.center + new Vector3(0f,0.5f,0)));
+            Vector2 targetPosition = Vector2.zero;
+            // Navigate to the closest side of the platform
+            if(transform.position.x > platform.transform.position.x)
+            {
+                targetPosition = platform.GetComponent<Collider2D>().bounds.max + new Vector3(-1, 0, 0);
+                
+            }
+            else if (transform.position.x < platform.transform.position.x)
+            {
+                targetPosition = platform.GetComponent<Collider2D>().bounds.min + new Vector3(1, 1, 0);
+            }
+
+            // If the distance away from the 
+            float xDif = Mathf.Abs(targetPosition.x - transform.position.x);
+            float yDif = transform.position.y - targetPosition.y;
+            if (xDif > yDif * 2)
+            {
+                yield return StartCoroutine(UseAbility("Rocket", AbilityDirection.SOUTH));
+            }
+
+            yield return StartCoroutine(NavigateToTargetPosition(targetPosition));
+
         }
 
         cpuM.Crouch();
@@ -697,6 +729,8 @@ public class CPUController : MonoBehaviour
             if (dist < 2f)
             {
                 yield return StartCoroutine(UseAbility("RemoteExplosive", AbilityDirection.SOUTH)); // drop down
+                yield return StartCoroutine(OptimalJumps()); // jump out of explosion range
+                yield return StartCoroutine(UseAbility("RemoteExplosive", AbilityDirection.SOUTH)); // detonate
                 yield break;
             }
         }
@@ -717,7 +751,7 @@ public class CPUController : MonoBehaviour
 
     private IEnumerator Defend()
     {
-        float detectionRadius = 8f;
+        float detectionRadius = 5f;
         float dangerAngleThreshold = 0.7f; // Cosine threshold to ensure it's mostly heading toward the CPU
         Collider2D[] threats = Physics2D.OverlapCircleAll(transform.position, detectionRadius);
 
@@ -733,7 +767,7 @@ public class CPUController : MonoBehaviour
 
                 // Make sure the threat is heading toward the CPU
                 float threatDirDot = Vector2.Dot(toSelf.normalized, threatVel.normalized);
-                if (threatDirDot < dangerAngleThreshold) continue;
+                if (threatDirDot < dangerAngleThreshold || c.CompareTag("Explosive")) continue;
 
                 // Determine the direction to defend based on the threat's velocity
                 AbilityDirection blockDir = GetAbilityDirection(threatVel);
