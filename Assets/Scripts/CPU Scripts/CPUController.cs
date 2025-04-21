@@ -730,6 +730,8 @@ public class CPUController : MonoBehaviour
             if (dist < 2f)
             {
                 yield return StartCoroutine(UseAbility("RemoteExplosive", AbilityDirection.SOUTH)); // drop down
+                yield return StartCoroutine(OptimalJumps()); // jump out of explosion range
+                yield return StartCoroutine(UseAbility("RemoteExplosive", AbilityDirection.SOUTH)); // detonate
                 yield break;
             }
         }
