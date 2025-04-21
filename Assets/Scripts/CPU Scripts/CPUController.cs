@@ -751,7 +751,7 @@ public class CPUController : MonoBehaviour
 
     private IEnumerator Defend()
     {
-        float detectionRadius = 8f;
+        float detectionRadius = 5f;
         float dangerAngleThreshold = 0.7f; // Cosine threshold to ensure it's mostly heading toward the CPU
         Collider2D[] threats = Physics2D.OverlapCircleAll(transform.position, detectionRadius);
 
@@ -767,7 +767,7 @@ public class CPUController : MonoBehaviour
 
                 // Make sure the threat is heading toward the CPU
                 float threatDirDot = Vector2.Dot(toSelf.normalized, threatVel.normalized);
-                if (threatDirDot < dangerAngleThreshold) continue;
+                if (threatDirDot < dangerAngleThreshold || c.CompareTag("Explosive")) continue;
 
                 // Determine the direction to defend based on the threat's velocity
                 AbilityDirection blockDir = GetAbilityDirection(threatVel);
