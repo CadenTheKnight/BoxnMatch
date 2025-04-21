@@ -41,8 +41,8 @@ public class CPUController : MonoBehaviour
     private void Update()
     {
         //Debug.Log(stuckCheck);
-        // Check if the CPU is stationary for too long and therefore stuck
-        if (previousPosition.Equals(transform.position))
+        // Check if the CPU is stationary/jittery for too long and therefore stuck
+        if (Mathf.Round(previousPosition.x) == Mathf.Round(transform.position.x) && Mathf.Round(previousPosition.y) == Mathf.Round(transform.position.y))
         {
             stuckCheck++;
         }
