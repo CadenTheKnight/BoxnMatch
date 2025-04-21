@@ -15,7 +15,7 @@ public class DamageableObject : MonoBehaviour
 
     [Header("Lives")]
     public int startingLives = 3;
-    private int currLives;
+    public int currLives;
 
     [Header("DamageFX")]
     public bool isPlayer;

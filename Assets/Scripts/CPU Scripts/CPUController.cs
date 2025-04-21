@@ -8,12 +8,17 @@ using UnityEngine.InputSystem;
 
 public class CPUController : MonoBehaviour
 {
-    private CPUMovement cpuM;                           // The cpu movement handler (set in start)
-    private CPURotator cpuR;                            // The cpu rotator handler (set in start)
-    [SerializeField] private LayerMask groundLayer;     // Ground Layer Mask
-    private Rigidbody2D rb;                             // CPU's Rigid Body Component (set in start)
+    private CPUMovement cpuM;                               // The cpu movement handler (set in start)
+    private CPURotator cpuR;                                // The cpu rotator handler (set in start)
+    [SerializeField] private LayerMask groundLayer;         // Ground Layer Mask
+    private Rigidbody2D rb;                                 // CPU's Rigid Body Component (set in start)
 
-    [SerializeField] private float stopRange = 0.05f;   // The velocity +/- 0 that the CPU deems acceptable for stop function
+    [SerializeField] private float stopRange = 0.05f;       // The velocity +/- 0 that the CPU deems acceptable for stop function
+    [SerializeField] private float targetXrange = 0.25f;    // The Range in with the CPU will navigate to for its target X position
+
+    private Vector2 previousPosition;                       // Stores previous position for checking if the cpu is stuck
+    private int stuckCheck;                                 // Stores consecutive checks of no movement
+    private bool deathFlag = false;                         // Keeps track of death handling
 
     // Stores the number of abilities attached that are used in various states
     private int numAttackAbilities = 0;
@@ -28,8 +33,45 @@ public class CPUController : MonoBehaviour
         cpuM = GetComponent<CPUMovement>();
         cpuR = GetComponent<CPURotator>();
         rb = GetComponent<Rigidbody2D>();
+        previousPosition = transform.position;
 
         StartCoroutine(Idle());
+    }
+
+    private void Update()
+    {
+        //Debug.Log(stuckCheck);
+        // Check if the CPU is stationary for too long and therefore stuck
+        if (previousPosition.Equals(transform.position))
+        {
+            stuckCheck++;
+        }
+        else
+        {
+            stuckCheck = 0;
+            previousPosition = transform.position;
+        }
+
+        if (stuckCheck > 200)
+        {
+            stuckCheck = 0;
+            Debug.Log("Attempt unstuck procedure");
+            StopAllCoroutines();
+            StartCoroutine(Idle());
+        }
+
+        // Reset on death
+        if(!deathFlag && GetComponent<DamageableObject>().damageModifier == 0)
+        {
+            deathFlag = true;
+            StopAllCoroutines();
+            StartCoroutine(Idle());
+        }
+        else if (deathFlag && GetComponent<DamageableObject>().damageModifier != 0)
+        {
+            deathFlag = false;
+        }
+        
     }
 
 
@@ -38,34 +80,22 @@ public class CPUController : MonoBehaviour
 
 
 
-    private IEnumerator OptimalJumps(Vector2 target)
+    private IEnumerator OptimalJumps()
     {
-        Vector2 direction = target - (Vector2)transform.position;
-        float distance = direction.magnitude;
+        cpuM.Jump();
 
-        // If the distance is too large, attempt a dynamic jump based on direction
-        if (distance > 15f)
+        // Double jump if able
+        if (cpuM.RemainingJumps() > 0)
         {
-            // Make a more powerful jump (adjust jump force or use a more direct trajectory)
+            // Wait for optimally timed double jump
+            while (rb.velocity.y > 0.5f)
+            {
+                yield return new WaitForEndOfFrame();
+            }
             cpuM.Jump();
-            yield return new WaitForSeconds(0.1f);
+        }
 
-            // Double jump if necessary for larger distances
-            if (cpuM.RemainingJumps() > 0 && rb.velocity.y < 0.5f)
-            {
-                cpuM.Jump();
-            }
-        }
-        else
-        {
-            // Standard jump logic
-            cpuM.Jump();
-            yield return new WaitForSeconds(0.1f);
-            if (cpuM.RemainingJumps() > 0 && rb.velocity.y < 0.5f)
-            {
-                cpuM.Jump(); // Double jump if the platform is still out of reach
-            }
-        }
+        yield return null;
     }
 
     private IEnumerator StopHorizontal()
@@ -79,32 +109,6 @@ public class CPUController : MonoBehaviour
 
         cpuM.HorizontalMove(0); // set move to 0 after
     }
-
-    private IEnumerator HandlePlatformGap(Vector2 target)
-    {
-        Vector2 direction = target - (Vector2)transform.position;
-        float heightDifference = target.y - transform.position.y;
-
-        // If the gap is significant vertically and horizontally, prepare for a large jump
-        if (Mathf.Abs(heightDifference) > 5f && Mathf.Abs(direction.x) > 10f)
-        {
-            if (cpuM.RemainingJumps() > 0)
-            {
-                cpuM.Jump();
-                yield return new WaitForSeconds(0.15f); // Allow time for jump completion
-                if (cpuM.RemainingJumps() > 0)
-                {
-                    cpuM.Jump(); // Double jump to cross larger distances
-                }
-            }
-        }
-        else
-        {
-            // Standard approach for closer platforms
-            yield return StartCoroutine(NavigateToTargetPosition(target));
-        }
-    }
-
 
 
 
@@ -194,16 +198,18 @@ public class CPUController : MonoBehaviour
         return closest;
     }
 
-    // Finds the nearest platform to the cpu
-    private Vector2? FindNearestPlatform(Vector2 target)
+    // Finds the nearest platform to the target
+    private GameObject FindNearestPlatform(Vector2 target)
     {
-        float searchWidth = 40f; // Increase to allow wider platform search area
-        float searchHeight = 30f; // Extend vertical range to consider higher platforms
+        float searchWidth = 30f; 
+        float searchHeight = 30f;
+        float searchAbove = 4f; // Only search for platforms that a double jumpable
 
-        Collider2D[] hits = Physics2D.OverlapBoxAll(target, new Vector2(searchWidth, searchHeight), 0f, groundLayer);
+        Collider2D[] hits = Physics2D.OverlapBoxAll(target - new Vector2(0, (searchHeight/2) - searchAbove), new Vector2(searchWidth, searchHeight), 0f, groundLayer);
+        //Debug.Log("hits : " + hits);
 
         float minDist = Mathf.Infinity;
-        Vector2? best = null;
+        GameObject best = null;
 
         foreach (var hit in hits)
         {
@@ -212,15 +218,11 @@ public class CPUController : MonoBehaviour
                 Vector2 platformCenter = hit.bounds.center;
                 float dist = Vector2.Distance(transform.position, platformCenter);
 
-                // Skip platforms that are too close (main platform zone)
-                if (dist < 3f) continue; // Adjust to prevent magnet-like attraction to nearby platforms
-
-                // Prioritize platforms that are within a reachable distance, considering height and horizontal distance
-                float heightDiff = Mathf.Abs(platformCenter.y - transform.position.y);
-                if (dist < minDist && heightDiff < 15f)  // Allow a larger height tolerance
+                // Choose the platform closests to the CPU player
+                if (dist < minDist)
                 {
                     minDist = dist;
-                    best = platformCenter;
+                    best = hit.gameObject;
                 }
             }
         }
@@ -228,48 +230,114 @@ public class CPUController : MonoBehaviour
         return best;
     }
 
+    // Finds a random platform reachable from the current platform including the current platform
+    private GameObject FindRandomPlatform()
+    {
+        GameObject currPlatform = CurrentPlatform();
+
+        float searchWidth = 5f; 
+        float searchHeight = 30f; 
+        float searchAbove = 4f; // Only search for platforms that a double jumpable
+
+        Vector2 max = currPlatform.GetComponent<Collider2D>().bounds.max;
+        Vector2 min = currPlatform.GetComponent<Collider2D>().bounds.min;
+        min.y += 1; // Adjust the min y to be more accurate to the top of the platform
+
+        ArrayList platforms = new();
+
+        // Add all platforms reachable from the max side of the current platform
+        Collider2D[] hits = Physics2D.OverlapBoxAll(max - new Vector2(0, (searchHeight / 2) - searchAbove), new Vector2(searchWidth, searchHeight), 0f, groundLayer);
+        foreach (Collider2D hit in hits)
+        {
+            platforms.Add(hit.gameObject);
+        }
+
+        // Add all platforms reachable from the min side of the current platform
+        hits = Physics2D.OverlapBoxAll(min - new Vector2(0, (searchHeight / 2) - searchAbove), new Vector2(searchWidth, searchHeight), 0f, groundLayer);
+        foreach (Collider2D hit in hits)
+        {
+            platforms.Add(hit.gameObject);
+        }
+
+        //Debug.Log("platforms : ");
+        //foreach (Object platform in platforms)
+        //{
+        //    Debug.Log(platform.name);
+        //}
+
+        GameObject rand = (GameObject)platforms[Random.Range(0,platforms.Count)];
+        Debug.Log("Random Platform of " + platforms.Count + " platforms : " + rand);
+
+        return rand;
+    }
+
     // Navigates to a target position on the map safely between platforms
     private IEnumerator NavigateToTargetPosition(Vector2 target)
     {
-        while (Vector2.Distance(transform.position, target) > 0.75f)
+        Debug.Log("Navigate to " + target);
+        bool isJumping = false;
+        Coroutine jumping = null;
+        while (!(Mathf.Abs(transform.position.x - target.x) < targetXrange))
         {
             Vector2 direction = target - (Vector2)transform.position;
 
             int moveDir = Mathf.Abs(direction.x) > 0.1f ? (direction.x > 0 ? 1 : -1) : 0;
+
+            // If we're falling, jump
+            if (!IsAbovePlatform())
+            {
+                yield return StartCoroutine(OptimalJumps());
+            }
+
+            // Avoid the edge of platforms to get on them
+            Collider2D platformEdge = Physics2D.OverlapBox(transform.position, new Vector2(2f,0.8f), 0, groundLayer);
+            if(platformEdge && platformEdge.transform.position.x < transform.position.x)
+            {
+                moveDir = 1;
+            }
+            else if(platformEdge && platformEdge.transform.position.x > transform.position.x)
+            {
+                moveDir = -1;
+            }
+
             cpuM.HorizontalMove(moveDir);
 
-            // If the platform is above or we're falling, determine jump
-            if (direction.y > 1f || !IsAbovePlatform())
+            // if the target is much above the bottom of the CPU then double jump when close enough
+            if (!isJumping && target.y - transform.position.y > 1.5f && target.x - transform.position.x < (7.5 + (4 - Mathf.Abs(target.y - transform.position.y))))
             {
-                if (cpuM.RemainingJumps() > 0)
-                {
-                    cpuM.Jump();
-                    yield return new WaitForSeconds(0.1f); // Adjust wait time for double-jumping decision
-                    if (cpuM.RemainingJumps() > 0 && rb.velocity.y < 0.5f)
-                    {
-                        cpuM.Jump(); // Double jump if needed
-                    }
-                }
+                isJumping = true;
+                jumping = StartCoroutine(OptimalJumps());
             }
-            // If the gap is large, attempt a dynamic jump trajectory to reach farther platforms
-            else if (direction.y < -5f && Mathf.Abs(direction.x) > 5f)
+            // if the target is above the bottom of the CPU then jump when close enough
+            else if (!isJumping && target.y - transform.position.y > -0.5f && Mathf.Abs(target.x - transform.position.x) < (3.5 + (1.5 - Mathf.Abs(target.y - transform.position.y))/2))
             {
-                // Attempt a larger jump to cover a bigger gap (considering double jump mechanics)
-                cpuM.Jump();
-                yield return new WaitForSeconds(0.15f); // Short delay to allow for double jump
-                if (cpuM.RemainingJumps() > 0)
-                {
-                    cpuM.Jump();
-                }
+                isJumping = true;
+                jumping = StartCoroutine(OptimalJumps());
+            }
+
+            if(cpuM.jumpCount > 1)
+            {
+                isJumping = false;
+                if (jumping != null) StopCoroutine(jumping);
             }
 
             yield return new WaitForEndOfFrame();
         }
 
-        cpuM.HorizontalMove(0); // Stop movement when close enough
+        if(jumping != null) StopCoroutine(jumping);
         yield return StartCoroutine(StopHorizontal()); // Smooth stop
+        Debug.Log("Arrived at " + target);
     }
 
+    private GameObject CurrentPlatform()
+    {
+        RaycastHit2D ray1 = Physics2D.Raycast((Vector2)transform.position + new Vector2(0.5f,0), Vector2.down, 50f, groundLayer);
+        RaycastHit2D ray2 = Physics2D.Raycast((Vector2)transform.position - new Vector2(0.5f,0), Vector2.down, 50f, groundLayer);
+
+        if (ray1) return ray1.collider.gameObject;
+        else if (ray2) return ray2.collider.gameObject;
+        else return FindNearestPlatform(transform.position);
+    }
 
 
 
@@ -306,7 +374,7 @@ public class CPUController : MonoBehaviour
             }
         }
 
-        yield break;
+        yield return null;
     }
 
     // Find Ability Socket that has the given ability
@@ -332,7 +400,7 @@ public class CPUController : MonoBehaviour
         
 
         // If ability is found in a socket, rotate it to the given direction
-        if(abilitySocket)
+        if(abilitySocket && abilitySocket.socketDirection != dir)
         {
             // Calculate spin direction
             int rotation = dir - abilitySocket.socketDirection;
@@ -351,7 +419,7 @@ public class CPUController : MonoBehaviour
             Debug.Log("CPU ABILITY ERROR : No ability of that tag found to rotate");
         }
 
-        yield break;
+        yield return null;
     }
 
     // Use Ability in the selected direction
@@ -452,21 +520,16 @@ public class CPUController : MonoBehaviour
 
 
 
-
-
-
-
-
     /* ------------ Finite State Machine Nodes ------------ */
 
 
 
     private IEnumerator Recover()
     {
-        Vector2? platform = FindNearestPlatform(Vector2.zero);
-        if (platform.HasValue)
+        GameObject platform = FindNearestPlatform(Vector2.zero);
+        if (platform)
         {
-            yield return StartCoroutine(NavigateToTargetPosition(platform.Value));
+            yield return StartCoroutine(NavigateToTargetPosition(platform.GetComponent<Collider2D>().bounds.center + new Vector3(0f,0.5f,0)));
         }
 
         cpuM.Crouch();
@@ -475,66 +538,93 @@ public class CPUController : MonoBehaviour
 
     private IEnumerator Idle()
     {
-        while (true)
+        Coroutine navigation = null;
+        Vector2? targetPosition = null;
+        bool navigationActive = false;
+        yield return new WaitForEndOfFrame();
+        //Debug.Log(GetComponent<DamageableObject>().currLives);
+        while (GetComponent<DamageableObject>().currLives > 0)
         {
-            // Pick a random point in a reasonable range to scan for platforms
-            Vector2 scanCenter = (Vector2)transform.position + new Vector2(Random.Range(-8f, 8f), Random.Range(-3f, 3f));
-            Vector2? platform = FindNearestPlatform(scanCenter);
 
-            // If a valid platform was found, decide when to jump to it
-            if (platform.HasValue)
+            //Debug.Log("Idle Loop");
+            if(!targetPosition.HasValue || (Mathf.Abs(transform.position.x - targetPosition.Value.x) < targetXrange*2 && Mathf.Abs(transform.position.y - targetPosition.Value.y) < 2f))
             {
-                Vector2 targetPlatform = platform.Value;
+                GameObject platform = FindRandomPlatform();
+                //Debug.Log("random platform " + platform);
 
-                // Calculate distance to platform and height difference
-                float distance = Vector2.Distance(transform.position, targetPlatform);
-                float heightDifference = targetPlatform.y - transform.position.y;
-
-                bool isCloseEnoughHorizontally = Mathf.Abs(targetPlatform.x - transform.position.x) <= 10f; // Horizontal proximity
-                bool isJumpableHeight = heightDifference >= -1f && heightDifference <= 5f; // Height difference range
-                bool isWithinReach = isCloseEnoughHorizontally && isJumpableHeight;
-
-                // Only jump if the platform is within a reasonable horizontal distance and height difference
-                if (isWithinReach)
+                // If the navigation is to the current platform, choose a random point on that platform
+                if (platform == CurrentPlatform())
                 {
-                    yield return StartCoroutine(NavigateToTargetPosition(targetPlatform));
+                    //Debug.Log("random platform " + platform.name);
+                    Vector2 platformMin = platform.GetComponent<Collider2D>().bounds.min;
+                    platformMin.y += 1; //adjust to top of the platform
+                    platformMin.x += 1f; // adjust away form the edge a bit
+                    Vector2 platformMax = platform.GetComponent<Collider2D>().bounds.max;
+                    platformMax.x -= 1; // adjust away from the edge a bit
+                    targetPosition = Vector2.Lerp(platformMin, platformMax, Random.value); // chooses random point on the platform as the target
+
+                    navigationActive = true;
+                    navigation = StartCoroutine(NavigateToTargetPosition(targetPosition.Value));
+                }
+                else if(platform)
+                {
+                    Vector2 platformMin = platform.GetComponent<Collider2D>().bounds.min;
+                    platformMin.y += 1; //adjust to top of the platform
+                    platformMin.x += 1f; // adjust away form the edge a bit
+                    Vector2 platformMax = platform.GetComponent<Collider2D>().bounds.max;
+                    platformMax.x -= 1; // adjust away from the edge a bit
+
+                    // Navigate to the closest side of the platform
+                    navigationActive = true;
+                    if (platform.transform.position.x > transform.position.x)
+                    {
+                        navigation = StartCoroutine(NavigateToTargetPosition(platformMin));
+                    }
+                    else
+                    {
+                        navigation = StartCoroutine(NavigateToTargetPosition(platformMax));
+                    }
                 }
             }
-
-            // Chill for a random short period before finding the next platform
-            float idleTime = Random.Range(1f, 2.5f);
-            float timer = 0f;
-
-            while (timer < idleTime)
+            else if(!navigationActive && !(Mathf.Abs(transform.position.x - targetPosition.Value.x) < targetXrange*2 && Mathf.Abs(transform.position.y - targetPosition.Value.y) < 2f))
             {
-                timer += Time.deltaTime;
-
-                // Constantly check for danger or nearby orb
-                Collider2D nearby = IsOrbNear();
-
-                if (!IsAbovePlatform())
-                {
-                    yield return StartCoroutine(Recover());
-                    break;
-                }
-
-                if ((numAttackAbilities + numDefenseAbilities + numRecoverAbilites < 4) && nearby && nearby.CompareTag("AbilityOrb"))
-                {
-                    yield return StartCoroutine(CollectOrb(nearby.gameObject));
-                    break;
-                }
-
-                if (numAttackAbilities > 0 && IsPlayerNear())
-                {
-                    yield return StartCoroutine(Attack());
-                    break;
-                }
-
-                yield return StartCoroutine(Defend());
-
-                yield return new WaitForEndOfFrame();
+                navigationActive = true;
+                navigation = StartCoroutine(NavigateToTargetPosition(targetPosition.Value));
             }
+
+            yield return navigation;
+            
+            // Check for transitions
+            Collider2D nearby = IsOrbNear();
+
+            if (!IsAbovePlatform())
+            {
+                navigationActive = false;
+                StopCoroutine(navigation);
+                yield return StartCoroutine(Recover());
+            }
+
+            if ((numAttackAbilities + numDefenseAbilities + numRecoverAbilites < 4) && nearby && nearby.CompareTag("AbilityOrb"))
+            {
+                navigationActive = false;
+                StopCoroutine(navigation);
+                yield return StartCoroutine(CollectOrb(nearby.gameObject));
+            }
+
+            if (numAttackAbilities > 0 && IsPlayerNear())
+            {
+                navigationActive = false;
+                StopCoroutine(navigation);
+                yield return StartCoroutine(Attack()); 
+            }
+
+            yield return StartCoroutine(Defend());
+
+            yield return new WaitForEndOfFrame();
+
         }
+
+        yield break;
     }
 
     private IEnumerator CollectOrb(GameObject abilityOrb)
@@ -654,7 +744,7 @@ public class CPUController : MonoBehaviour
                     Debug.Log("DEFENSE: Dodging incoming attack (using jump)!");
 
                     // Perform an optimal jump to dodge the attack (calculate the direction to jump toward)
-                    yield return StartCoroutine(OptimalJumps((Vector2)c.transform.position));
+                    yield return StartCoroutine(OptimalJumps());
                     yield break;
                 }
 
