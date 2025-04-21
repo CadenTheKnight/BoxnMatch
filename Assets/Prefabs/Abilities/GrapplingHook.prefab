@@ -366,7 +366,7 @@ MonoBehaviour:
   retract: 0
   minimumRopeLength: 0.5
   maximumRopeLength: 30
-  knockbackMult: 50
+  knockbackMult: 500
   verticalKnockbackAddition: 5
   hookedPlayer: {fileID: 0}
   pr: {fileID: 0}
