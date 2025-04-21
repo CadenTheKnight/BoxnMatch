@@ -355,7 +355,8 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player-Couch-P2
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 2053785779397973030, guid: ab2a0747063d98349987691ec999c1f7, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
@@ -757,22 +758,16 @@ EdgeCollider2D:
   - {x: -7.419134, y: -3.159575}
   - {x: -9.596148, y: -2.8961422}
   - {x: -10.420288, y: -2.6031258}
-  - {x: -10.693095, y: -2.3603313}
-  - {x: -10.84579, y: -2.0425375}
-  - {x: -11.025266, y: -1.7647548}
-  - {x: -11.005066, y: -1.5545591}
-  - {x: -10.9863825, y: -1.5376971}
-  - {x: -11.072008, y: -1.5658659}
-  - {x: -11.045699, y: -1.4142799}
-  - {x: -10.656485, y: -1.0047401}
-  - {x: -8.983045, y: -0.14881474}
-  - {x: -8.014458, y: 0.14752835}
+  - {x: -10.811229, y: -2.3867788}
+  - {x: -10.887585, y: -2.1433303}
+  - {x: -10.892487, y: -0.7896982}
+  - {x: -10.253842, y: -0.49454522}
+  - {x: -8.738746, y: -0.02197367}
   - {x: -6.777954, y: 0.5053105}
   - {x: -5.0505786, y: 0.7848523}
   - {x: -1.4059985, y: 0.87449414}
   - {x: 1.9923122, y: 0.81187695}
   - {x: 2.9383693, y: 0.6305377}
-  - {x: 4.8261194, y: 4.0137196}
   - {x: 6.3322926, y: 4.943656}
   - {x: 7.6729383, y: 5.287206}
   - {x: 9.724534, y: 5.2588897}
@@ -784,11 +779,30 @@ EdgeCollider2D:
   - {x: 9.013544, y: 0.1525752}
   - {x: 9.102281, y: -0.10946417}
   - {x: 7.8005285, y: -0.9964664}
-  - {x: 8.128268, y: -1.4128888}
-  - {x: 9.625002, y: -1.744302}
-  - {x: 11.097654, y: -2.5779617}
-  - {x: 10.996181, y: -2.72146}
-  - {x: 4.9327455, y: -2.9571993}
+  - {x: 11.122199, y: -2.599474}
+  - {x: 10.885608, y: -2.7244444}
+  - {x: 7.359475, y: -2.8263783}
+  - {x: 5.723959, y: -2.5287023}
+  - {x: 5.5924263, y: -2.687911}
+  - {x: 4.0770226, y: -3.1036446}
+  - {x: 2.68824, y: -3.2549136}
+  - {x: 3.3063502, y: -4.823301}
+  - {x: 3.075036, y: -5.250671}
+  - {x: 2.1848502, y: -5.2427826}
+  - {x: -0.0050439835, y: -4.578545}
+  - {x: -0.847616, y: -4.980051}
+  - {x: -0.9196907, y: -5.235721}
+  - {x: -1.2179999, y: -5.4417987}
+  - {x: -1.629843, y: -5.371875}
+  - {x: -2.1160254, y: -5.0605006}
+  - {x: -2.4591248, y: -5.059953}
+  - {x: -2.5453982, y: -4.8674603}
+  - {x: -2.140071, y: -4.0080986}
+  - {x: -2.2315493, y: -3.670775}
+  - {x: -4.2593966, y: -3.7132256}
+  - {x: -4.438687, y: -3.3914826}
+  - {x: -7.3201747, y: -3.1659863}
+  - {x: -7.4272223, y: -3.157609}
   m_AdjacentStartPoint: {x: 0, y: 0}
   m_AdjacentEndPoint: {x: 0, y: 0}
   m_UseAdjacentStartPoint: 0
@@ -801,6 +815,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1352719464178710574, guid: 9be8934d4ac444043a7e4388995ad65e, type: 3}
+      propertyPath: groundCheckSize.x
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1390940584574789675, guid: 9be8934d4ac444043a7e4388995ad65e, type: 3}
+      propertyPath: player2Layer.m_Bits
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1864694405886149648, guid: 9be8934d4ac444043a7e4388995ad65e, type: 3}
       propertyPath: m_Name
       value: Player-Couch-P1
@@ -853,7 +875,9 @@ PrefabInstance:
       propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: c8f6a9d4112bcb04692b221301ed1994, type: 2}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 4111793306372970881, guid: 9be8934d4ac444043a7e4388995ad65e, type: 3}
+    - {fileID: 1390940584574789675, guid: 9be8934d4ac444043a7e4388995ad65e, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:

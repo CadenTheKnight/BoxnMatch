@@ -49,6 +49,7 @@ GameObject:
   - component: {fileID: 5885112987111493559}
   - component: {fileID: 5927511202309974344}
   - component: {fileID: 5681407549134026164}
+  - component: {fileID: 8761494818141882599}
   - component: {fileID: 9401388716340373}
   m_Layer: 0
   m_Name: Player
@@ -171,7 +172,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 44823295
+  GlobalObjectIdHash: 2237595288
   InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -337,6 +338,12 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 8
+  player1Layer:
+    serializedVersion: 2
+    m_Bits: 0
+  player2Layer:
+    serializedVersion: 2
+    m_Bits: 0
   jumpCount: 0
   maxJumps: 2
   forceAmount: 3
@@ -444,6 +451,32 @@ TrailRenderer:
   m_Autodestruct: 0
   m_Emitting: 1
   m_ApplyActiveColorSpace: 1
+--- !u!114 &8761494818141882599
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8264808577834005721}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26ffba225e930f84b8bc62671f903440, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  input: {fileID: 5972663554129578023}
+  BASE_SPEED: 10
+  TOP_SPEED: 11
+  JUMP_FORCE: 15
+  groundCheckOffset: -0.5
+  FALL_FORCE: -5
+  sideDrag: 8
+  groundCheckSize: {x: 2, y: 0.1}
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 8
+  jumpCount: 0
+  maxJumps: 2
+  forceAmount: 3
 --- !u!114 &9401388716340373
 MonoBehaviour:
   m_ObjectHideFlags: 0
