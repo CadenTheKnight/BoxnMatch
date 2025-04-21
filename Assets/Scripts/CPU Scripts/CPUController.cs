@@ -526,10 +526,43 @@ public class CPUController : MonoBehaviour
 
     private IEnumerator Recover()
     {
-        GameObject platform = FindNearestPlatform(Vector2.zero);
+        GameObject platform = FindNearestPlatform(transform.position);
+
+        // Use a rocket if no platform is found
+        if(!platform)
+        {
+            yield return StartCoroutine(UseAbility("Rocket", AbilityDirection.SOUTH));
+        }
+        yield return new WaitForSeconds(1);
+
+        // Check for platform again
+        platform = FindNearestPlatform(transform.position);
+
+        // Navigate to nearest platform
         if (platform)
         {
-            yield return StartCoroutine(NavigateToTargetPosition(platform.GetComponent<Collider2D>().bounds.center + new Vector3(0f,0.5f,0)));
+            Vector2 targetPosition = Vector2.zero;
+            // Navigate to the closest side of the platform
+            if(transform.position.x > platform.transform.position.x)
+            {
+                targetPosition = platform.GetComponent<Collider2D>().bounds.max + new Vector3(-1, 0, 0);
+                
+            }
+            else if (transform.position.x < platform.transform.position.x)
+            {
+                targetPosition = platform.GetComponent<Collider2D>().bounds.min + new Vector3(1, 1, 0);
+            }
+
+            // If the distance away from the 
+            float xDif = Mathf.Abs(targetPosition.x - transform.position.x);
+            float yDif = transform.position.y - targetPosition.y;
+            if (xDif > yDif * 2)
+            {
+                yield return StartCoroutine(UseAbility("Rocket", AbilityDirection.SOUTH));
+            }
+
+            yield return StartCoroutine(NavigateToTargetPosition(targetPosition));
+
         }
 
         cpuM.Crouch();
