@@ -15,11 +15,9 @@ namespace Assets.Scripts.Game.UI.Controllers.GameCanvas
         [SerializeField] private RoundEndingPanelController roundEndingPanelController;
         [SerializeField] private GameEndingPanelController gameEndingPanelController;
 
-        private int currentRound;
         private int rounds;
         private float roundTimeSeconds;
         private GameMode gameMode;
-        private Map map;
 
         private void Start()
         {
@@ -45,20 +43,19 @@ namespace Assets.Scripts.Game.UI.Controllers.GameCanvas
                     break;
 
                 case GameState.RoundEnding:
+                    UpdateScores(GameManager.Instance.OneScore, GameManager.Instance.TwoScore);
                     ShowRoundEnding();
                     break;
             }
         }
 
-        public void Initialize(Map map, int rounds, float roundTimeSeconds, GameMode gameMode)
+        public void Initialize(int rounds, float roundTimeSeconds, GameMode gameMode)
         {
-            this.map = map;
             this.rounds = rounds;
             this.roundTimeSeconds = roundTimeSeconds;
             this.gameMode = gameMode;
 
-            currentRound = 0;
-
+            UpdateScores(0, 0);
             GameManager.Instance.ChangeGameState(GameState.RoundStarting);
         }
 
@@ -72,9 +69,10 @@ namespace Assets.Scripts.Game.UI.Controllers.GameCanvas
 
         private void ShowRoundStarting()
         {
-            currentRound++;
             roundStartingPanelController.gameObject.SetActive(true);
-            roundStartingPanelController.StartRound(currentRound, rounds);
+            roundStartingPanelController.StartRound(GameManager.Instance.CurrentRound, rounds);
+
+            GameManager.Instance.SetPlayerControlsEnabled(false);
 
             StartCoroutine(CountdownSequence());
         }
@@ -96,7 +94,7 @@ namespace Assets.Scripts.Game.UI.Controllers.GameCanvas
         private void ShowRoundInProgress()
         {
             roundInProgressPanelController.gameObject.SetActive(true);
-            roundInProgressPanelController.StartRound(currentRound, rounds);
+            GameManager.Instance.SetPlayerControlsEnabled(true);
 
             StartCoroutine(RoundTimer());
         }
@@ -117,6 +115,7 @@ namespace Assets.Scripts.Game.UI.Controllers.GameCanvas
         private void ShowRoundEnding()
         {
             roundEndingPanelController.gameObject.SetActive(true);
+            GameManager.Instance.SetPlayerControlsEnabled(false);
 
             bool player1Won = GameManager.Instance.OneScore > GameManager.Instance.TwoScore;
             string winnerText = player1Won ? "PLAYER 1 WINS!" : (gameMode == GameMode.AI ? "CPU WINS!" : "PLAYER 2 WINS!");
@@ -129,7 +128,7 @@ namespace Assets.Scripts.Game.UI.Controllers.GameCanvas
         {
             yield return new WaitForSeconds(3f);
 
-            if (currentRound >= rounds || GameManager.Instance.OneScore > rounds / 2 || GameManager.Instance.TwoScore > rounds / 2)
+            if (GameManager.Instance.CurrentRound >= rounds || GameManager.Instance.OneScore > rounds / 2 || GameManager.Instance.TwoScore > rounds / 2)
                 ShowGameEnding();
             else
                 GameManager.Instance.ChangeGameState(GameState.RoundStarting);
@@ -139,6 +138,7 @@ namespace Assets.Scripts.Game.UI.Controllers.GameCanvas
         {
             HideAllPanels();
             gameEndingPanelController.gameObject.SetActive(true);
+            GameManager.Instance.SetPlayerControlsEnabled(false);
 
             bool player1Won = GameManager.Instance.OneScore > GameManager.Instance.TwoScore;
             string winnerText = player1Won ? "PLAYER 1 WINS THE MATCH!" : (gameMode == GameMode.AI ? "CPU WINS THE MATCH!" : "PLAYER 2 WINS THE MATCH!");

@@ -10,7 +10,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 5035996666606614147, guid: 3b97bb70d28e3874d8b317113af1aedf, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 1840824750
+      value: 1473896260
       objectReference: {fileID: 0}
     - target: {fileID: 6378099650106281862, guid: 3b97bb70d28e3874d8b317113af1aedf, type: 3}
       propertyPath: m_LocalPosition.x
@@ -52,6 +52,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7557424790891737509, guid: 3b97bb70d28e3874d8b317113af1aedf, type: 3}
+      propertyPath: m_Actions
+      value: 
+      objectReference: {fileID: -944628639613478452, guid: fda23133bb722504a94cc758617e7f2f, type: 3}
     - target: {fileID: 7557424790891737509, guid: 3b97bb70d28e3874d8b317113af1aedf, type: 3}
       propertyPath: m_DefaultActionMap
       value: Couch-P1
@@ -630,7 +634,7 @@ MonoBehaviour:
     m_Bits: 8
   player2Layer:
     serializedVersion: 2
-    m_Bits: 256
+    m_Bits: 0
   jumpCount: 0
   maxJumps: 2
   forceAmount: 3

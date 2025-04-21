@@ -1,6 +1,5 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 using Assets.Scripts.Game.UI.Colors;
 
 namespace Assets.Scripts.Game.UI.Controllers.GameCanvas.GameStates
@@ -10,26 +9,6 @@ namespace Assets.Scripts.Game.UI.Controllers.GameCanvas.GameStates
         [SerializeField] private TextMeshProUGUI timerText;
         [SerializeField] private TextMeshProUGUI oneScoreText;
         [SerializeField] private TextMeshProUGUI twoScoreText;
-        [SerializeField] private Button pauseButton;
-
-        private void OnEnable()
-        {
-            pauseButton.onClick.AddListener(OnPauseButtonClicked);
-        }
-        private void OnDisable()
-        {
-            pauseButton.onClick.RemoveListener(OnPauseButtonClicked);
-        }
-
-        private void OnPauseButtonClicked()
-        {
-            // GameManager.Instance.PauseGame();
-        }
-
-        public void StartRound(int currentRound, int totalRounds)
-        {
-            UpdateScores(0, 0);
-        }
 
         public void UpdateTimer(float timeRemaining)
         {

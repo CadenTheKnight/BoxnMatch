@@ -10,22 +10,22 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas
     {
         [Header("UI Components")]
         [SerializeField] private Button playButton;
-        [SerializeField] private Button settingsButton;
+        // [SerializeField] private Button settingsButton;
         [SerializeField] private Button quitButton;
         [SerializeField] private LobbyPanelController lobbyPanelController;
-        [SerializeField] private SettingsPanelController settingsPanelController;
+        // [SerializeField] private SettingsPanelController settingsPanelController;
 
         public void OnEnable()
         {
             playButton.onClick.AddListener(OnPlayClicked);
-            settingsButton.onClick.AddListener(OnSettingsClicked);
+            // settingsButton.onClick.AddListener(OnSettingsClicked);
             quitButton.onClick.AddListener(OnQuitClicked);
         }
 
         public void OnDestroy()
         {
             playButton.onClick.RemoveListener(OnPlayClicked);
-            settingsButton.onClick.RemoveListener(OnSettingsClicked);
+            // settingsButton.onClick.RemoveListener(OnSettingsClicked);
             quitButton.onClick.RemoveListener(OnQuitClicked);
         }
 
@@ -34,10 +34,10 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas
             lobbyPanelController.ShowPanel();
         }
 
-        private void OnSettingsClicked()
-        {
-            settingsPanelController.ShowPanel();
-        }
+        // private void OnSettingsClicked()
+        // {
+        //     settingsPanelController.ShowPanel();
+        // }
 
         private void OnQuitClicked()
         {

@@ -311,6 +311,10 @@ PrefabInstance:
       propertyPath: GlobalObjectIdHash
       value: 3440632604
       objectReference: {fileID: 0}
+    - target: {fileID: 801982724154133485, guid: ab2a0747063d98349987691ec999c1f7, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 1771376142
+      objectReference: {fileID: 0}
     - target: {fileID: 1603787888493245160, guid: ab2a0747063d98349987691ec999c1f7, type: 3}
       propertyPath: m_LocalPosition.x
       value: -2.24
@@ -354,6 +358,10 @@ PrefabInstance:
     - target: {fileID: 4355047756674615735, guid: ab2a0747063d98349987691ec999c1f7, type: 3}
       propertyPath: m_Name
       value: Player-Couch-P2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4355047756674615735, guid: ab2a0747063d98349987691ec999c1f7, type: 3}
+      propertyPath: m_TagString
+      value: Player2
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 2053785779397973030, guid: ab2a0747063d98349987691ec999c1f7, type: 3}
@@ -526,6 +534,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1353816022486578334, guid: caa0392dd2a940d4f8e4a9d239e827ec, type: 3}
+      propertyPath: menuSceneName
+      value: Main
+      objectReference: {fileID: 0}
     - target: {fileID: 1754188471145486253, guid: caa0392dd2a940d4f8e4a9d239e827ec, type: 3}
       propertyPath: m_Pivot.x
       value: 0
@@ -830,6 +842,10 @@ PrefabInstance:
     - target: {fileID: 3364666638858602058, guid: 9be8934d4ac444043a7e4388995ad65e, type: 3}
       propertyPath: GlobalObjectIdHash
       value: 4168455568
+      objectReference: {fileID: 0}
+    - target: {fileID: 3364666638858602058, guid: 9be8934d4ac444043a7e4388995ad65e, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 1840824750
       objectReference: {fileID: 0}
     - target: {fileID: 3733846812709486415, guid: 9be8934d4ac444043a7e4388995ad65e, type: 3}
       propertyPath: m_LocalPosition.x
