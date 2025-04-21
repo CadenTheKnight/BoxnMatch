@@ -1074,38 +1074,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: PlayBox
       objectReference: {fileID: 0}
-    - target: {fileID: 4386131442664752088, guid: b45d0fd47cbdf474c8ae54e0518fcbd7, type: 3}
-      propertyPath: m_Color.a
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4386131442664752088, guid: b45d0fd47cbdf474c8ae54e0518fcbd7, type: 3}
-      propertyPath: m_Color.b
-      value: 0.42075467
-      objectReference: {fileID: 0}
-    - target: {fileID: 4386131442664752088, guid: b45d0fd47cbdf474c8ae54e0518fcbd7, type: 3}
-      propertyPath: m_Color.g
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4386131442664752088, guid: b45d0fd47cbdf474c8ae54e0518fcbd7, type: 3}
-      propertyPath: m_Color.r
-      value: 0.45044658
-      objectReference: {fileID: 0}
-    - target: {fileID: 4386131442664752088, guid: b45d0fd47cbdf474c8ae54e0518fcbd7, type: 3}
-      propertyPath: m_Enabled
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4386131442664752088, guid: b45d0fd47cbdf474c8ae54e0518fcbd7, type: 3}
-      propertyPath: m_SortingOrder
-      value: -101
-      objectReference: {fileID: 0}
-    - target: {fileID: 4909502932456131198, guid: b45d0fd47cbdf474c8ae54e0518fcbd7, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 35.419853
-      objectReference: {fileID: 0}
-    - target: {fileID: 4909502932456131198, guid: b45d0fd47cbdf474c8ae54e0518fcbd7, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 25
-      objectReference: {fileID: 0}
     - target: {fileID: 4909502932456131198, guid: b45d0fd47cbdf474c8ae54e0518fcbd7, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.0001
