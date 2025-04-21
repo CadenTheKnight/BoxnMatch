@@ -218,6 +218,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: PlayBox
       objectReference: {fileID: 0}
+    - target: {fileID: 2789204056012036701, guid: b45d0fd47cbdf474c8ae54e0518fcbd7, type: 3}
+      propertyPath: respawnPoint.y
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 4386131442664752088, guid: b45d0fd47cbdf474c8ae54e0518fcbd7, type: 3}
       propertyPath: m_Color.a
       value: 0
@@ -309,11 +313,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1603787888493245160, guid: ab2a0747063d98349987691ec999c1f7, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 4.55
+      value: -2.24
       objectReference: {fileID: 0}
     - target: {fileID: 1603787888493245160, guid: ab2a0747063d98349987691ec999c1f7, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -1.21
+      value: 3.61
       objectReference: {fileID: 0}
     - target: {fileID: 1603787888493245160, guid: ab2a0747063d98349987691ec999c1f7, type: 3}
       propertyPath: m_LocalPosition.z
@@ -640,7 +644,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1740225493}
   - component: {fileID: 1740225492}
-  m_Layer: 0
+  - component: {fileID: 1740225494}
+  m_Layer: 3
   m_Name: AP_Plane
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -714,6 +719,80 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1311205785468765464}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!68 &1740225494
+EdgeCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1740225491}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  m_EdgeRadius: 0
+  m_Points:
+  - {x: -7.419134, y: -3.159575}
+  - {x: -9.596148, y: -2.8961422}
+  - {x: -10.420288, y: -2.6031258}
+  - {x: -10.693095, y: -2.3603313}
+  - {x: -10.84579, y: -2.0425375}
+  - {x: -11.025266, y: -1.7647548}
+  - {x: -11.005066, y: -1.5545591}
+  - {x: -10.9863825, y: -1.5376971}
+  - {x: -11.072008, y: -1.5658659}
+  - {x: -11.045699, y: -1.4142799}
+  - {x: -10.656485, y: -1.0047401}
+  - {x: -8.983045, y: -0.14881474}
+  - {x: -8.014458, y: 0.14752835}
+  - {x: -6.777954, y: 0.5053105}
+  - {x: -5.0505786, y: 0.7848523}
+  - {x: -1.4059985, y: 0.87449414}
+  - {x: 1.9923122, y: 0.81187695}
+  - {x: 2.9383693, y: 0.6305377}
+  - {x: 4.8261194, y: 4.0137196}
+  - {x: 6.3322926, y: 4.943656}
+  - {x: 7.6729383, y: 5.287206}
+  - {x: 9.724534, y: 5.2588897}
+  - {x: 9.07498, y: 4.850477}
+  - {x: 8.502704, y: 4.182811}
+  - {x: 7.992547, y: 3.213387}
+  - {x: 7.5085735, y: 1.2376783}
+  - {x: 7.3591127, y: 0.12546533}
+  - {x: 9.013544, y: 0.1525752}
+  - {x: 9.102281, y: -0.10946417}
+  - {x: 7.8005285, y: -0.9964664}
+  - {x: 8.128268, y: -1.4128888}
+  - {x: 9.625002, y: -1.744302}
+  - {x: 11.097654, y: -2.5779617}
+  - {x: 10.996181, y: -2.72146}
+  - {x: 4.9327455, y: -2.9571993}
+  m_AdjacentStartPoint: {x: 0, y: 0}
+  m_AdjacentEndPoint: {x: 0, y: 0}
+  m_UseAdjacentStartPoint: 0
+  m_UseAdjacentEndPoint: 0
 --- !u!1001 &2026066718
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -732,11 +811,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3733846812709486415, guid: 9be8934d4ac444043a7e4388995ad65e, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -3.67
+      value: -5.13
       objectReference: {fileID: 0}
     - target: {fileID: 3733846812709486415, guid: 9be8934d4ac444043a7e4388995ad65e, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -1.26
+      value: 3.18
       objectReference: {fileID: 0}
     - target: {fileID: 3733846812709486415, guid: 9be8934d4ac444043a7e4388995ad65e, type: 3}
       propertyPath: m_LocalPosition.z

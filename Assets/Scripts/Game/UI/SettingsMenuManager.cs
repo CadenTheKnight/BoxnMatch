@@ -6,7 +6,7 @@ using TMPro;
 using UnityEngine.Audio;
 public class SettingsMenuManager : MonoBehaviour
 {
-    public AudioMixer audioMixer;
+    [SerializeField] private AudioMixer audioMixer;
 
     public TMP_Dropdown resolutionDropdown;
 
@@ -47,9 +47,9 @@ public class SettingsMenuManager : MonoBehaviour
         Screen.SetResolution(resolution.width, resolution.height, Screen.fullScreen);
     }
 
-    public void SetVolume (float volume)
+    public void SetVolume (float sliderValue)
     { 
-        audioMixer.SetFloat("volume", volume);
+        audioMixer.SetFloat("MasterVolume", Mathf.Log10(sliderValue) * 20);
     }
 
     public void SetQuality (int qualityIndex)

@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement; //NEW
 using UnityEngine.InputSystem;
 
-public class playerControllerTest : MonoBehaviour
+public class playerControllerPlayer2 : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private PlayerInputManager input;
@@ -24,9 +24,13 @@ public class playerControllerTest : MonoBehaviour
     [SerializeField] private float sideDrag = 2f;
     public Vector2 groundCheckSize = new Vector2(0.5f, 0.1f);
     public LayerMask groundLayer;
+    public LayerMask player1Layer;
+    public LayerMask player2Layer;
     public int jumpCount = 0;
     public int maxJumps = 2;
     bool isGrounded = false;
+    bool isPlayer1 = false;
+    
     public float forceAmount = 10f;
     private bool isFalling = false;
 
@@ -69,9 +73,12 @@ public class playerControllerTest : MonoBehaviour
         //makes the groundCheckTransform unusable
         Vector3 checkPosition = new Vector3(transform.position.x, transform.position.y + groundCheckOffset);
 
-        isGrounded = Physics2D.OverlapBox(checkPosition, groundCheckSize, 0f, groundLayer);
 
-        if (isGrounded)
+
+        isGrounded = Physics2D.OverlapBox(checkPosition, groundCheckSize, 0f, groundLayer);
+        isPlayer1 = Physics2D.OverlapBox(checkPosition, groundCheckSize, 0f, player1Layer);
+
+        if (isGrounded || isPlayer1)
         {
             jumpCount = 0;
         }
