@@ -2133,6 +2133,10 @@ PrefabInstance:
       propertyPath: m_AnchorMin.x
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5729638878974976556, guid: caa0392dd2a940d4f8e4a9d239e827ec, type: 3}
+      propertyPath: m_MinValue
+      value: 0.0001
+      objectReference: {fileID: 0}
     - target: {fileID: 6247934426673182404, guid: caa0392dd2a940d4f8e4a9d239e827ec, type: 3}
       propertyPath: m_Name
       value: BattleCanvas

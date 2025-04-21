@@ -114,7 +114,7 @@ namespace Assets.Scripts.Framework.Managers
             }
             catch (LobbyServiceException e)
             {
-                return OperationResult.FailureResult(e.ErrorCode.ToString(), e.Message);
+                return OperationResult.ErrorResult(e.ErrorCode.ToString(), e.Message);
             }
         }
 
@@ -145,7 +145,7 @@ namespace Assets.Scripts.Framework.Managers
             }
             catch (LobbyServiceException e)
             {
-                return OperationResult.FailureResult(e.ErrorCode.ToString(), e.Message);
+                return OperationResult.ErrorResult(e.ErrorCode.ToString(), e.Message);
             }
         }
 
@@ -174,7 +174,7 @@ namespace Assets.Scripts.Framework.Managers
             }
             catch (LobbyServiceException e)
             {
-                return OperationResult.FailureResult(e.ErrorCode.ToString(), e.Message);
+                return OperationResult.ErrorResult(e.ErrorCode.ToString(), e.Message);
             }
         }
 
@@ -196,7 +196,7 @@ namespace Assets.Scripts.Framework.Managers
             }
             catch (LobbyServiceException e)
             {
-                return OperationResult.FailureResult(e.ErrorCode.ToString(), e.Message);
+                return OperationResult.ErrorResult(e.ErrorCode.ToString(), e.Message);
             }
         }
 
@@ -221,7 +221,7 @@ namespace Assets.Scripts.Framework.Managers
             }
             catch (LobbyServiceException e)
             {
-                return OperationResult.FailureResult(e.ErrorCode.ToString(), e.Message);
+                return OperationResult.ErrorResult(e.ErrorCode.ToString(), e.Message);
             }
         }
         // public bool OnApplicationQuit()
@@ -268,7 +268,7 @@ namespace Assets.Scripts.Framework.Managers
             }
             catch (LobbyServiceException e)
             {
-                return OperationResult.FailureResult(e.ErrorCode.ToString(), e.Message);
+                return OperationResult.ErrorResult(e.ErrorCode.ToString(), e.Message);
             }
         }
 
@@ -303,7 +303,7 @@ namespace Assets.Scripts.Framework.Managers
             }
             catch (LobbyServiceException e)
             {
-                return OperationResult.FailureResult(e.ErrorCode.ToString(), e.Message);
+                return OperationResult.ErrorResult(e.ErrorCode.ToString(), e.Message);
             }
         }
 
@@ -324,7 +324,7 @@ namespace Assets.Scripts.Framework.Managers
                 }
                 catch (LobbyServiceException e)
                 {
-                    return OperationResult.FailureResult(e.ErrorCode.ToString(), e.Message);
+                    return OperationResult.ErrorResult(e.ErrorCode.ToString(), e.Message);
                 }
             }
 
@@ -348,7 +348,7 @@ namespace Assets.Scripts.Framework.Managers
             }
             catch (LobbyServiceException e)
             {
-                return OperationResult.FailureResult(e.ErrorCode.ToString(), e.Message);
+                return OperationResult.ErrorResult(e.ErrorCode.ToString(), e.Message);
             }
         }
 

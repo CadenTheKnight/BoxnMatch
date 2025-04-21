@@ -1,10 +1,12 @@
+using System;
+
 namespace Assets.Scripts.Framework.Utilities
 {
     public enum ResultStatus
     {
         Success,
         Warning,
-        Failure
+        Error
     }
 
     public class OperationResult
@@ -12,6 +14,7 @@ namespace Assets.Scripts.Framework.Utilities
         public ResultStatus Status { get; }
         public string Code { get; }
         public string Message { get; }
+        public Action Retry { get; set; }
 
         /// <summary>
         /// Creates a new OperationResult with the provided success status, code, and message.
@@ -19,11 +22,13 @@ namespace Assets.Scripts.Framework.Utilities
         /// <param name="status">The status of the operation result.</param>
         /// <param name="code">The code of the operation result.</param>
         /// <param name="message">The message of the operation result.</param>
-        public OperationResult(ResultStatus status, string code, string message)
+        /// <param name="retry">An optional action to retry the operation.</param>
+        public OperationResult(ResultStatus status, string code, string message, Action retry = null)
         {
             Status = status;
             Code = code;
             Message = message;
+            Retry = retry;
         }
 
         /// <summary>
@@ -47,7 +52,7 @@ namespace Assets.Scripts.Framework.Utilities
         /// </summary>
         /// <param name="errorCode">The code of the error result.</param>
         /// <param name="errorMessage">The message of the error result.</param>
-        public static OperationResult FailureResult(string errorCode, string errorMessage)
-            => new(ResultStatus.Failure, errorCode, errorMessage);
+        public static OperationResult ErrorResult(string errorCode, string errorMessage, Action retry = null)
+            => new(ResultStatus.Error, errorCode, errorMessage, retry);
     }
 }

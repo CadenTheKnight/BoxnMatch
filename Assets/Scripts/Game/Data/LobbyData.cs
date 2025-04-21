@@ -1,84 +1,36 @@
-using System.Collections.Generic;
-using Unity.Services.Lobbies.Models;
-using UnityEngine.XR;
+// using Assets.Scripts.Game.Types;
+// using System.Collections.Generic;
+// using Unity.Services.Lobbies.Models;
 
-namespace Assets.Scripts.Game.Data
-{
-    /// <summary>
-    /// Represents the data of a lobby.
-    /// </summary>
-    public class LobbyData
-    {
-        private string lobbyName;
-        private int maxPlayers;
-        private bool isPrivate;
-        private int mapIndex;
-        public string gameMode;
-        public string relayJoinCode;
-        private string mapSceneName;
+// namespace Assets.Scripts.Game.Data
+// {
+//     /// <summary>
+//     /// Represents the data of a lobby.
+//     /// </summary>
+//     public class LobbyData
+//     {
+//         public int MapIndex { get; set; }
+//         public int RoundCount { get; set; }
+//         public int RoundTime { get; set; }
+//         public GameMode GameMode { get; set; }
 
-        public int MapIndex
-        {
-            get => mapIndex;
-            set => mapIndex = value;
-        }
+//         public LobbyData(GameMode gameMode)
+//         {
+//             MapIndex = 0;
+//             RoundCount = 3;
+//             RoundTime = 60;
+//             GameMode = gameMode;
+//         }
 
-        public string RelayJoinCode
-        {
-            get => relayJoinCode;
-            set => relayJoinCode = value;
-        }
-
-        public string MapSceneName
-        {
-            get => mapSceneName;
-            set => mapSceneName = value;
-        }
-
-        public void Initialize(string lobbyName, int maxPlayers, bool isPrivate)
-        {
-            this.lobbyName = lobbyName;
-            this.maxPlayers = maxPlayers;
-            this.isPrivate = isPrivate;
-            mapIndex = 0;
-            gameMode = "Standard";
-        }
-
-        public void Initialize(Dictionary<string, DataObject> lobbyData)
-        {
-            UpdateState(lobbyData);
-        }
-
-        public void UpdateState(Dictionary<string, DataObject> lobbyData)
-        {
-            if (lobbyData.ContainsKey("LobbyName"))
-                lobbyName = lobbyData["LobbyName"].Value;
-            if (lobbyData.ContainsKey("MaxPlayers"))
-                maxPlayers = int.Parse(lobbyData["MaxPlayers"].Value);
-            if (lobbyData.ContainsKey("IsPrivate"))
-                isPrivate = lobbyData["IsPrivate"].Value == "true";
-            if (lobbyData.ContainsKey("MapIndex"))
-                mapIndex = int.Parse(lobbyData["MapIndex"].Value);
-            if (lobbyData.ContainsKey("GameMode"))
-                gameMode = lobbyData["GameMode"].Value;
-            if (lobbyData.ContainsKey("RelayJoinCode"))
-                relayJoinCode = lobbyData["RelayJoinCode"].Value;
-            if (lobbyData.ContainsKey("MapSceneName"))
-                mapSceneName = lobbyData["MapSceneName"].Value;
-        }
-
-        public Dictionary<string, string> Serialize()
-        {
-            return new Dictionary<string, string>
-            {
-                { "LobbyName", lobbyName },
-                { "MaxPlayers", maxPlayers.ToString() },
-                { "IsPrivate", isPrivate.ToString().ToLower() },
-                { "MapIndex", mapIndex.ToString() },
-                { "GameMode", gameMode },
-                { "RelayJoinCode", relayJoinCode },
-                { "MapSceneName", mapSceneName }
-            };
-        }
-    }
-}
+//         public Dictionary<string, DataObject> Serialize()
+//         {
+//             return new Dictionary<string, DataObject>
+//             {
+//                 { "MapIndex", new DataObject(DataObject.VisibilityOptions.Public, MapIndex.ToString()) },
+//                 { "RoundCount", new DataObject(DataObject.VisibilityOptions.Public, RoundCount.ToString()) },
+//                 { "RoundTime", new DataObject(DataObject.VisibilityOptions.Public, RoundTime.ToString()) },
+//                 { "GameMode", new DataObject(DataObject.VisibilityOptions.Public, ((int)GameMode).ToString()) },
+//             };
+//         }
+//     }
+// }

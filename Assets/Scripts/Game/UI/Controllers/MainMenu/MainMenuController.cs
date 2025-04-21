@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
-using Assets.Scripts.Framework.Events;
-using Assets.Scripts.Game.UI.Controllers.SettingsMenu;
+using Assets.Scripts.Game.UI.Controllers.LobbyCanvas;
+using Assets.Scripts.Game.UI.Controllers.OptionsCanvas.SettingsMenu;
 
 namespace Assets.Scripts.Game.UI.Controllers.MainMenu
 {
@@ -10,59 +10,38 @@ namespace Assets.Scripts.Game.UI.Controllers.MainMenu
     /// </summary>
     public class MainMenuController : MonoBehaviour
     {
-        [SerializeField] private Button quitButton;
-        [SerializeField] private Button joinButton;
-        [SerializeField] private Button createButton;
+        [Header("UI Components")]
+        [SerializeField] private Button playButton;
         [SerializeField] private Button settingsButton;
-        [SerializeField] private JoinPanelController joinPanelController;
-        [SerializeField] private CreatePanelController createPanelController;
-        [SerializeField] private SettingsMenuController SettingsMenuController;
+        [SerializeField] private Button quitButton;
+        // [SerializeField] private JoinPanelController joinPanelController;
+        // [SerializeField] private CreatePanelController createPanelController;
+        [SerializeField] private LobbyPanelController lobbyPanelController;
+        [SerializeField] private SettingsPanelController settingsPanelController;
+
 
         public void OnEnable()
         {
-            quitButton.onClick.AddListener(OnQuitClicked);
-            joinButton.onClick.AddListener(OnJoinClicked);
-            createButton.onClick.AddListener(OnCreateClicked);
+            playButton.onClick.AddListener(OnPlayClicked);
             settingsButton.onClick.AddListener(OnSettingsClicked);
-
-            LobbyEvents.OnLobbyLeft += OnLobbyLeft;
-            LobbyEvents.OnLobbyKicked += OnLobbyKicked;
+            quitButton.onClick.AddListener(OnQuitClicked);
         }
 
         public void OnDestroy()
         {
-            quitButton.onClick.RemoveListener(OnQuitClicked);
-            joinButton.onClick.RemoveListener(OnJoinClicked);
-            createButton.onClick.RemoveListener(OnCreateClicked);
+            playButton.onClick.RemoveListener(OnPlayClicked);
             settingsButton.onClick.RemoveListener(OnSettingsClicked);
-
-            LobbyEvents.OnLobbyLeft -= OnLobbyLeft;
-            LobbyEvents.OnLobbyKicked -= OnLobbyKicked;
+            quitButton.onClick.RemoveListener(OnQuitClicked);
         }
 
-        private void OnCreateClicked()
+        private void OnPlayClicked()
         {
-            createPanelController.ShowPanel();
-        }
-
-        private void OnJoinClicked()
-        {
-            joinPanelController.ShowPanel();
-        }
-
-        private void OnLobbyLeft()
-        {
-            joinPanelController.ShowPanel();
-        }
-
-        private void OnLobbyKicked()
-        {
-            joinPanelController.ShowPanel();
+            lobbyPanelController.ShowPanel();
         }
 
         private void OnSettingsClicked()
         {
-            SettingsMenuController.ShowPanel();
+            settingsPanelController.ShowPanel();
         }
 
         private void OnQuitClicked()

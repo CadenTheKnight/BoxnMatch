@@ -1,57 +1,85 @@
-using TMPro;
-using UnityEngine;
-using UnityEngine.UI;
-using Assets.Scripts.Game.Events;
-using Unity.Services.Lobbies.Models;
+// using TMPro;
+// using System;
+// using UnityEngine;
+// using UnityEngine.UI;
+// using Assets.Scripts.Game.Data;
+// using Assets.Scripts.Game.Types;
+// using Unity.Services.Lobbies.Models;
+// using Assets.Scripts.Game.UI.Colors;
 
-namespace Assets.Scripts.Game.UI.Components.ListEntries
-{
-    public class LobbyListEntry : MonoBehaviour
-    {
-        [SerializeField] private Button joinButton;
-        [SerializeField] private TextMeshProUGUI lobbyNameText;
-        [SerializeField] private TextMeshProUGUI playerCountText;
-        [SerializeField] private TextMeshProUGUI gameModeText;
+// namespace Assets.Scripts.Game.UI.Components.ListEntries
+// {
+//     /// <summary>
+//     /// Represents a lobby list entry in the join UI.
+//     /// /// </summary>
+//     public class LobbyListEntry : MonoBehaviour
+//     {
+//         [Header("UI Components")]
+//         [SerializeField] private Button lobbyButton;
+//         [SerializeField] private TextMeshProUGUI nameText;
+//         [SerializeField] private TextMeshProUGUI playerCountText;
+//         [SerializeField] private TextMeshProUGUI gameModeText;
+//         [SerializeField] private Image mapImage;
+//         [SerializeField] private MapSelectionData mapSelectionData;
 
-        private Lobby lobby;
-        public bool isSelected;
-        private float lastClickTime;
-        private const float doubleClickTimeThreshold = 0.3f;
+//         private Lobby lobby;
+//         private float lastClickTime;
+//         private bool doubleClickCooldown = false;
 
-        private void OnEnable()
-        {
-            joinButton.onClick.AddListener(HandleClick);
-            isSelected = false;
-        }
+//         public Action<string, LobbyListEntry> lobbySingleClicked;
+//         public Action lobbyDoubleClicked;
 
-        private void OnDestroy()
-        {
-            joinButton.onClick.RemoveListener(HandleClick);
-        }
+//         private void OnEnable()
+//         {
+//             lobbyButton.onClick.AddListener(HandleClick);
+//         }
 
-        private void HandleClick()
-        {
-            float timeSinceLastClick = Time.time - lastClickTime;
+//         private void OnDestroy()
+//         {
+//             lobbyButton.onClick.RemoveListener(HandleClick);
+//         }
 
-            if (timeSinceLastClick <= doubleClickTimeThreshold)
-                LobbyEvents.InvokeLobbyDoubleClicked(lobby);
-            else
-            {
-                isSelected = true;
-                LobbyEvents.InvokeLobbySelected(lobby, this);
-            }
+//         private void HandleClick()
+//         {
+//             if (doubleClickCooldown || lobby.AvailableSlots == 0) return;
 
-            lastClickTime = Time.time;
-        }
+//             if (Time.time - lastClickTime <= 0.5f)
+//             {
+//                 lobbyDoubleClicked?.Invoke();
+//                 doubleClickCooldown = true;
+//                 Invoke(nameof(ResetDoubleClickCooldown), 1f);
+//             }
+//             else
+//             {
+//                 lobbySingleClicked?.Invoke(lobby.Id, this);
+//                 SetSelected(true);
+//             }
 
-        public void SetLobby(Lobby lobby)
-        {
-            this.lobby = lobby;
+//             lastClickTime = Time.time;
+//         }
 
-            lobbyNameText.text = lobby.Name;
-            playerCountText.text = $"{lobby.Players.Count}/{lobby.MaxPlayers}";
-            Debug.Log($"GameMode: {lobby.Data["GameMode"].Value}");
-            gameModeText.text = lobby.Data["GameMode"].Value;
-        }
-    }
-}
+//         private void ResetDoubleClickCooldown()
+//         {
+//             doubleClickCooldown = false;
+//             lastClickTime = 0f;
+//         }
+
+//         public void SetLobby(Lobby lobby)
+//         {
+//             this.lobby = lobby;
+//             nameText.text = lobby.Name;
+//             playerCountText.text = $"{lobby.Players.Count}/{lobby.MaxPlayers}";
+//             gameModeText.text = ((GameMode)int.Parse(lobby.Data["GameMode"].Value)).ToString();
+//             mapImage.sprite = mapSelectionData.GetMap(int.Parse(lobby.Data["MapIndex"].Value)).Thumbnail;
+
+//             SetSelected(false);
+//         }
+
+//         public void SetSelected(bool isSelected)
+//         {
+//             ColorBlock colors = lobbyButton.colors;
+//             colors.normalColor = isSelected ? UIColors.Primary.Six : UIColors.Primary.Nine;
+//             lobbyButton.colors = colors;
+//         }
+//     }
+// }
