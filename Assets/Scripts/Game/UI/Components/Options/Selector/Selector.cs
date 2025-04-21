@@ -13,7 +13,7 @@ namespace Assets.Scripts.Game.UI.Components.Options.Selector
         [Header("Selector Settings")]
         [SerializeField] private bool allowDeselection = true;
 
-        public Action<int> onSelectionChanged;
+        public Action<int> OnSelectionChanged;
 
         public int Selection { get; private set; } = -1;
 
@@ -52,7 +52,7 @@ namespace Assets.Scripts.Game.UI.Components.Options.Selector
             if (Selection != index) Select(index);
             else if (allowDeselection) Clear();
             UpdateButtons();
-            onSelectionChanged?.Invoke(Selection);
+            OnSelectionChanged?.Invoke(Selection);
         }
 
         private void UpdateButtons()

@@ -21,7 +21,7 @@ namespace Assets.Scripts.Game.UI.Components.Options
 
         private bool interactable = true;
 
-        public Action<int> onValueChanged;
+        public Action<int> OnValueChanged;
 
         public int Value { get; private set; }
 
@@ -49,7 +49,7 @@ namespace Assets.Scripts.Game.UI.Components.Options
             else if (allowLooping) Value = maxValue;
 
             UpdateUI();
-            onValueChanged?.Invoke(Value);
+            OnValueChanged?.Invoke(Value);
         }
 
         private void OnIncrementClicked()
@@ -58,7 +58,7 @@ namespace Assets.Scripts.Game.UI.Components.Options
             else if (allowLooping) Value = minValue;
 
             UpdateUI();
-            onValueChanged?.Invoke(Value);
+            OnValueChanged?.Invoke(Value);
         }
 
         private void UpdateButtons()
@@ -81,7 +81,7 @@ namespace Assets.Scripts.Game.UI.Components.Options
             {
                 Value = newValue;
                 UpdateUI();
-                onValueChanged?.Invoke(Value);
+                OnValueChanged?.Invoke(Value);
             }
         }
 

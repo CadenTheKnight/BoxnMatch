@@ -17,7 +17,7 @@ namespace Assets.Scripts.Game.UI.Components.Options
         [Header("Selection Info")]
         [SerializeField] private MapSelectionData mapSelectionData;
 
-        public Action<string> onSelectionChanged;
+        public Action<string> OnMapChanged;
 
         public int Value { get; private set; }
 
@@ -52,7 +52,7 @@ namespace Assets.Scripts.Game.UI.Components.Options
             else Value = mapSelectionData.Maps.Count - 1;
 
             UpdateMap();
-            onSelectionChanged?.Invoke(mapSelectionData.GetMap(Value).Name);
+            OnMapChanged?.Invoke(mapSelectionData.GetMap(Value).Name);
         }
 
         private void OnRightClicked()
@@ -61,7 +61,7 @@ namespace Assets.Scripts.Game.UI.Components.Options
             else Value = 0;
 
             UpdateMap();
-            onSelectionChanged?.Invoke(mapSelectionData.GetMap(Value).Name);
+            OnMapChanged?.Invoke(mapSelectionData.GetMap(Value).Name);
         }
 
         public void UpdateInteractable(bool isInteractable)
