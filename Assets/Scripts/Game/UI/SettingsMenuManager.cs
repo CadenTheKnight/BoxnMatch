@@ -26,8 +26,9 @@ public class SettingsMenuManager : MonoBehaviour
 
         int currentResolutionIndex = 0;
 
-        for (int i = 0; i < resolutions.Length; i++) {
-           
+        for (int i = 0; i < resolutions.Length; i++)
+        {
+
             string option = resolutions[i].width + " x " + resolutions[i].height;
             options.Add(option);
 
@@ -41,23 +42,23 @@ public class SettingsMenuManager : MonoBehaviour
         resolutionDropdown.RefreshShownValue();
     }
 
-    public void SetResolution (int resolutionIndex)
+    public void SetResolution(int resolutionIndex)
     {
         Resolution resolution = resolutions[resolutionIndex];
         Screen.SetResolution(resolution.width, resolution.height, Screen.fullScreen);
     }
 
-    public void SetVolume (float sliderValue)
-    { 
+    public void SetVolume(float sliderValue)
+    {
         audioMixer.SetFloat("MasterVolume", Mathf.Log10(sliderValue) * 20);
     }
 
-    public void SetQuality (int qualityIndex)
+    public void SetQuality(int qualityIndex)
     {
         QualitySettings.SetQualityLevel(qualityIndex);
     }
 
-    public void SetFullScreen (bool isFullscreen)
+    public void SetFullScreen(bool isFullscreen)
     {
         Screen.fullScreen = isFullscreen;
     }

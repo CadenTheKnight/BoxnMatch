@@ -1,226 +1,133 @@
-// using System;
-// using UnityEngine;
-// using Unity.Netcode;
-// using System.Threading.Tasks;
-// using Assets.Scripts.Game.Types;
-// using Assets.Scripts.Game.Events;
-// using Assets.Scripts.Framework.Core;
-// using Unity.Services.Authentication;
-// using System.Collections;
+using System;
+using UnityEngine;
+using Assets.Scripts.Game.Data;
+using Assets.Scripts.Game.Types;
+using UnityEngine.SceneManagement;
+using Assets.Scripts.Framework.Core;
+using Assets.Scripts.Game.UI.Controllers.GameCanvas;
 
-// namespace Assets.Scripts.Game.Managers
-// {
-//     public class GameManager : NetworkSingleton<GameManager>
-//     {
-//         [SerializeField] private bool showDebugLogs = true;
+namespace Assets.Scripts.Game.Managers
+{
+    public class GameManager : Singleton<GameManager>
+    {
+        [SerializeField] private bool showDebugLogs = true;
+        [SerializeField] private MapSelectionData mapSelectionData;
+        [SerializeField] private GamePanelController gamePanelController;
 
-//         private GameState currentGameState;
-//         private int currentRound;
-//         private int playerOneScore;
-//         private int playerTwoScore;
+        private GameState gameState;
+        private Map map;
+        private int rounds;
+        private float roundTimeSeconds;
+        private GameMode gameMode;
 
-//         public event Action<GameState> OnGameStateChanged;
-//         public event Action<int> OnRoundChanged;
-//         public event Action<int, int> OnScoreChanged;
-//         public event Action<float> OnTimerUpdated;
+        private int currentRound;
+        private int oneScore;
+        private int twoScore;
 
-//         private NetworkVariable<int> netCurrentRound = new(0);
-//         private NetworkVariable<GameState> netGameState = new(GameState.RoundStarting);
-//         private NetworkVariable<float> netStateTimer = new(0);
+        public int OneScore => oneScore;
+        public int TwoScore => twoScore;
 
-//         public async Task StartGame(GameMode gameMode)
-//         {
-//             if (gameMode == GameMode.PvP)
-//             {
-//                 GameObject relayManagerObject = new("RelayManager");
-//                 relayManagerObject.AddComponent<RelayManager>();
-//                 if (AuthenticationService.Instance.PlayerId == GameLobbyManager.Instance.Lobby.HostId)
-//                 {
-//                     Task<string> createTask = RelayManager.Instance.CreateRelay(GameLobbyManager.Instance.Lobby.MaxPlayers);
-//                     string relayJoinCode = await createTask;
-//                     if (relayJoinCode != null) GameEvents.InvokeGameStarted(true, relayJoinCode);
-//                     else GameEvents.InvokeGameStarted(false, null);
-//                 }
-//             }
-//             else GameEvents.InvokeGameStarted(true, null);
-//         }
+        public event Action<GameState> OnGameStateChanged;
+        public event Action<int, int> OnRoundChanged;
+        public event Action<int, int> OnScoreChanged;
 
-//         public async Task JoinGame(string relayJoinCode)
-//         {
-//             await RelayManager.Instance.JoinRelay(relayJoinCode);
-//         }
+        public void StartGame(int mapIndex, int rounds, int roundTimeSeconds, GameMode gameMode)
+        {
+            if (showDebugLogs) Debug.Log($"Starting game: Map {mapIndex}, {rounds} rounds, {roundTimeSeconds}s per round, {gameMode}");
 
+            map = mapSelectionData.GetMap(mapIndex);
+            this.rounds = rounds;
+            this.roundTimeSeconds = roundTimeSeconds;
+            this.gameMode = gameMode;
 
-//         public override void OnNetworkSpawn()
-//         {
-//             netGameState.OnValueChanged += OnNetGameStateChanged;
-//             netCurrentRound.OnValueChanged += OnNetRoundChanged;
+            currentRound = 0;
+            oneScore = 0;
+            twoScore = 0;
 
-//             if (IsHost || IsServer) InitializeGame();
-//         }
+            SceneManager.LoadSceneAsync(map.SceneName);
 
-//         private void OnNetGameStateChanged(GameState previousState, GameState newState)
-//         {
-//             currentGameState = newState;
-//             OnGameStateChanged?.Invoke(newState);
-//         }
+            gamePanelController.Initialize(map, rounds, roundTimeSeconds, gameMode);
 
-//         private void OnNetRoundChanged(int previousRound, int newRound)
-//         {
-//             currentRound = newRound;
-//             OnRoundChanged?.Invoke(newRound);
-//         }
+            if (gameMode == GameMode.AI) EnableAI();
+            ChangeGameState(GameState.RoundStarting);
+        }
 
-//         [ServerRpc(RequireOwnership = false)]
-//         public void InitializeGameServerRpc()
-//         {
-//             if (!IsHost && !IsServer) return;
-//             InitializeGame();
-//         }
+        private void EnableAI()
+        {
+            var player2 = GameObject.Find("Player2");
+            if (player2 != null)
+            {
+                if (player2.TryGetComponent<CPUController>(out var aiController))
+                    aiController.enabled = true;
 
-//         private void InitializeGame()
-//         {
-//             if (!IsHost && !IsServer) return;
+                if (player2.TryGetComponent<playerControllerPlayer2>(out var player2Controller))
+                    player2Controller.enabled = false;
+            }
+        }
 
-//             currentRound = 0;
-//             playerOneScore = 0;
-//             playerTwoScore = 0;
+        public void ChangeGameState(GameState newState)
+        {
+            gameState = newState;
+            OnGameStateChanged?.Invoke(newState);
 
-//             netCurrentRound.Value = 0;
-//             netGameState.Value = GameState.RoundStarting;
-//         }
+            if (showDebugLogs) Debug.Log($"Game state changed to: {newState}");
 
-//         public void ChangeGameState(GameState newState)
-//         {
-//             if (!IsHost && !IsServer) return;
+            switch (newState)
+            {
+                case GameState.RoundInProgress:
+                    ResetPlayersForRound();
+                    break;
+            }
+        }
 
-//             switch (newState)
-//             {
-//                 case GameState.RoundStarting:
-//                     StartNewRound();
-//                     break;
+        private void ResetPlayersForRound()
+        {
+            var player1 = GameObject.Find("Player1");
+            var player2 = GameObject.Find("Player2");
 
-//                 case GameState.RoundInProgress:
-//                     StartRoundPlay();
-//                     break;
+            if (player1 != null)
+            {
+                player1.transform.position = new Vector3(-3, 2, 0);
+                if (player1.TryGetComponent<Rigidbody2D>(out var rb1)) rb1.velocity = Vector2.zero;
+            }
 
-//                 case GameState.RoundEnding:
-//                     EndCurrentRound();
-//                     break;
-//             }
+            if (player2 != null)
+            {
+                player2.transform.position = new Vector3(3, 2, 0);
+                if (player2.TryGetComponent<Rigidbody2D>(out var rb2)) rb2.velocity = Vector2.zero;
+            }
+        }
 
-//             netGameState.Value = newState;
-//         }
+        public void PlayerEliminated(int playerNumber)
+        {
+            if (gameState != GameState.RoundInProgress) return;
 
-//         private void StartNewRound()
-//         {
-//             if (!IsHost && !IsServer) return;
+            if (playerNumber == 1) twoScore++;
+            else oneScore++;
 
-//             currentRound++;
-//             netCurrentRound.Value = currentRound;
-//             netStateTimer.Value = 3f;
-//             StartCoroutine(CountdownToRoundStart());
-//         }
+            OnScoreChanged?.Invoke(oneScore, twoScore);
+            gamePanelController.UpdateScores(oneScore, twoScore);
+            ChangeGameState(GameState.RoundEnding);
+        }
 
-//         private IEnumerator CountdownToRoundStart()
-//         {
-//             float countdownTime = 3f;
+        public void RoundTimeExpired()
+        {
+            if (gameState != GameState.RoundInProgress) return;
 
-//             while (countdownTime > 0)
-//             {
-//                 netStateTimer.Value = countdownTime;
-//                 OnTimerUpdated?.Invoke(countdownTime);
+            DetermineRoundWinner();
+        }
 
-//                 yield return new WaitForSeconds(1f);
-//                 countdownTime -= 1f;
-//             }
+        private void DetermineRoundWinner()
+        {
+            var player1 = GameObject.Find("Player1");
+            var player2 = GameObject.Find("Player2");
 
-//             ChangeGameState(GameState.RoundInProgress);
-//         }
+            if (player1 != null && player2 != null)
+                // compare player %
 
-//         private void StartRoundPlay()
-//         {
-//             if (!IsHost && !IsServer) return;
-
-//             netStateTimer.Value = int.Parse(GameLobbyManager.Instance.Lobby.Data["RoundTime"].Value);
-//             StartCoroutine(RoundPlayTimer());
-//         }
-
-//         private IEnumerator RoundPlayTimer()
-//         {
-//             float timeRemaining = int.Parse(GameLobbyManager.Instance.Lobby.Data["RoundTime"].Value);
-
-//             while (timeRemaining > 0)
-//             {
-//                 netStateTimer.Value = timeRemaining;
-//                 OnTimerUpdated?.Invoke(timeRemaining);
-
-//                 yield return new WaitForSeconds(0.1f);
-//                 timeRemaining -= 0.1f;
-//             }
-
-//             DetermineRoundWinner();
-//         }
-
-//         [ServerRpc(RequireOwnership = false)]
-//         public void PlayerFellOffServerRpc(ulong playerId)
-//         {
-//             if (playerId == 0) AddScore(2);
-//             else AddScore(1);
-
-//             StopAllCoroutines();
-//             ChangeGameState(GameState.RoundEnding);
-//         }
-
-//         private void DetermineRoundWinner()
-//         {
-//             if (currentRound % 2 == 1) AddScore(1);
-//             else AddScore(2);
-
-//             ChangeGameState(GameState.RoundEnding);
-//         }
-
-//         private void AddScore(int playerNumber)
-//         {
-//             if (playerNumber == 1) playerOneScore++;
-//             else playerTwoScore++;
-
-//             OnScoreChanged?.Invoke(playerOneScore, playerTwoScore);
-//         }
-
-//         private void EndCurrentRound()
-//         {
-//             if (!IsHost && !IsServer) return;
-
-//             StartCoroutine(DelayBeforeNextRound());
-//         }
-
-//         private IEnumerator DelayBeforeNextRound()
-//         {
-//             yield return new WaitForSeconds(2f);
-
-//             if (currentRound >= int.Parse(GameLobbyManager.Instance.Lobby.Data["RoundCount"].Value)
-//                 || playerOneScore > int.Parse(GameLobbyManager.Instance.Lobby.Data["RoundCount"].Value) / 2
-//                 || playerTwoScore > int.Parse(GameLobbyManager.Instance.Lobby.Data["RoundCount"].Value) / 2)
-//                 EndGame();
-//             else ChangeGameState(GameState.RoundStarting);
-//         }
-
-//         private void EndGame()
-//         {
-
-//             // Return to lobby after a short delay
-//             StartCoroutine(DelayedReturnToLobby());
-//         }
-
-//         private IEnumerator DelayedReturnToLobby()
-//         {
-//             yield return new WaitForSeconds(5f);
-
-//             if (IsHost)
-//             {
-//                 // GameLobbyManager.Instance.EndGame();
-//             }
-//         }
-//     }
-// }
+                OnScoreChanged?.Invoke(oneScore, twoScore);
+            gamePanelController.UpdateScores(oneScore, twoScore);
+            ChangeGameState(GameState.RoundEnding);
+        }
+    }
+}
