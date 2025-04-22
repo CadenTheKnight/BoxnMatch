@@ -110,10 +110,14 @@ namespace Assets.Scripts.Game.Managers
 
             if (gameMode == GameMode.AI)
             {
-                var cpu = FindObjectOfType<CPURotator>().gameObject;
-                if(cpu == null)
+                CPURotator cpur = FindObjectOfType<CPURotator>();
+                GameObject cpu;
+                if(cpur == null)
                 {
                     cpu = Instantiate(cpuPrefab);
+                } else
+                {
+                    cpu = cpur.gameObject;
                 }
                 cpu.transform.position = player2StartPosition;
                 cpu.transform.rotation = Quaternion.identity;
@@ -193,7 +197,7 @@ namespace Assets.Scripts.Game.Managers
             {
                 GameObject go2 = GameObject.Find("CPU");
                 if (go2 == null) return;
-                CPUController cpu = go.GetComponent<CPUController>();
+                CPUController cpu = go2.GetComponent<CPUController>();
                 if (cpu == null) return;
 
                 if (enabled) cpu.StartCPU();
