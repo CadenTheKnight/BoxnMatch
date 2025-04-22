@@ -66,7 +66,7 @@ public class handleExitPlay : MonoBehaviour
             //Debug.Log("Handle Exit 8 " + colObj.name);
 
             playerController playerController = colObj.GetComponent<playerController>();
-            playerController.DisableInputs();
+            if(playerController != null) playerController.DisableInputs();
 
             int playerNumber = colObj.name == "Player-Couch-P1" ? 1 : 2;
             GameManager.Instance.PlayerEliminated(playerNumber);

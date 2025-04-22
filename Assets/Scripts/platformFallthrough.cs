@@ -16,7 +16,7 @@ public class NewBehaviourScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Debug.Log("Input: " + Input.GetAxisRaw("Vertical"));
+        //Debug.Log("Input: " + Input.GetAxisRaw("Vertical"));
         if(_playerOnPlatform && Input.GetAxisRaw("Vertical") < 0)
         { 
             _collider_.enabled = false;

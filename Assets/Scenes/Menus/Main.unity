@@ -3692,6 +3692,8 @@ MonoBehaviour:
   showDebugLogs: 1
   mapSelectionData: {fileID: 11400000, guid: a3b896327c24a0344ab11736f99960c4, type: 2}
   gamePanelController: {fileID: 1292121178}
+  cpuPrefab: {fileID: 3525199397023729621, guid: d81eccf7baceb8c46ae23218f608c887, type: 3}
+  p2Prefab: {fileID: 4355047756674615735, guid: ab2a0747063d98349987691ec999c1f7, type: 3}
 --- !u!224 &788695026 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8322432819200981845, guid: 465547bc725a50d4cbcf5c2ef5206f53, type: 3}

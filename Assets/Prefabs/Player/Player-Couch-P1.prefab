@@ -599,45 +599,8 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 8264808577834005721, guid: 3b97bb70d28e3874d8b317113af1aedf, type: 3}
-      insertIndex: 10
-      addedObject: {fileID: 1390940584574789675}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3b97bb70d28e3874d8b317113af1aedf, type: 3}
---- !u!1 &1864694405886149648 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8264808577834005721, guid: 3b97bb70d28e3874d8b317113af1aedf, type: 3}
-  m_PrefabInstance: {fileID: 7733461429942300873}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1390940584574789675
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1864694405886149648}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5c491d3f6682da4da687d7e5e48efef, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  input: {fileID: 4157367718354745582}
-  BASE_SPEED: 10
-  TOP_SPEED: 11
-  JUMP_FORCE: 15
-  groundCheckOffset: -0.5
-  FALL_FORCE: -5
-  sideDrag: 8
-  groundCheckSize: {x: 0.5, y: 0.1}
-  groundLayer:
-    serializedVersion: 2
-    m_Bits: 8
-  player2Layer:
-    serializedVersion: 2
-    m_Bits: 0
-  jumpCount: 0
-  maxJumps: 2
-  forceAmount: 3
 --- !u!114 &4157367718354745582 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5972663554129578023, guid: 3b97bb70d28e3874d8b317113af1aedf, type: 3}

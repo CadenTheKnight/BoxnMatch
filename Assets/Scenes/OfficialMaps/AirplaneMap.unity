@@ -673,6 +673,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 469717379167252157, guid: caa0392dd2a940d4f8e4a9d239e827ec, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -25.000061
+      objectReference: {fileID: 0}
     - target: {fileID: 1353816022486578334, guid: caa0392dd2a940d4f8e4a9d239e827ec, type: 3}
       propertyPath: menuSceneName
       value: Main
@@ -769,9 +773,17 @@ PrefabInstance:
       propertyPath: m_AnchorMin.x
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5491367873188259440, guid: caa0392dd2a940d4f8e4a9d239e827ec, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -25.000061
+      objectReference: {fileID: 0}
     - target: {fileID: 6247934426673182404, guid: caa0392dd2a940d4f8e4a9d239e827ec, type: 3}
       propertyPath: m_Name
       value: BattleCanvas
+      objectReference: {fileID: 0}
+    - target: {fileID: 7800178451284863878, guid: caa0392dd2a940d4f8e4a9d239e827ec, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -25.000061
       objectReference: {fileID: 0}
     - target: {fileID: 8498277124548160103, guid: caa0392dd2a940d4f8e4a9d239e827ec, type: 3}
       propertyPath: m_AnchorMax.x
@@ -1138,10 +1150,6 @@ PrefabInstance:
     - target: {fileID: 3391311882854758568, guid: 096fc797519de2b4dbac6cfc122c3a27, type: 3}
       propertyPath: spawnRangeX.y
       value: 15
-      objectReference: {fileID: 0}
-    - target: {fileID: 3391311882854758568, guid: 096fc797519de2b4dbac6cfc122c3a27, type: 3}
-      propertyPath: secBetweenSpawn
-      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 5460704952463864590, guid: 096fc797519de2b4dbac6cfc122c3a27, type: 3}
       propertyPath: m_LocalScale.x

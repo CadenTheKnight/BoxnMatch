@@ -140,6 +140,7 @@ public class DamageableObject : MonoBehaviour
 
     public void Die()
     {
+        Debug.Log(gameObject.name + " dieded");
         // Trigger Explosive death VFX
         ExplodeDie();
 
@@ -151,10 +152,13 @@ public class DamageableObject : MonoBehaviour
         //i coded a tiny thing for tracking lives in this script, not realizing this was partially
         //done already. whoops. oh well
         UpdateLifeCount(-1);
+
+        GetComponent<Rigidbody2D>().velocity = Vector3.zero;
     }
 
     public void PermaDie()
     {
+        Debug.Log(gameObject.name + " permadied");
         Destroy(damageText);
         Destroy(LifeCounter);
         Destroy(gameObject);

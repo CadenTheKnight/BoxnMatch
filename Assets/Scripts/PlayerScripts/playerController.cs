@@ -46,12 +46,22 @@ public class playerController : MonoBehaviour
 
     private void OnEnable()
     {
+        DamageableObject dobj = GetComponent<DamageableObject>();
+        if (dobj != null) dobj.OnDeath += TrashInput;
         EnableInputs();
     }
 
     private void OnDisable()
     {
+        DamageableObject dobj = GetComponent<DamageableObject>();
+        if (dobj != null) dobj.OnDeath -= TrashInput;
         DisableInputs();
+    }
+
+    private void TrashInput(DamageableObject dobj)
+    {
+        horizontalInput = 0f;
+        jumpInput = false;
     }
 
     public IEnumerator SpeedChange(float newSpeed, float timeInSecs)

@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   orb: {fileID: 1193362371953575053, guid: d1d2bc52a55e26a47820c7dfb4f984bd, type: 3}
-  secBetweenSpawn: 4
+  secBetweenSpawn: 2
   endGame: 0
   spawnRangeX: {x: -15, y: 15}
   spawnY: 7

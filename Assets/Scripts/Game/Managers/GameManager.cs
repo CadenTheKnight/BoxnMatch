@@ -14,6 +14,8 @@ namespace Assets.Scripts.Game.Managers
         [SerializeField] private bool showDebugLogs = true;
         [SerializeField] private MapSelectionData mapSelectionData;
         [SerializeField] private GamePanelController gamePanelController;
+        [SerializeField] private GameObject cpuPrefab;
+        [SerializeField] private GameObject p2Prefab;
 
         private GameState gameState;
         private Map map;
@@ -108,7 +110,11 @@ namespace Assets.Scripts.Game.Managers
 
             if (gameMode == GameMode.AI)
             {
-                var cpu = GameObject.Find("CPU");
+                var cpu = FindObjectOfType<CPURotator>().gameObject;
+                if(cpu == null)
+                {
+                    cpu = Instantiate(cpuPrefab);
+                }
                 cpu.transform.position = player2StartPosition;
                 cpu.transform.rotation = Quaternion.identity;
                 cpu.GetComponent<DamageableObject>().currentDamage = 0;
@@ -116,6 +122,11 @@ namespace Assets.Scripts.Game.Managers
             else
             {
                 var player2 = GameObject.Find("Player-Couch-P2");
+                if(player2 == null)
+                {
+                    player2 = Instantiate(p2Prefab);
+                }
+
                 player2.transform.position = player2StartPosition;
                 player2.transform.rotation = Quaternion.identity;
                 player2.GetComponent<DamageableObject>().currentDamage = 0;
@@ -131,6 +142,7 @@ namespace Assets.Scripts.Game.Managers
 
             OnScoreChanged?.Invoke(oneScore, twoScore);
             gamePanelController.UpdateScores(oneScore, twoScore);
+            Debug.Log("blah blah blah game ended");
             ChangeGameState(GameState.RoundEnding);
             currentRound++;
         }
@@ -166,13 +178,24 @@ namespace Assets.Scripts.Game.Managers
 
         public void SetPlayerControlsEnabled(bool enabled)
         {
-            playerController player1 = GameObject.Find("Player-Couch-P1").GetComponent<playerController>();
-            if (enabled) player1.EnableInputs();
-            else player1.DisableInputs();
-
+            GameObject go = GameObject.Find("Player-Couch-P1");
+            if(go != null)
+            {
+                playerController player1 = go.GetComponent<playerController>();
+                if(player1 != null)
+                {
+                    if (enabled) player1.EnableInputs();
+                    else player1.DisableInputs();
+                }
+            }
+            
             if (gameMode == GameMode.AI)
             {
-                CPUController cpu = GameObject.Find("CPU").GetComponent<CPUController>();
+                GameObject go2 = GameObject.Find("CPU");
+                if (go2 == null) return;
+                CPUController cpu = go.GetComponent<CPUController>();
+                if (cpu == null) return;
+
                 if (enabled) cpu.StartCPU();
                 else cpu.StopCPU();
             }
