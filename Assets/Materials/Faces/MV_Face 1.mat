@@ -37,18 +37,18 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _Box:
-        m_Texture: {fileID: 2800000, guid: 24ca6cc5711565b4bb1377ee3afd2ad6, type: 3}
+        m_Texture: {fileID: 2800000, guid: 124328c3ab7d5444cba1d0feb139d1b7, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Face:
-        m_Texture: {fileID: 2800000, guid: 0072f9bfc92552949a9cb7f8423f6e0e, type: 3}
+        m_Texture: {fileID: 2800000, guid: 6f8bc22e1c0a09b4aa47f42b6bc83a79, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
     - _DistortionAmt: 0
     m_Colors:
-    - _BoxColor: {r: 0.6150943, g: 0.10096828, b: 0.10096828, a: 1}
-    - _FaceColor: {r: 0.9419073, g: 1, b: 0, a: 1}
-    - _LineColor: {r: 1, g: 0.45653942, b: 0, a: 1}
+    - _BoxColor: {r: 0.23137255, g: 0.003921569, b: 0, a: 1}
+    - _FaceColor: {r: 0.07450981, g: 0.85490197, b: 0.54509807, a: 1}
+    - _LineColor: {r: 0.07450981, g: 0.85490197, b: 0.54509807, a: 1}
   m_BuildTextureStacks: []

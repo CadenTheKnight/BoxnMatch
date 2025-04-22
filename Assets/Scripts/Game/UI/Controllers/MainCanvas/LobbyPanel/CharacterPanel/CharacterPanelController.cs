@@ -7,8 +7,8 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.LobbyPanel.CharacterPane
     {
         [SerializeField] private GameObject character;
         [SerializeField] private Selector characterSelector;
-        [SerializeField] private CharacterSettingsPanelController characterOneSettingsPanelController;
-        [SerializeField] private CharacterSettingsPanelController characterTwoSettingsPanelController;
+        [SerializeField] private GameObject characterOneSettingsPanelController;
+        [SerializeField] private GameObject characterTwoSettingsPanelController;
         [SerializeField] private MatchSettingsPanelController matchSettingsPanelController;
 
         private void Start()
@@ -34,8 +34,8 @@ namespace Assets.Scripts.Game.UI.Controllers.MainCanvas.LobbyPanel.CharacterPane
 
         private void SetActiveCharacter(int selection)
         {
-            characterOneSettingsPanelController.gameObject.SetActive(selection == 0);
-            characterTwoSettingsPanelController.gameObject.SetActive(selection == 1);
+            characterOneSettingsPanelController.SetActive(selection == 0);
+            characterTwoSettingsPanelController.SetActive(selection == 1);
         }
 
         private void SetGameMode(int selection)

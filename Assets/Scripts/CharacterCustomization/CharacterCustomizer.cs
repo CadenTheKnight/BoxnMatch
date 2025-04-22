@@ -9,7 +9,7 @@ public class CharacterCustomizer : MonoBehaviour
 
     private void Start()
     {
-        material = character.GetComponent<SpriteRenderer>().material;
+        material = character.GetComponent<SpriteRenderer>().sharedMaterial;
 
         //UI Image components cannot render custom shaders :(
     }

@@ -8,10 +8,12 @@ public class SpriteUpdater : MonoBehaviour
     [SerializeField] private CharacterCustomizer characterCustomizer;
     [SerializeField] private CharacterShaderChannel shaderChannel;
     private Sprite sprite;
+    private Image img;
 
     private void Start()
     {
-        sprite = GetComponent<Image>().sprite;
+        img = GetComponent<Image>();
+        sprite = img.sprite;
 
         GetComponent<Button>().onClick.AddListener(UpdateSprite);
     }
@@ -19,5 +21,27 @@ public class SpriteUpdater : MonoBehaviour
     public void UpdateSprite()
     {
         characterCustomizer.UpdateShader(sprite, shaderChannel);
+        Highlight();
+    }
+
+    private void Highlight()
+    {
+        UnhighlightNeighbors();
+        img.color = Color.grey;
+    }
+
+    public void Unhighlight()
+    {
+        img.color = Color.white;
+    }
+
+    private void UnhighlightNeighbors()
+    {
+        Transform par = transform.parent;
+
+        for(int i = 0; i < par.childCount; i++)
+        {
+            par.GetChild(i).GetComponent<SpriteUpdater>().Unhighlight();
+        }
     }
 }
