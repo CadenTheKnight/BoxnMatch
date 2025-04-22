@@ -71,11 +71,15 @@ namespace Assets.Scripts.Game.Managers
             if (enable)
             {
                 var player2 = GameObject.Find("Player-Couch-P2");
+                DamageableObject player2d = player2.GetComponent<DamageableObject>();
+                player2d.PermaDie();
                 Destroy(player2);
             }
             else
             {
                 var cpu = GameObject.Find("CPU");
+                DamageableObject cpud = cpu.GetComponent<DamageableObject>();
+                cpud.PermaDie();
                 Destroy(cpu);
             }
         }

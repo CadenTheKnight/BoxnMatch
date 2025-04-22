@@ -19,6 +19,7 @@ public class CPUController : MonoBehaviour
     private Vector2 previousPosition;                       // Stores previous position for checking if the cpu is stuck
     private int stuckCheck;                                 // Stores consecutive checks of no movement
     private bool deathFlag = false;                         // Keeps track of death handling
+    private bool active = false;                            // Checks whether the CPU should be moving
 
     // Stores the number of abilities attached that are used in various states
     private int numAttackAbilities = 0;
@@ -40,7 +41,7 @@ public class CPUController : MonoBehaviour
     {
         //Debug.Log(stuckCheck);
         // Check if the CPU is stationary/jittery for too long and therefore stuck
-        if (Mathf.Round(previousPosition.x) == Mathf.Round(transform.position.x) && Mathf.Round(previousPosition.y) == Mathf.Round(transform.position.y))
+        if (active && Mathf.Round(previousPosition.x) == Mathf.Round(transform.position.x) && Mathf.Round(previousPosition.y) == Mathf.Round(transform.position.y))
         {
             stuckCheck++;
         }
@@ -74,11 +75,13 @@ public class CPUController : MonoBehaviour
 
     public void StopCPU()
     {
+        active = false;
         StopAllCoroutines();
     }
 
     public void StartCPU()
     {
+        active = true;
         StartCoroutine(Idle());
     }
 
