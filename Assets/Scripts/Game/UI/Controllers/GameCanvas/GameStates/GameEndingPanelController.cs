@@ -15,6 +15,7 @@ namespace Assets.Scripts.Game.UI.Controllers.GameCanvas.GameStates
         private void OnEnable()
         {
             quitButton.onClick.AddListener(QuitGame);
+            //quitButton.onClick.AddListener(MenuQuit);
         }
 
         private void OnDisable()
@@ -31,6 +32,37 @@ namespace Assets.Scripts.Game.UI.Controllers.GameCanvas.GameStates
         public void QuitGame()
         {
             Application.Quit();
+        }
+
+        public void MenuQuit()
+        {
+            try
+            {
+                SceneManager.UnloadSceneAsync(1);
+            }
+            catch { }
+
+            try
+            {
+                SceneManager.UnloadSceneAsync(2);
+            }
+            catch { }
+
+            try
+            {
+                SceneManager.UnloadSceneAsync(3);
+            }
+            catch { }
+
+            try
+            {
+                SceneManager.UnloadSceneAsync(4);
+            }
+            catch { }
+
+            Destroy(gameObject);
+            SceneManager.LoadScene(0);
+
         }
     }
 }
