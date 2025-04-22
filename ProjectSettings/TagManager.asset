@@ -13,7 +13,6 @@ TagManager:
   - Grapple
   - Shield
   - Rocket
-  - Player2
   - Explosive
   layers:
   - Default

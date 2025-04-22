@@ -50,7 +50,7 @@ public class SettingsMenuManager : MonoBehaviour
 
     public void SetVolume(float sliderValue)
     {
-        audioMixer.SetFloat("MasterVolume", Mathf.Log10(sliderValue) * 20);
+        audioMixer.SetFloat("MasterVolume", Mathf.Log10(sliderValue + 0.01f) * 20);
     }
 
     public void SetQuality(int qualityIndex)
