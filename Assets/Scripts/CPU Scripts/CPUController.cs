@@ -34,8 +34,6 @@ public class CPUController : MonoBehaviour
         cpuR = GetComponent<CPURotator>();
         rb = GetComponent<Rigidbody2D>();
         previousPosition = transform.position;
-
-        StartCPU();
     }
 
     private void Update()
