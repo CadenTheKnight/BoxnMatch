@@ -62,16 +62,22 @@ namespace Assets.Scripts.Game.Managers
             player1StartPosition = GameObject.Find("Player-Couch-P1").transform.position;
             player2StartPosition = GameObject.Find("Player-Couch-P2").transform.position;
 
+            EnableAI(gameMode == GameMode.AI);
             gamePanelController.Initialize(rounds, roundTimeSeconds, gameMode);
-            if (gameMode == GameMode.AI) EnableAI();
         }
 
-        private void EnableAI()
+        private void EnableAI(bool enable)
         {
-            var player2 = GameObject.Find("Player-Couch-P2");
-            Destroy(player2);
-
-            Instantiate(Resources.Load<GameObject>("CPU"), player2StartPosition, Quaternion.identity);
+            if (enable)
+            {
+                var player2 = GameObject.Find("Player-Couch-P2");
+                Destroy(player2);
+            }
+            else
+            {
+                var cpu = GameObject.Find("CPU");
+                Destroy(cpu);
+            }
         }
 
         public void ChangeGameState(GameState newState)
@@ -93,18 +99,21 @@ namespace Assets.Scripts.Game.Managers
         {
             var player1 = GameObject.Find("Player-Couch-P1");
             player1.transform.position = player1StartPosition;
+            player1.transform.rotation = Quaternion.identity;
             player1.GetComponent<DamageableObject>().currentDamage = 0;
 
             if (gameMode == GameMode.AI)
             {
                 var cpu = GameObject.Find("CPU");
                 cpu.transform.position = player2StartPosition;
+                cpu.transform.rotation = Quaternion.identity;
                 cpu.GetComponent<DamageableObject>().currentDamage = 0;
             }
             else
             {
                 var player2 = GameObject.Find("Player-Couch-P2");
                 player2.transform.position = player2StartPosition;
+                player2.transform.rotation = Quaternion.identity;
                 player2.GetComponent<DamageableObject>().currentDamage = 0;
             }
         }
