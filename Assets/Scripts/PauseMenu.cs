@@ -50,4 +50,10 @@ public class PauseMenu : MonoBehaviour
     {
         SceneManager.LoadScene(menuSceneName);
     }
+
+    public void QuitToDesktop()
+    {
+        Debug.Log("Quit to desktop");
+        Application.Quit();
+    }
 }

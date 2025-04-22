@@ -6,14 +6,5 @@ using DG.Tweening;
 
 public class BattleCountdown : MonoBehaviour
 {
-    //private TMP_Text 
-    private void Start()
-    {
-        Time.timeScale = 0f;
-    }
-
-    private IEnumerator DoCountdown()
-    {
-        yield return new WaitForSeconds(1f);
-    }
+    //if you found this script, you will instantly
 }
