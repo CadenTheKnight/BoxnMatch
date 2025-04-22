@@ -10,16 +10,16 @@ namespace Assets.Scripts.Game.UI.Controllers.GameCanvas.GameStates
         [Header("UI Elements")]
         [SerializeField] private TextMeshProUGUI winnerText;
         [SerializeField] private TextMeshProUGUI finalScoreText;
-        [SerializeField] private Button mainMenuButton;
+        [SerializeField] private Button quitButton;
 
         private void OnEnable()
         {
-            mainMenuButton.onClick.AddListener(ReturnToMainMenu);
+            quitButton.onClick.AddListener(QuitGame);
         }
 
         private void OnDisable()
         {
-            mainMenuButton.onClick.RemoveListener(ReturnToMainMenu);
+            quitButton.onClick.RemoveListener(QuitGame);
         }
 
         public void ShowResults(string winner, int player1Score, int player2Score)
@@ -28,7 +28,7 @@ namespace Assets.Scripts.Game.UI.Controllers.GameCanvas.GameStates
             finalScoreText.text = $"FINAL SCORE: {player1Score} - {player2Score}";
         }
 
-        public void ReturnToMainMenu()
+        public void QuitGame()
         {
             Application.Quit();
         }
