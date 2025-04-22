@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement; //NEW
 using UnityEngine.InputSystem;
 
-public class playerController: MonoBehaviour
+public class playerController : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private PlayerInputManager input;
@@ -151,14 +151,14 @@ public class playerController: MonoBehaviour
         horizontalInput = val.ReadValue<float>();
     }
 
-    private void EnableInputs()
+    public void EnableInputs()
     {
         input.jumpInput += TryJump;
         input.crouchInput += TryGoDown;
         input.x_movementInput += TryHorizontalMovement;
     }
 
-    private void DisableInputs()
+    public void DisableInputs()
     {
         input.jumpInput -= TryJump;
         input.crouchInput -= TryGoDown;

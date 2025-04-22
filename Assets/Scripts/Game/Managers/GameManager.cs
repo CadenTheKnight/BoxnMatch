@@ -5,6 +5,7 @@ using Assets.Scripts.Game.Types;
 using UnityEngine.SceneManagement;
 using Assets.Scripts.Framework.Core;
 using Assets.Scripts.Game.UI.Controllers.GameCanvas;
+using System.Collections;
 
 namespace Assets.Scripts.Game.Managers
 {
@@ -19,6 +20,9 @@ namespace Assets.Scripts.Game.Managers
         private int rounds;
         private float roundTimeSeconds;
         private GameMode gameMode;
+
+        private Vector3 player1StartPosition;
+        private Vector3 player2StartPosition;
 
         private int currentRound;
         private int oneScore;
@@ -45,39 +49,34 @@ namespace Assets.Scripts.Game.Managers
             oneScore = 0;
             twoScore = 0;
 
-            SceneManager.LoadSceneAsync(map.SceneName);
-
-            SceneManager.sceneLoaded += OnSceneLoaded;
+            StartCoroutine(LoadGameSceneAsync());
         }
 
-        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        private IEnumerator LoadGameSceneAsync()
         {
-            SceneManager.sceneLoaded -= OnSceneLoaded;
+            AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(map.SceneName);
 
-            if (scene.name == map.SceneName)
+            while (!asyncLoad.isDone) yield return null;
+            yield return null;
+
+            player1StartPosition = GameObject.Find("Player-Couch-P1").transform.position;
+            player2StartPosition = GameObject.Find("Player-Couch-P2").transform.position;
+
+            EnableAI(gameMode == GameMode.AI);
+            gamePanelController.Initialize(rounds, roundTimeSeconds, gameMode);
+        }
+
+        private void EnableAI(bool enable)
+        {
+            if (enable)
             {
-                gamePanelController.Initialize(rounds, roundTimeSeconds, gameMode);
-
-                if (gameMode == GameMode.AI) EnableAI();
-                ChangeGameState(GameState.RoundStarting);
+                var player2 = GameObject.Find("Player-Couch-P2");
+                Destroy(player2);
             }
-        }
-
-        private void OnDestroy()
-        {
-            SceneManager.sceneLoaded -= OnSceneLoaded;
-        }
-
-        private void EnableAI()
-        {
-            var player2 = GameObject.Find("Player2");
-            if (player2 != null)
+            else
             {
-                if (player2.TryGetComponent<CPUController>(out var aiController))
-                    aiController.enabled = true;
-
-                if (player2.TryGetComponent<playerControllerPlayer2>(out var player2Controller))
-                    player2Controller.enabled = false;
+                var cpu = GameObject.Find("CPU");
+                Destroy(cpu);
             }
         }
 
@@ -98,19 +97,24 @@ namespace Assets.Scripts.Game.Managers
 
         private void ResetPlayersForRound()
         {
-            var player1 = GameObject.Find("Player1");
-            var player2 = GameObject.Find("Player2");
+            var player1 = GameObject.Find("Player-Couch-P1");
+            player1.transform.position = player1StartPosition;
+            player1.transform.rotation = Quaternion.identity;
+            player1.GetComponent<DamageableObject>().currentDamage = 0;
 
-            if (player1 != null)
+            if (gameMode == GameMode.AI)
             {
-                player1.transform.position = new Vector3(-3, 2, 0);
-                if (player1.TryGetComponent<Rigidbody2D>(out var rb1)) rb1.velocity = Vector2.zero;
+                var cpu = GameObject.Find("CPU");
+                cpu.transform.position = player2StartPosition;
+                cpu.transform.rotation = Quaternion.identity;
+                cpu.GetComponent<DamageableObject>().currentDamage = 0;
             }
-
-            if (player2 != null)
+            else
             {
-                player2.transform.position = new Vector3(3, 2, 0);
-                if (player2.TryGetComponent<Rigidbody2D>(out var rb2)) rb2.velocity = Vector2.zero;
+                var player2 = GameObject.Find("Player-Couch-P2");
+                player2.transform.position = player2StartPosition;
+                player2.transform.rotation = Quaternion.identity;
+                player2.GetComponent<DamageableObject>().currentDamage = 0;
             }
         }
 
@@ -136,38 +140,19 @@ namespace Assets.Scripts.Game.Managers
 
         private void DetermineRoundWinner()
         {
-            var player1 = GameObject.Find("Player1");
-            var player2 = GameObject.Find("Player2");
 
-            if (player1 != null && player2 != null)
+            DamageableObject player1 = GameObject.Find("Player-Couch-P1").GetComponent<DamageableObject>();
+            if (gameMode == GameMode.AI)
             {
-                var damageObj1 = player1.GetComponent<DamageableObject>();
-                var damageObj2 = player2.GetComponent<DamageableObject>();
-
-                if (damageObj1 != null && damageObj2 != null)
-                {
-                    float player1DamagePercentage = damageObj1.currentDamage;
-                    float player2DamagePercentage = damageObj2.currentDamage;
-
-                    Debug.Log($"Round ended - P1 damage: {player1DamagePercentage}%, P2 damage: {player2DamagePercentage}%");
-
-                    if (player1DamagePercentage < player2DamagePercentage)
-                    {
-                        oneScore++;
-                        Debug.Log("Player 1 wins the round!");
-                    }
-                    else if (player2DamagePercentage < player1DamagePercentage)
-                    {
-                        twoScore++;
-                        Debug.Log("Player 2 wins the round!");
-                    }
-                    else
-                    {
-                        oneScore++;
-                        twoScore++;
-                        Debug.Log("Round ended in a tie!");
-                    }
-                }
+                DamageableObject cpu = GameObject.Find("CPU").GetComponent<DamageableObject>();
+                if (player1.currentDamage > cpu.currentDamage) twoScore++;
+                else if (player1.currentDamage < cpu.currentDamage) oneScore++;
+            }
+            else
+            {
+                DamageableObject player2 = GameObject.Find("Player-Couch-P2").GetComponent<DamageableObject>();
+                if (player1.currentDamage > player2.currentDamage) twoScore++;
+                else if (player1.currentDamage < player2.currentDamage) oneScore++;
             }
 
             OnScoreChanged?.Invoke(oneScore, twoScore);
@@ -177,72 +162,22 @@ namespace Assets.Scripts.Game.Managers
 
         public void SetPlayerControlsEnabled(bool enabled)
         {
-            var player1 = GameObject.FindWithTag("Player");
-            if (player1 != null)
+            playerController player1 = GameObject.Find("Player-Couch-P1").GetComponent<playerController>();
+            if (enabled) player1.EnableInputs();
+            else player1.DisableInputs();
+
+            if (gameMode == GameMode.AI)
             {
-                Debug.Log($"Found Player1: {player1.name}");
-
-                if (player1.TryGetComponent<playerControllerPlayer1>(out var p1Controller))
-                    p1Controller.enabled = enabled;
-
-                if (player1.TryGetComponent<playerController>(out var pController))
-                    pController.enabled = enabled;
-
-                if (player1.TryGetComponent<PlayerInputManager>(out var input))
-                {
-                    if (enabled)
-                        input.SendMessage("EnableInputs", null, SendMessageOptions.DontRequireReceiver);
-                    else
-                        input.SendMessage("DisableInputs", null, SendMessageOptions.DontRequireReceiver);
-                }
-
-                if (player1.TryGetComponent<PlayerRotator>(out var rotator))
-                    rotator.enabled = enabled;
+                CPUController cpu = GameObject.Find("CPU").GetComponent<CPUController>();
+                if (enabled) cpu.StartCPU();
+                else cpu.StopCPU();
             }
             else
             {
-                Debug.LogWarning("Player 1 not found with tag 'Player'");
+                playerController player2 = GameObject.Find("Player-Couch-P2").GetComponent<playerController>();
+                if (enabled) player2.EnableInputs();
+                else player2.DisableInputs();
             }
-
-            var player2 = GameObject.FindWithTag("Player2");
-            if (player2 != null)
-            {
-                Debug.Log($"Found Player2: {player2.name}");
-
-                if (gameMode == GameMode.AI)
-                {
-                    if (player2.TryGetComponent<CPUController>(out var cpuController))
-                        cpuController.enabled = enabled;
-                }
-                else
-                {
-                    if (player2.TryGetComponent<playerControllerPlayer2>(out var p2Controller))
-                        p2Controller.enabled = enabled;
-
-                    if (player2.TryGetComponent<playerController>(out var pController))
-                        pController.enabled = enabled;
-
-                    if (player2.TryGetComponent<PlayerInputManager>(out var input))
-                    {
-                        if (enabled)
-                            input.SendMessage("EnableInputs", null, SendMessageOptions.DontRequireReceiver);
-                        else
-                            input.SendMessage("DisableInputs", null, SendMessageOptions.DontRequireReceiver);
-                    }
-
-                    if (player2.TryGetComponent<PlayerRotator>(out var rotator))
-                        rotator.enabled = enabled;
-                }
-            }
-            else
-            {
-                Debug.LogWarning("Player 2 not found with tag 'Player2'");
-            }
-
-            if (enabled)
-                Debug.Log("Player controls enabled");
-            else
-                Debug.Log("Player controls disabled");
         }
     }
 }

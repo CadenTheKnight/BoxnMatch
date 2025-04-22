@@ -22,6 +22,7 @@ namespace Assets.Scripts.Game.UI.Controllers.GameCanvas
         private void Start()
         {
             GameManager.Instance.OnGameStateChanged += OnGameStateChanged;
+
         }
 
         private void OnDestroy()
@@ -80,13 +81,13 @@ namespace Assets.Scripts.Game.UI.Controllers.GameCanvas
         private IEnumerator CountdownSequence()
         {
             roundStartingPanelController.SetCountdownValue(3);
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSecondsRealtime(1f);
 
             roundStartingPanelController.SetCountdownValue(2);
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSecondsRealtime(1f);
 
             roundStartingPanelController.SetCountdownValue(1);
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSecondsRealtime(1f);
 
             GameManager.Instance.ChangeGameState(GameState.RoundInProgress);
         }

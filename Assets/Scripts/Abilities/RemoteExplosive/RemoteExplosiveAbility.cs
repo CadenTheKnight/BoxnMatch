@@ -19,11 +19,15 @@ public class RemoteExplosiveAbility : AbilityBinding
         }
         else // Second activation detonates the charge then destroys the ability
         {
-            DetonateExplosive();
+            if (explosive)
+            {
+                DetonateExplosive();
+            }
             int socketToFire = ((int)dir - (int)pr.currDirection);
             if (socketToFire < 0) socketToFire += 4;
             pr.sockets[socketToFire].GetComponent<SpriteRenderer>().sprite = null;
             Destroy(gameObject);
+
         }
     }
 

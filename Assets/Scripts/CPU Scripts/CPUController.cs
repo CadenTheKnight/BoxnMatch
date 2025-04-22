@@ -34,8 +34,6 @@ public class CPUController : MonoBehaviour
         cpuR = GetComponent<CPURotator>();
         rb = GetComponent<Rigidbody2D>();
         previousPosition = transform.position;
-
-        StartCoroutine(Idle());
     }
 
     private void Update()
@@ -56,22 +54,32 @@ public class CPUController : MonoBehaviour
         {
             stuckCheck = 0;
             Debug.Log("Attempt unstuck procedure");
-            StopAllCoroutines();
-            StartCoroutine(Idle());
+            StopCPU();
+            StartCPU();
         }
 
         // Reset on death
         if(!deathFlag && GetComponent<DamageableObject>().damageModifier == 0)
         {
             deathFlag = true;
-            StopAllCoroutines();
-            StartCoroutine(Idle());
+            StopCPU();
+            StartCPU();
         }
         else if (deathFlag && GetComponent<DamageableObject>().damageModifier != 0)
         {
             deathFlag = false;
         }
         
+    }
+
+    public void StopCPU()
+    {
+        StopAllCoroutines();
+    }
+
+    public void StartCPU()
+    {
+        StartCoroutine(Idle());
     }
 
 
