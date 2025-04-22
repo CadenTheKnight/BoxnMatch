@@ -30,7 +30,7 @@ public class playerControllerPlayer2 : MonoBehaviour
     public int maxJumps = 2;
     bool isGrounded = false;
     bool isPlayer1 = false;
-    
+
     public float forceAmount = 10f;
     private bool isFalling = false;
 
@@ -101,13 +101,13 @@ public class playerControllerPlayer2 : MonoBehaviour
 
         Vector2 force = new Vector2(horizontalInput * forceAmount, 0);
         rb.AddForce(force, ForceMode2D.Impulse);
-        
+
 
         if (Mathf.Abs(rb.velocity.x) > TOP_SPEED)
         {
             // Limit speed while keeping direction
             rb.velocity = new Vector2(Mathf.Sign(rb.velocity.x) * TOP_SPEED, rb.velocity.y);
-     
+
             Vector2 current_velocity = rb.velocity;
             current_velocity.x *= 1f - (sideDrag * Time.fixedDeltaTime);
 
@@ -155,14 +155,14 @@ public class playerControllerPlayer2 : MonoBehaviour
         horizontalInput = val.ReadValue<float>();
     }
 
-    private void EnableInputs()
+    public void EnableInputs()
     {
         input.jumpInput += TryJump;
         input.crouchInput += TryGoDown;
         input.x_movementInput += TryHorizontalMovement;
     }
 
-    private void DisableInputs()
+    public void DisableInputs()
     {
         input.jumpInput -= TryJump;
         input.crouchInput -= TryGoDown;

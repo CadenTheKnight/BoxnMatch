@@ -154,14 +154,14 @@ public class playerControllerPlayer1 : MonoBehaviour
         horizontalInput = val.ReadValue<float>();
     }
 
-    private void EnableInputs()
+    public void EnableInputs()
     {
         input.jumpInput += TryJump;
         input.crouchInput += TryGoDown;
         input.x_movementInput += TryHorizontalMovement;
     }
 
-    private void DisableInputs()
+    public void DisableInputs()
     {
         input.jumpInput -= TryJump;
         input.crouchInput -= TryGoDown;

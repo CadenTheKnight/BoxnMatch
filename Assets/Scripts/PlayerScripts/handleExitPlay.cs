@@ -65,13 +65,16 @@ public class handleExitPlay : MonoBehaviour
             damagableObj.currentDamage = 0;
             //Debug.Log("Handle Exit 8 " + colObj.name);
 
+            playerController playerController = colObj.GetComponent<playerController>();
+            playerController.DisableInputs();
+
             int playerNumber = colObj.name == "Player-Couch-P1" ? 1 : 2;
             GameManager.Instance.PlayerEliminated(playerNumber);
 
             // Find the respawn position of the object
-            foreach(RespawnPosition rp in respawnPoints)
+            foreach (RespawnPosition rp in respawnPoints)
             {
-                if(rp.gm.Equals(colObj))
+                if (rp.gm.Equals(colObj))
                 {
                     colObj.transform.position = rp.pos;
                     break;

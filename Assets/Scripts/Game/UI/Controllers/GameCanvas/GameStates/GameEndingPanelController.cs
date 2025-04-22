@@ -30,7 +30,8 @@ namespace Assets.Scripts.Game.UI.Controllers.GameCanvas.GameStates
 
         public void ReturnToMainMenu()
         {
-            SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene().buildIndex);
+            Debug.Log("Returning to Main Menu...");
+            // SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene().buildIndex);
         }
     }
 }
