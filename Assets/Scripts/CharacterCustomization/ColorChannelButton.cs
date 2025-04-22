@@ -29,12 +29,13 @@ public class ColorChannelButton : MonoBehaviour
 
         bgImage = GetComponent<Image>();
 
-        material = character.GetComponent<SpriteRenderer>().material;
+        material = character.GetComponent<SpriteRenderer>().sharedMaterial;
     }
 
     private void UpdateColor(Color col)
     {
         material.SetColor(shaderChannel.ToString(), col);
+        Debug.Log("updated color");
     }
 
     private void EnablePalette()
