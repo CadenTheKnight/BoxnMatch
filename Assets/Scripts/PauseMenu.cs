@@ -14,6 +14,9 @@ public class PauseMenu : MonoBehaviour
     [Header("Scenes")]
     public string menuSceneName;
 
+    [Header("References")]
+    public GameObject controlsPanel;
+
     private void Start()
     {
         cg = GetComponent<CanvasGroup>();
@@ -31,6 +34,16 @@ public class PauseMenu : MonoBehaviour
         Time.timeScale = 1f;
         cg.DOFade(0f, pauseFadeTime).SetUpdate(true);
         cg.blocksRaycasts = false;
+    }
+
+    public void ShowControls()
+    {
+        controlsPanel.SetActive(true);
+    }
+
+    public void ExitControls()
+    {
+        controlsPanel.SetActive(false);
     }
 
     public void QuitToMenu()
